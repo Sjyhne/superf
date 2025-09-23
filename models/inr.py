@@ -26,6 +26,11 @@ class INR(nn.Module):
 
         self.num_samples = num_samples
         self.time_vectors = torch.FloatTensor(np.linspace(0, 1, self.num_samples))
+<<<<<<< Updated upstream
+=======
+
+        self.use_base_frame = use_base_frame
+>>>>>>> Stashed changes
         
         self.use_gnll = use_gnll
 
@@ -36,6 +41,7 @@ class INR(nn.Module):
             self.affine_mlp = Affine(hidden_features=256, hidden_layers=2)
 
         self.use_direct_param_T = use_direct_param_T
+<<<<<<< Updated upstream
         self.use_base_frame = use_base_frame
         
         #ct = nn.ModuleList([nn.Linear(1, 1) for _ in range(3)])
@@ -52,6 +58,8 @@ class INR(nn.Module):
         #for color_transform in self.color_transforms:
         #    for ct in color_transform:
         #        ct.weight.data.fill_(1)
+=======
+>>>>>>> Stashed changes
 
         if self.use_gnll:
 
@@ -81,8 +89,9 @@ class INR(nn.Module):
         if self.use_direct_param_T:
             return self.get_direct_affine(sample_id)
         else:
-            return self.get_neural_affine(self.time_vectors[sample_id])
-    
+            return self.get_neural_affine(sample_id)
+
+
     def get_direct_affine(self, sample_id):
 
         B = sample_id.shape[0]
@@ -108,19 +117,35 @@ class INR(nn.Module):
         return A
 
 
-    def get_neural_affine(self, time):
-        
-        time = time.unsqueeze(-1)
+    def get_neural_affine(self, sample_id):
 
+        time_vector = self.time_vectors[sample_id].unsqueeze(-1)
 
-        affine_params = self.affine_mlp(time) # [B, 6]
+        affine_params = self.affine_mlp(time_vector) # [B, 6]
 
         B, C = affine_params.shape
 
         A = affine_params.reshape(B, 2, 3) # [B, 2, 3]
+        A = torch.stack([
+            torch.stack([affine_params[:, 0], affine_params[:, 1], affine_params[:, 4]], dim=1),  # [a11, a12, tx]
+            torch.stack([affine_params[:, 2], affine_params[:, 3], affine_params[:, 5]], dim=1)   # [a21, a22, ty]
+        ], dim=1)
 
         assert A.shape == (B, 2, 3)
 
+        # Override affine parameters for sample_id 0 (base frame) to apply no transformation
+        if hasattr(self, 'use_base_frame') and self.use_base_frame:
+            # Find indices where sample_id is 0 (base frame)
+            base_frame_mask = (sample_id == 0)
+            if base_frame_mask.any():
+                # Set identity transformation for base frame: [1, 0, 0], [0, 1, 0]
+                A[base_frame_mask, 0, 0] = 1.0  # cos(0) = 1
+                A[base_frame_mask, 0, 1] = 0.0  # -sin(0) = 0  
+                A[base_frame_mask, 0, 2] = 0.0  # no translation
+                A[base_frame_mask, 1, 0] = 0.0  # sin(0) = 0
+                A[base_frame_mask, 1, 1] = 1.0  # cos(0) = 1
+                A[base_frame_mask, 1, 2] = 0.0  # no translation
+        
         return A
 
     def apply_affine(self, coords, A):
@@ -130,7 +155,6 @@ class INR(nn.Module):
         coords = coords.reshape(B, -1, C) # [B, H*W, C]
 
         homogenous_coords = torch.cat([coords, torch.ones(B, coords.shape[1], 1, device=coords.device)], dim=2) # B, HW, 3 - Homoegenous coordinates
-
         transformed_coords = torch.matmul(homogenous_coords, A.mT) # B, HW, 2
 
         return transformed_coords.reshape(B, H, W, C)
@@ -152,11 +176,21 @@ class INR(nn.Module):
 
             coords = self.apply_affine(coords, A)
         
+<<<<<<< Updated upstream
         if not training and not self.use_base_frame and not self.use_direct_param_T:
             A = self.get_affine_transform(sample_idx) # [B, 2, 3]
             dx_list = A[:, 0, 2]
             dy_list = A[:, 1, 2]
             coords = self.apply_affine(coords, A)
+=======
+        if not training:
+            A = self.get_affine_transform(sample_idx) # [B, 2, 3]
+            dx_list = A[:, 0, 2]
+            dy_list = A[:, 1, 2]
+            if not self.use_direct_param_T:
+                coords = self.apply_affine(coords, A)
+        
+>>>>>>> Stashed changes
 
 
         if self.input_projection is not None:

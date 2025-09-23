@@ -128,7 +128,7 @@ class Affine(nn.Module):
     def init_weights(self):
         with torch.no_grad():
             # Initialize to identity transformation: [1, 0, 0, 1, 0, 0]
-            self.net[-1].bias.copy_(torch.Tensor([1., 0., 0., 1., 0., 0.]))
+            self.net[-1].bias.copy_(torch.Tensor([1., 0., 0., 0., 1., 0.]))
     
     def forward(self, coords):
         output = self.net(coords)
@@ -173,9 +173,9 @@ def apply_affine(x, a):
     # Reshape affine parameters to separate rotation/scaling and translation
     A = a[:, :4].view(-1, 2, 2)  # 2x2 transformation matrix
     t = a[:, 4:6].unsqueeze(-1)  # Translation vector [N, 2, 1]
-    
     # Apply transformation: x' = A * x + t
     x_transformed = torch.bmm(A, x.unsqueeze(-1)) + t
+
     return x_transformed.squeeze(-1)
 
 def jacobian(y, x):
@@ -233,6 +233,9 @@ class VideoFitting(Dataset):
     
 
 def nir_loss(o, ground_truth):
+
+    if len(ground_truth.shape) == 4:
+        ground_truth = einops.rearrange(ground_truth, 'b h w c -> b (h w) c')
     
     loss_recon = ((o - ground_truth) ** 2).mean()
 
@@ -254,18 +257,26 @@ class NIR(nn.Module):
         f1 = MLP(input_dim=256, output_dim=3, hidden_dim=256, depth=4)
         # f2 = Siren(in_features=3, out_features=3, hidden_features=256, hidden_layers=4, outermost_linear=True)
 
+        self.time_vectors = torch.FloatTensor(np.linspace(0, 1, num_samples))
+
         self.g = g
         self.f1 = f1
 
-    def forward(self, x, time_vector, sample_idx=None, scale_factor=None, training=True, lr_frames=None):
+    def forward(self, x, sample_idx=None, scale_factor=None, training=True, lr_frames=None):
         B, H, W, C = x.shape
+        
+        if self.time_vectors.device != sample_idx.device:
+            self.time_vectors = self.time_vectors.to(sample_idx.device)
+
+        time_vector = self.time_vectors[sample_idx]
 
         x = einops.rearrange(x, 'b h w c -> b (h w) c')
 
-        time_vector = time_vector.repeat(1, H * W, 1)
+        time_vector = time_vector.repeat(1, H, W, 1)
+        time_vector = einops.rearrange(time_vector, 'b h w c -> b (h w) c')
 
-        xy = x
-        t = time_vector
+        xy = x # coordinates
+        t = time_vector # time vector
 
         a = self.g(t)
 
@@ -274,8 +285,9 @@ class NIR(nn.Module):
         # For affine transformations, tx and ty are the translation components
         pred_dx = a[:, 0, 4]  # tx component (index 4)
         pred_dy = a[:, 0, 5]  # ty component (index 5)
-
-        xy_ = apply_affine(xy.squeeze(0), a.squeeze(0))
+        
+        if training:
+            xy_ = apply_affine(xy.squeeze(0), a.squeeze(0))
 
         if self.input_projection is not None:
             xy_ = self.input_projection(xy_)
