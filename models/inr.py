@@ -25,7 +25,7 @@ class INR(nn.Module):
         self.decoder = decoder
 
         self.num_samples = num_samples
-        self.time_vectors = torch.FloatTensor(np.linspace(-1, 1, self.num_samples))
+        self.time_vectors = torch.FloatTensor(np.linspace(0, 1, self.num_samples))
         
         self.use_gnll = use_gnll
 
@@ -36,6 +36,7 @@ class INR(nn.Module):
             self.affine_mlp = Affine(hidden_features=256, hidden_layers=2)
 
         self.use_direct_param_T = use_direct_param_T
+        self.use_base_frame = use_base_frame
         
         #ct = nn.ModuleList([nn.Linear(1, 1) for _ in range(3)])
         #self.color_transforms = nn.ModuleList([ct for _ in range(num_samples)])
@@ -149,6 +150,12 @@ class INR(nn.Module):
             dx_list = A[:, 0, 2]
             dy_list = A[:, 1, 2]
 
+            coords = self.apply_affine(coords, A)
+        
+        if not training and not self.use_base_frame and not self.use_direct_param_T:
+            A = self.get_affine_transform(sample_idx) # [B, 2, 3]
+            dx_list = A[:, 0, 2]
+            dy_list = A[:, 1, 2]
             coords = self.apply_affine(coords, A)
 
 

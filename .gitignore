@@ -203,3 +203,17 @@ inr_direct*
 inr_undirect*
 test/
 tci_super_resolved/
+
+# Result directories
+*_results/
+*_synth*/
+df4*
+all_fourier_results/
+enhanced_results/
+fourier_results/
+multi_sample_results/
+ws_results_test/
+psnr_results.txt
+
+# Analysis and benchmark files
+FOURIER_EXPLORATION_README.md

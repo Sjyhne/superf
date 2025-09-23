@@ -2,9 +2,13 @@ import os
 import torch
 import numpy as np
 import cv2
+import torch.nn.functional as F
 import json
 from pathlib import Path
 import random
+import glob
+
+import tifffile
 
 def get_and_standardize_image(image):
     """Get and standardize image to have zero mean and unit std for each channel"""
@@ -34,11 +38,20 @@ def get_dataset(args, name='satburst', keep_in_memory=True):
     if name == 'satburst_synth':
         return SRData(data_dir=args.root_satburst_synth, num_samples=args.num_samples, keep_in_memory=keep_in_memory, scale_factor=args.scale_factor)
     elif name == 'burst_synth':
-        return SyntheticBurstVal(data_dir=args.root_burst_synth, 
-                                 sample_id=args.sample_id, keep_in_memory=keep_in_memory)
-    elif name == 'worldstrat':
-        return WorldStratDatasetFrame(data_dir=args.root_worldstrat, 
-                                      area_name=args.area_name, hr_size=args.worldstrat_hr_size)
+        return SyntheticBurstVal(
+            data_dir=args.root_burst_synth,
+            sample_id=args.sample_id,
+            keep_in_memory=keep_in_memory,
+            scale_factor=getattr(args, 'scale_factor', 4),
+            df=getattr(args, 'df', 4),
+        )
+    elif name == 'worldstrat_test':
+        return WorldStratTestDataset(
+            data_root=getattr(args, 'root_worldstrat_test', 'worldstrat_test_data'),
+            sample_id=getattr(args, 'sample_id', None),
+            scale_factor=getattr(args, 'df', 4),
+            keep_in_memory=keep_in_memory,
+        )
     else:
         raise ValueError(f"Invalid daaset name: {name}")
 
@@ -187,7 +200,7 @@ class SRData(torch.utils.data.Dataset):
 
 
 class SyntheticBurstVal(torch.utils.data.Dataset):
-    def __init__(self, data_dir, sample_id, keep_in_memory=True):
+    def __init__(self, data_dir, sample_id, keep_in_memory=True, scale_factor=4, df=4):
         """
         Initialize SyntheticBurstVal dataset.
         
@@ -201,6 +214,9 @@ class SyntheticBurstVal(torch.utils.data.Dataset):
         self.sample_id = sample_id
 
         self.rggb = True
+
+        self.scale_factor = scale_factor
+        self.df = df
         
         # Format sample_id as a 4-digit string with leading zeros
         self.sample_id_str = f"{int(sample_id):04d}"
@@ -222,7 +238,6 @@ class SyntheticBurstVal(torch.utils.data.Dataset):
         
         # Load ground truth image
         if self.keep_in_memory:
-            self.gt_image = self._read_gt_image()
             self.burst_images = {}
             for idx in self.frame_indices:
                 img = self._read_burst_image(idx)
@@ -232,6 +247,8 @@ class SyntheticBurstVal(torch.utils.data.Dataset):
                     "mean": mean,
                     "std": std
                 }
+            self.gt_image = self._read_gt_image()
+            
         else:
             self.gt_image = None
             self.burst_images = None
@@ -300,8 +317,11 @@ class SyntheticBurstVal(torch.utils.data.Dataset):
         gt_t = np.clip(gt_t, 0, 1)
 
         gt_t = torch.from_numpy(gt_t).float()
-        
-        return gt_t
+
+        # resize the image to match df * lr_image_size for torch tensor
+        gt_t = torch.nn.functional.interpolate(gt_t.unsqueeze(0).permute(0, 3, 1, 2), size=(int(self.burst_images[0]["image"].shape[0] * self.df), int(self.burst_images[0]["image"].shape[1] * self.df)), mode='bilinear', align_corners=False).squeeze(0)
+
+        return gt_t.permute(1, 2, 0)
     
     def __getitem__(self, idx):
         """Get a specific frame from the burst"""
@@ -326,6 +346,7 @@ class SyntheticBurstVal(torch.utils.data.Dataset):
             'std': std,
             'sample_id': idx,
             'burst_id': self.sample_id,
+            'scale_factor': self.scale_factor,
             'shifts': {
                 'dx_percent': 0.0,  # Placeholder
                 'dy_percent': 0.0   # Placeholder
@@ -486,11 +507,234 @@ class WorldStratDatasetFrame(torch.utils.data.Dataset):
         """
         return self.get_lr(index).permute(2, 0, 1)
     
+    def get_lr_sample_hwc(self, index):
+        """Get a specific LR sample by index in HWC format.
+        
+        Args:
+            index: Sample index (0 is the reference sample)
+            
+        Returns:
+            Tensor of shape [H, W, C] with values in [0, 1]
+        """
+        return self.get_lr(index)
+    
+    def get_lr_mean(self, index):
+        """Return mean for unstandardization.
+        
+        Args:
+            index: Sample index
+            
+        Returns:
+            Tensor of shape [3, 1, 1] with zero mean (since no standardization applied)
+        """
+        return torch.zeros(3, 1, 1)
+    
+    def get_lr_std(self, index):
+        """Return std for unstandardization.
+        
+        Args:
+            index: Sample index
+            
+        Returns:
+            Tensor of shape [3, 1, 1] with unit std (since no standardization applied)
+        """
+        return torch.ones(3, 1, 1)
+
+
+class WorldStratTestDataset(torch.utils.data.Dataset):
+    """Dataset for worldstrat_test_data with correct directory structure"""
+    def __init__(self, data_root, sample_id=None, scale_factor=4, keep_in_memory=True):
+        """
+        Initialize WorldStratTestDataset for compatibility with benchmark scripts.
+        
+        Args:
+            data_root: Base path to worldstrat test data
+            sample_id: Sample name (e.g., "Landcover-1041077")
+            scale_factor: Scale factor for HR image
+            keep_in_memory: Whether to keep data in memory (ignored)
+        """
+        if sample_id is None:
+            # Default sample name
+            sample_id = "Landcover-1041077"
+        
+        self.data_root = Path(data_root)
+        self.sample_id = sample_id
+        self.scale_factor = scale_factor
+
+        
+        # Set up paths
+        self.sample_dir = self.data_root / sample_id
+        self.hr_dir = self.sample_dir / "hr"
+        self.lr_dir = self.sample_dir / "lr"
+        
+        # Load high-resolution image
+        hr_path = self.hr_dir / f"{sample_id}_rgb.png"
+        self.hr_image = self._load_hr_image(hr_path)
+        
+        # Find all LR images
+        self.lr_paths = sorted(list(self.lr_dir.glob(f"{sample_id}-*-rgb.png")))
+        self.num_frames = len(self.lr_paths)
+        
+        # load all lr images
+        self.lr_images = []
+        for lr_path in self.lr_paths:
+            self.lr_images.append(self._load_lr_image(lr_path))
+        
+        # scale_factor should be set by the ratio between the hr and lr image sizes
+        self.scale_factor = self.hr_image.shape[0] / self.lr_images[0].shape[0]
+        
+        # Create input coordinate grid that matches the HR image
+        self.hr_coords = np.linspace(0, 1, self.hr_image.shape[0], endpoint=False)
+        self.hr_coords = np.stack(np.meshgrid(self.hr_coords, self.hr_coords), -1)
+        self.hr_coords = torch.FloatTensor(self.hr_coords)
+    
+    def _load_hr_image(self, hr_path):
+        """Load and process the high-resolution image."""
+        hr_rgb_img = cv2.imread(str(hr_path))
+        hr_rgb_img = cv2.cvtColor(hr_rgb_img, cv2.COLOR_BGR2RGB)
+        return torch.tensor(hr_rgb_img.astype(np.float32) / 255.0)
+    
+    def _load_lr_image(self, lr_path):
+        """Load a single LR frame."""
+        lr_rgb_img = cv2.imread(str(lr_path))
+        lr_rgb_img = cv2.cvtColor(lr_rgb_img, cv2.COLOR_BGR2RGB)
+        return torch.tensor(lr_rgb_img.astype(np.float32) / 255.0)
+    
+    def __len__(self):
+        return self.num_frames
+    
+    def __getitem__(self, idx):
+        lr_path = self.lr_paths[idx]
+        lr_image = self._load_lr_image(lr_path)
+        
+        return {
+            'input': self.hr_coords,
+            'lr_target': lr_image,
+            'sample_id': idx,
+            'scale_factor': self.scale_factor,
+            'shifts': {
+                'dx_lr': 0,
+                'dy_lr': 0,
+                'dx_hr': 0,
+                'dy_hr': 0,
+                'dx_percent': 0,
+                'dy_percent': 0
+            }
+        }
+    
+    def get_original_hr(self):
+        """Return the original HR image"""
+        return self.hr_image
+    
+    def get_hr_coordinates(self):
+        """Return the high-resolution coordinates."""
+        return self.hr_coords
+    
+    def get_lr_sample(self, index):
+        """Get a specific LR sample by index in CHW format."""
+        lr_path = self.lr_paths[index]
+        lr_image = self._load_lr_image(lr_path)
+        return lr_image.permute(2, 0, 1)
+    
+    def get_lr_sample_hwc(self, index):
+        """Get a specific LR sample by index in HWC format."""
+        lr_path = self.lr_paths[index]
+        return self._load_lr_image(lr_path)
+    
+    def get_lr_mean(self, index):
+        """Return mean for unstandardization (zeros since no standardization applied)."""
+        return torch.zeros(3, 1, 1)
+    
+    def get_lr_std(self, index):
+        """Return std for unstandardization (ones since no standardization applied)."""
+        return torch.ones(3, 1, 1)
+
 
 if __name__ == "__main__":
-    dataset = SyntheticBurstVal("SyntheticBurstVal", 0)
+    print("Testing WorldStratDatasetFrame...")
+    
+    try:
+        # Test with actual data path (you'll need to update this)
+        # Example usage:
+        test_dataset = WorldStratDatasetFrame(
+            data_dir="/path/to/your/worldstrat/data",  # Update this path
+            area_name="UNHCR-LBNs006446",  # Update this area name
+            num_frames=8,
+            hr_size=512
+        )
+        
+        print(f"✅ Dataset created successfully!")
+        print(f"Dataset length: {len(test_dataset)}")
+        print(f"HR image shape: {test_dataset.get_original_hr().shape}")
+        print(f"HR coordinates shape: {test_dataset.get_hr_coordinates().shape}")
+        
+        # Test getting a sample
+        if len(test_dataset) > 0:
+            sample = test_dataset[0]
+            print(f"Sample keys: {sample.keys()}")
+            print(f"Input shape: {sample['input'].shape}")
+            print(f"LR target shape: {sample['lr_target'].shape}")
+            print(f"Sample ID: {sample['sample_id']}")
+            
+            # Test the new methods
+            print(f"LR sample (CHW) shape: {test_dataset.get_lr_sample(0).shape}")
+            print(f"LR sample (HWC) shape: {test_dataset.get_lr_sample_hwc(0).shape}")
+            print(f"LR mean shape: {test_dataset.get_lr_mean(0).shape}")
+            print(f"LR std shape: {test_dataset.get_lr_std(0).shape}")
+            
+            print("✅ WorldStratDatasetFrame test completed successfully!")
+        
+    except Exception as e:
+        print(f"❌ WorldStratDatasetFrame test failed: {e}")
+        print("\nTo use WorldStratDatasetFrame, you need to:")
+        print("1. Update the data_dir path to point to your WorldStrat dataset")
+        print("2. Make sure the directory structure is:")
+        print("   data_dir/hr_dataset/12bit/area_name/area_name_rgb.png")
+        print("   data_dir/lr_dataset/area_name/L2A/area_name-1-L2A_data.tiff")
+        print("   data_dir/lr_dataset/area_name/L2A/area_name-2-L2A_data.tiff")
+        print("   ...")
+    
+    print("\n" + "="*60)
+    print("HOW TO USE WorldStratDatasetFrame:")
+    print("="*60)
+    print("""
+# 1. Create dataset instance
+dataset = WorldStratDatasetFrame(
+    data_dir="/path/to/worldstrat/data",  # Base directory
+    area_name="UNHCR-LBNs006446",        # Area identifier
+    num_frames=8,                        # Number of LR frames
+    hr_size=512                          # Optional: resize HR image
+)
 
+# 2. Use with DataLoader
+from torch.utils.data import DataLoader
+dataloader = DataLoader(dataset, batch_size=1, shuffle=False)
 
-    for i in range(len(dataset)):
-        print(dataset[i]['image'].shape)
-        exit("")
+# 3. Use in training loop
+for batch in dataloader:
+    input_coords = batch['input']        # HR coordinates
+    lr_target = batch['lr_target']       # LR image
+    sample_id = batch['sample_id']       # Frame ID
+    shifts = batch['shifts']             # Ground truth shifts (all zeros)
+
+# 4. Access individual methods
+hr_image = dataset.get_original_hr()     # Get HR ground truth
+hr_coords = dataset.get_hr_coordinates() # Get HR coordinate grid
+lr_sample = dataset.get_lr_sample(0)     # Get LR frame 0 (CHW format)
+lr_hwc = dataset.get_lr_sample_hwc(0)    # Get LR frame 0 (HWC format)
+lr_mean = dataset.get_lr_mean(0)         # Get mean for unstandardization
+lr_std = dataset.get_lr_std(0)           # Get std for unstandardization
+    """)
+    
+    print("\n" + "="*60)
+    print("COMPATIBILITY WITH BENCHMARK:")
+    print("="*60)
+    print("✅ WorldStratDatasetFrame is now compatible with benchmark_models.py!")
+    print("✅ All required methods are implemented:")
+    print("   - get_original_hr()")
+    print("   - get_hr_coordinates()")
+    print("   - get_lr_sample(index)")
+    print("   - get_lr_sample_hwc(index)")
+    print("   - get_lr_mean(index)")
+    print("   - get_lr_std(index)")
+    print("\nYou can now run benchmark_models.py with this dataset!")
