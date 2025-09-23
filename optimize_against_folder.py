@@ -24,7 +24,7 @@ from models.inr import INR
 
 
 class ImageDataset:
-    def __init__(self, images, lr_images, means, stds, hr_coords, device):
+    def __init__(self, images, lr_images, means, stds, hr_coords, device, downsample_factor):
         self.images = images  # List of HR images
         self.lr_images = lr_images  # List of LR images  
         self.means = means  # List of means for each image
@@ -32,6 +32,7 @@ class ImageDataset:
         self.hr_coords = hr_coords
         self.device = device
         self.num_samples = len(images)
+        self.downsample_factor = downsample_factor
         
     def __len__(self):
         return len(self.images)
@@ -41,11 +42,8 @@ class ImageDataset:
         hr_img = self.images[idx]
         lr_img = self.lr_images[idx]
         
-        # Create coordinate grid for HR resolution (model downsamples during training)
-        hr_h, hr_w = hr_img.shape[:2]
-        hr_coords = np.linspace(0, 1, hr_h, endpoint=False)
-        hr_coords = np.stack(np.meshgrid(hr_coords, hr_coords), -1)
-        coords = torch.FloatTensor(hr_coords).unsqueeze(0)
+        # Use pre-computed HR coordinates (model downsamples during training)
+        coords = self.hr_coords.unsqueeze(0)
         
         return {
             'input': coords.to(self.device),
@@ -53,6 +51,7 @@ class ImageDataset:
             'mean': self.means[idx].unsqueeze(0).to(self.device),
             'std': self.stds[idx].unsqueeze(0).to(self.device),
             'sample_id': torch.tensor([idx]).to(self.device),
+            'scale_factor': torch.tensor([1.0/self.downsample_factor]).to(self.device),  # 1/df for downsampling
             'shifts': {
                 'dx_percent': torch.tensor([0.0]).to(self.device),
                 'dy_percent': torch.tensor([0.0]).to(self.device)
@@ -86,7 +85,7 @@ class ImageDataset:
 def create_image_dataset(folder_path, downsample_factor, device):
     """Create a dataset from LR images in a folder. The target HR resolution will be LR_size * downsample_factor."""
     # Find all image files
-    image_extensions = ['*.jpg', '*.jpeg', '*.png', '*.bmp', '*.tiff']
+    image_extensions = ['*.jpg', '*.JPG', '*.jpeg', '*.JPEG', '*.png', '*.PNG', '*.bmp', '*.BMP', '*.tiff', '*.TIFF']
     image_paths = []
     for ext in image_extensions:
         image_paths.extend(glob.glob(str(Path(folder_path) / ext)))
@@ -136,14 +135,15 @@ def create_image_dataset(folder_path, downsample_factor, device):
     # Create coordinate grid for the TARGET HR resolution
     hr_h, hr_w = hr_images[0].shape[:2]
     print(f"\nCreating coordinate grid for target HR resolution: {hr_h}x{hr_w}")
-    hr_coords = np.linspace(0, 1, hr_h, endpoint=False)
-    hr_coords = np.stack(np.meshgrid(hr_coords, hr_coords), -1)
+    hr_coords_h = np.linspace(0, 1, hr_h, endpoint=False)
+    hr_coords_w = np.linspace(0, 1, hr_w, endpoint=False)
+    hr_coords = np.stack(np.meshgrid(hr_coords_w, hr_coords_h, indexing='xy'), -1)
     hr_coords = torch.FloatTensor(hr_coords)
     
     print(f"Dataset created with {len(lr_images)} LR images")
     print(f"Training flow: HR coords ({hr_h}x{hr_w}) -> Model -> Downsampled to LR ({lr_h}x{lr_w}) for training -> Full HR for inference")
     
-    return ImageDataset(hr_images, lr_images, means, stds, hr_coords, device)
+    return ImageDataset(hr_images, lr_images, means, stds, hr_coords, device, downsample_factor)
 
 
 def save_checkpoint_data(model, train_data, device, iteration, output_dir, args, loss_data):
@@ -211,11 +211,17 @@ def save_checkpoint_data(model, train_data, device, iteration, output_dir, args,
             sr_output = output.squeeze().cpu().numpy()
             sr_output = np.clip(sr_output, 0, 1)
             
-            # Get shift predictions
-            pred_dx, pred_dy = pred_shifts
-            dx_val = pred_dx.cpu().item()
-            dy_val = pred_dy.cpu().item()
-            magnitude = np.sqrt(dx_val**2 + dy_val**2)
+            # Get shift predictions (handle None case when training=False)
+            if pred_shifts is not None:
+                pred_dx, pred_dy = pred_shifts
+                dx_val = pred_dx.cpu().item()
+                dy_val = pred_dy.cpu().item()
+                magnitude = np.sqrt(dx_val**2 + dy_val**2)
+            else:
+                # No shifts when training=False (initial checkpoint)
+                dx_val = 0.0
+                dy_val = 0.0
+                magnitude = 0.0
             
             # Collect for statistics
             all_dx.append(dx_val)
@@ -224,6 +230,13 @@ def save_checkpoint_data(model, train_data, device, iteration, output_dir, args,
             
             # Get original LR image for comparison
             lr_original = train_data.get_lr_sample(idx).cpu().numpy()
+            
+            # Create bilinear interpolation of LR image to HR resolution
+            lr_h, lr_w = lr_original.shape[:2]
+            hr_h, hr_w = sr_output.shape[:2]
+            
+            # Use OpenCV for bilinear interpolation
+            lr_bilinear = cv2.resize(lr_original, (hr_w, hr_h), interpolation=cv2.INTER_LINEAR)
             
             # Make images square by padding to the larger dimension
             def make_square(img):
@@ -242,9 +255,10 @@ def save_checkpoint_data(model, train_data, device, iteration, output_dir, args,
                 
                 return square_img
             
-            # Make both images square
+            # Make all images square
             sr_square = make_square(sr_output)
             lr_square = make_square(lr_original)
+            bilinear_square = make_square(lr_bilinear)
             
             # Save filenames for different sizes
             sr_filename_web = f"sr_sample_{idx}_web.png"        # Large for web display
@@ -253,6 +267,9 @@ def save_checkpoint_data(model, train_data, device, iteration, output_dir, args,
             lr_filename_web = f"lr_sample_{idx}_web.png"
             lr_filename_full = f"lr_sample_{idx}_fullscreen.png"
             lr_filename_thumb = f"lr_sample_{idx}_thumb.png"
+            bilinear_filename_web = f"bilinear_sample_{idx}_web.png"
+            bilinear_filename_full = f"bilinear_sample_{idx}_fullscreen.png"
+            bilinear_filename_thumb = f"bilinear_sample_{idx}_thumb.png"
             
             # Save SR images in multiple sizes
             # 1. Web size (800x800) - good for main display
@@ -277,6 +294,31 @@ def save_checkpoint_data(model, train_data, device, iteration, output_dir, args,
             plt.axis('off')
             plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
             plt.savefig(checkpoint_dir / sr_filename_thumb, bbox_inches='tight', pad_inches=0, dpi=100)
+            plt.close()
+            
+            # Save bilinear interpolation images in multiple sizes
+            # 1. Web size bilinear
+            plt.figure(figsize=(8, 8), dpi=100)
+            plt.imshow(bilinear_square)
+            plt.axis('off')
+            plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
+            plt.savefig(checkpoint_dir / bilinear_filename_web, bbox_inches='tight', pad_inches=0, dpi=100)
+            plt.close()
+            
+            # 2. Fullscreen size bilinear
+            plt.figure(figsize=(12, 12), dpi=100)
+            plt.imshow(bilinear_square)
+            plt.axis('off')
+            plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
+            plt.savefig(checkpoint_dir / bilinear_filename_full, bbox_inches='tight', pad_inches=0, dpi=100)
+            plt.close()
+            
+            # 3. Thumbnail size bilinear
+            plt.figure(figsize=(2, 2), dpi=100)
+            plt.imshow(bilinear_square)
+            plt.axis('off')
+            plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
+            plt.savefig(checkpoint_dir / bilinear_filename_thumb, bbox_inches='tight', pad_inches=0, dpi=100)
             plt.close()
             
             # Save LR reference images (only once, at first iteration)
@@ -312,7 +354,7 @@ def save_checkpoint_data(model, train_data, device, iteration, output_dir, args,
                 plt.savefig(lr_ref_thumb, bbox_inches='tight', pad_inches=0, dpi=100)
                 plt.close()
             
-            # Store sample metadata with multiple image sizes
+            # Store sample metadata with multiple image sizes including bilinear
             sample_data = {
                 'sample_id': idx,
                 'images': {
@@ -321,7 +363,10 @@ def save_checkpoint_data(model, train_data, device, iteration, output_dir, args,
                     'sr_thumbnail': sr_filename_thumb,   # 200x200 - timeline/overview
                     'lr_web': lr_filename_web,
                     'lr_fullscreen': lr_filename_full,
-                    'lr_thumbnail': lr_filename_thumb
+                    'lr_thumbnail': lr_filename_thumb,
+                    'bilinear_web': bilinear_filename_web,           # 800x800 - bilinear baseline
+                    'bilinear_fullscreen': bilinear_filename_full,   # 1200x1200 - bilinear baseline
+                    'bilinear_thumbnail': bilinear_filename_thumb    # 200x200 - bilinear baseline
                 },
                 'lr_reference_paths': {
                     'web': f"lr_reference/{lr_filename_web}",
@@ -337,11 +382,16 @@ def save_checkpoint_data(model, train_data, device, iteration, output_dir, args,
                 'image_stats': {
                     'original_sr_shape': sr_output.shape,
                     'original_lr_shape': lr_original.shape,
+                    'bilinear_shape': lr_bilinear.shape,
                     'square_shape': sr_square.shape,
                     'sr_mean': float(sr_output.mean()),
                     'sr_std': float(sr_output.std()),
                     'sr_min': float(sr_output.min()),
-                    'sr_max': float(sr_output.max())
+                    'sr_max': float(sr_output.max()),
+                    'bilinear_mean': float(lr_bilinear.mean()),
+                    'bilinear_std': float(lr_bilinear.std()),
+                    'bilinear_min': float(lr_bilinear.min()),
+                    'bilinear_max': float(lr_bilinear.max())
                 }
             }
             
@@ -528,20 +578,21 @@ def save_web_visualization_data(output_dir, all_checkpoints, final_loss_history)
                 'angle_degrees': [cp['samples'][sample_id]['alignment'].get('angle_degrees', 0) for cp in all_checkpoints]
             }
     
-    # Image evolution data with multiple sizes
+    # Image evolution data with multiple sizes including bilinear
     image_evolution = {
         'iterations': [cp['iteration'] for cp in all_checkpoints],
         'image_paths': {},
         'quality_metrics': {},
         'includes_initial_state': True,
-        'available_sizes': ['web', 'fullscreen', 'thumbnail']
+        'available_sizes': ['web', 'fullscreen', 'thumbnail'],
+        'available_methods': ['sr', 'lr', 'bilinear']
     }
     
     if all_checkpoints:
         for sample_id in range(num_samples):
             sample_key = f'sample_{sample_id}'
             
-            # Build paths for each size
+            # Build paths for each size and method
             image_evolution['image_paths'][sample_key] = {
                 'lr_reference': {
                     'web': f"lr_reference/lr_sample_{sample_id}_web.png",
@@ -552,13 +603,20 @@ def save_web_visualization_data(output_dir, all_checkpoints, final_loss_history)
                     'web': [f"checkpoints/iter_{cp['iteration']:04d}/sr_sample_{sample_id}_web.png" for cp in all_checkpoints],
                     'fullscreen': [f"checkpoints/iter_{cp['iteration']:04d}/sr_sample_{sample_id}_fullscreen.png" for cp in all_checkpoints],
                     'thumbnail': [f"checkpoints/iter_{cp['iteration']:04d}/sr_sample_{sample_id}_thumb.png" for cp in all_checkpoints]
+                },
+                'bilinear_progression': {
+                    'web': [f"checkpoints/iter_{cp['iteration']:04d}/bilinear_sample_{sample_id}_web.png" for cp in all_checkpoints],
+                    'fullscreen': [f"checkpoints/iter_{cp['iteration']:04d}/bilinear_sample_{sample_id}_fullscreen.png" for cp in all_checkpoints],
+                    'thumbnail': [f"checkpoints/iter_{cp['iteration']:04d}/bilinear_sample_{sample_id}_thumb.png" for cp in all_checkpoints]
                 }
             }
             
-            # Track quality metrics over time
+            # Track quality metrics over time including bilinear
             image_evolution['quality_metrics'][sample_key] = {
                 'sr_mean': [cp['samples'][sample_id]['image_stats']['sr_mean'] for cp in all_checkpoints],
-                'sr_std': [cp['samples'][sample_id]['image_stats']['sr_std'] for cp in all_checkpoints]
+                'sr_std': [cp['samples'][sample_id]['image_stats']['sr_std'] for cp in all_checkpoints],
+                'bilinear_mean': [cp['samples'][sample_id]['image_stats']['bilinear_mean'] for cp in all_checkpoints],
+                'bilinear_std': [cp['samples'][sample_id]['image_stats']['bilinear_std'] for cp in all_checkpoints]
             }
     
     # Save all web data files
@@ -603,14 +661,14 @@ const checkpointIterations = alignmentData.iterations; // [0, 50, 100, 150, ...]
 ### 1. Image Display:
 ```javascript
 // Show image for sample 0 at iteration 100 in web size
-function showImage(sampleId, iterationNumber, size = 'web') {{
+function showImage(sampleId, iterationNumber, method = 'sr', size = 'web') {{
     const iterationIndex = imageData.iterations.indexOf(iterationNumber);
     if (iterationIndex === -1) {{
         console.error('Iteration not available:', iterationNumber);
         return;
     }}
     
-    const imagePath = imageData.image_paths[`sample_${{sampleId}}`].sr_progression[size][iterationIndex];
+    const imagePath = imageData.image_paths[`sample_${{sampleId}}`][`${{method}}_progression`][size][iterationIndex];
     document.getElementById('main-image').src = imagePath;
 }}
 
@@ -618,6 +676,11 @@ function showImage(sampleId, iterationNumber, size = 'web') {{
 function showReference(sampleId, size = 'web') {{
     const imagePath = imageData.image_paths[`sample_${{sampleId}}`].lr_reference[size];
     document.getElementById('reference-image').src = imagePath;
+}}
+
+// Show bilinear baseline
+function showBilinear(sampleId, iterationNumber, size = 'web') {{
+    showImage(sampleId, iterationNumber, 'bilinear', size);
 }}
 ```
 
@@ -664,6 +727,11 @@ function createTimeline() {{
 - **Web (800×800)**: Main display, takes up most screen space  
 - **Fullscreen (1200×1200)**: Modal/fullscreen viewing
 
+### Available Methods:
+- **sr**: Super-resolved output from the model
+- **lr**: Original low-resolution reference
+- **bilinear**: Bilinear interpolation baseline
+
 ### Array Indexing:
 - Iteration numbers: `[0, 50, 100, 150, ...]` (actual iteration values)
 - Array indices: `[0, 1, 2, 3, ...]` (for accessing arrays)
@@ -673,7 +741,7 @@ function createTimeline() {{
 - **Training iterations**: 0 → {all_checkpoints[-1]['iteration'] if all_checkpoints else 0}
 - **Checkpoints saved**: {len(all_checkpoints)} (including initial state)
 - **Samples per checkpoint**: {len(all_checkpoints[0]['samples']) if all_checkpoints else 0}
-- **Total images**: ~{len(all_checkpoints) * len(all_checkpoints[0]['samples']) * 3 if all_checkpoints else 0} (3 sizes × samples × checkpoints)
+- **Total images**: ~{len(all_checkpoints) * len(all_checkpoints[0]['samples']) * 9 if all_checkpoints else 0} (3 methods × 3 sizes × samples × checkpoints)
 - **No infinity values**: All numeric data is finite or explicitly null
 
 Generated on: {datetime.now().isoformat()}
@@ -687,6 +755,7 @@ Generated on: {datetime.now().isoformat()}
     print(f"✅ All images are square format for consistent display")
     print(f"✅ No infinity values - initial iteration uses null values")
     print(f"✅ Comprehensive API documentation included")
+    print(f"✅ Bilinear interpolation baseline included for comparison")
     return web_data_dir
 
 
@@ -703,6 +772,7 @@ def train_one_iteration(model, optimizer, train_sample, device, downsample_facto
     input = train_sample['input'].to(device)
     lr_target = train_sample['lr_target'].to(device)
     sample_id = train_sample['sample_id'].to(device)
+    scale_factor = train_sample['scale_factor'].to(device)
 
     # Get ground truth shifts (if available, otherwise zero)
     if 'shifts' in train_sample and 'dx_percent' in train_sample['shifts']:
@@ -715,10 +785,10 @@ def train_one_iteration(model, optimizer, train_sample, device, downsample_facto
     optimizer.zero_grad()
 
     if model.use_gnll:
-        output, pred_shifts, pred_variance = model(input, sample_id, scale_factor=1/downsample_factor, lr_frames=lr_target)
+        output, pred_shifts, pred_variance = model(input, sample_id, scale_factor=scale_factor, lr_frames=lr_target)
         recon_loss = recon_criterion(output, lr_target, pred_variance)
     else:
-        output, pred_shifts = model(input, sample_id, scale_factor=1/downsample_factor, lr_frames=lr_target)
+        output, pred_shifts = model(input, sample_id, scale_factor=scale_factor, lr_frames=lr_target)
         recon_loss = recon_criterion(output, lr_target)
 
     pred_dx, pred_dy = pred_shifts
@@ -744,7 +814,7 @@ def main():
     parser.add_argument("--dataset", type=str, default="satburst_synth", 
                        choices=["satburst_synth", "worldstrat", "burst_synth"])
     parser.add_argument("--sample_id", default="Landcover-743192_rgb")
-    parser.add_argument("--df", type=int, default=4, help="Downsampling factor")
+    parser.add_argument("--df", type=int, default=2, help="Downsampling factor")
     parser.add_argument("--lr_shift", type=float, default=1.0)
     parser.add_argument("--num_samples", type=int, default=16)
     parser.add_argument("--aug", type=str, default="none", choices=['none', 'light', 'medium', 'heavy'])
@@ -757,7 +827,7 @@ def main():
     parser.add_argument("--projection_dim", type=int, default=256)
     parser.add_argument("--input_projection", type=str, default="fourier_10", 
                        choices=["linear", "fourier_10", "fourier_5", "fourier_20", "fourier_40", "fourier", "legendre", "none"])
-    parser.add_argument("--fourier_scale", type=float, default=10.0)
+    parser.add_argument("--fourier_scale", type=float, default=10)
     parser.add_argument("--use_gnll", action="store_true")
     
     # Training parameters
@@ -768,7 +838,7 @@ def main():
     parser.add_argument("--device", type=str, default="7", help="CUDA device number")
     
     # Web visualization parameters
-    parser.add_argument("--save_every", type=int, default=20, help="Save checkpoint data every N iterations")
+    parser.add_argument("--save_every", type=int, default=100000, help="Save checkpoint data every N iterations")
     parser.add_argument("--export_web_data", action="store_true", default=True, help="Export data for web visualization")
     
     args = parser.parse_args()
@@ -803,7 +873,7 @@ def main():
     
     input_projection = get_input_projection(args.input_projection, 2, args.projection_dim, device, args.fourier_scale)
     decoder = get_decoder(args.model, args.network_depth, args.projection_dim, args.network_hidden_dim)
-    model = INR(input_projection, decoder, actual_num_samples, use_gnll=args.use_gnll).to(device)
+    model = INR(input_projection, decoder, actual_num_samples, use_gnll=args.use_gnll, use_base_frame=True).to(device)
 
     # Setup optimizer and scheduler
     optimizer = optim.AdamW(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)

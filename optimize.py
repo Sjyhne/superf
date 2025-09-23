@@ -563,197 +563,14 @@ def main():
             sample_ids = [d.name for d in sample_dirs]
             print(f"Found {len(sample_ids)} samples: {sample_ids[:5]}...")
         else:
-            # For other datasets, we need to determine the available samples
-            if args.dataset == "burst_synth":
-                # For burst_synth, we need to find available numeric sample IDs in the bursts directory
-                burst_dir = Path("SyntheticBurstVal/bursts")
-                if burst_dir.exists():
-                    sample_dirs = [d for d in burst_dir.iterdir() if d.is_dir() and d.name.isdigit()]
-                    sample_ids = [d.name for d in sorted(sample_dirs, key=lambda x: int(x.name))]
-                else:
-                    # Fallback to default range
-                    sample_ids = [str(i).zfill(4) for i in range(10)]  # Default to first 10 samples
-                print(f"Found {len(sample_ids)} burst samples: {sample_ids[:5]}...")
-            elif args.dataset == "satburst_synth":
-                # For satburst_synth, we need to find available sample folders in the data directory
-                data_dir = Path("data")
-                if data_dir.exists():
-                    sample_dirs = [d for d in data_dir.iterdir() if d.is_dir() and not d.name.startswith('.')]
-                    sample_ids = [d.name for d in sample_dirs]
-                else:
-                    # Fallback to default sample
-                    sample_ids = ["Landcover-743192_rgb"]
-                print(f"Found {len(sample_ids)} satburst samples: {sample_ids[:5]}...")
-            else:
-                # For other datasets, create a single dataset and iterate through samples
-                train_data = get_dataset(args=args, name=args.dataset)
-                num_samples = len(train_data)
-                sample_ids = [f"sample_{i}" for i in range(num_samples)]
-                print(f"Found {num_samples} samples in dataset")
-        
-        # Setup model (will be reinitialized for each sample)
-        input_projection = get_input_projection(args.input_projection, 2, args.projection_dim, device, args.fourier_scale)
-        decoder = get_decoder(args.model, args.network_depth, args.projection_dim, args.network_hidden_dim)
-        
-        # Store results for all samples
-        all_results = []
-        aggregated_metrics = {
-            'model_psnr': [],
-            'bilinear_psnr': [],
-            'psnr_improvement': [],
-            'model_ssim': [],
-            'bilinear_ssim': [],
-            'ssim_improvement': [],
-            'model_lpips': [],
-            'bilinear_lpips': [],
-            'lpips_improvement': [],
-            'model_mse': [],
-            'bilinear_mse': [],
-            'mse_improvement': [],
-            'model_mae': [],
-            'bilinear_mae': [],
-            'mae_improvement': [],
-            'alignment_error': [],
-            'final_test_loss': [],
-            'final_test_psnr': [],
-            'training_time_minutes': [],
-            'evaluation_time_minutes': [],
-            'total_time_minutes': []
-        }
-        
-        # Optimize for each sample
-        for i, sample_id in enumerate(sample_ids):
-            print(f"\n{'='*80}")
-            print(f"Processing sample {i+1}/{len(sample_ids)}: {sample_id}")
-            print(f"{'='*80}")
-            
-            # Create dataset for this specific sample
-            if args.dataset == "worldstrat_test":
-                args.sample_id = sample_id
-                args.root_worldstrat_test = data_root
-            elif args.dataset == "burst_synth":
-                # For burst_synth, set the numeric sample ID
-                args.sample_id = int(sample_id)
-                args.root_burst_synth = "SyntheticBurstVal"
-            elif args.dataset == "satburst_synth":
-                # For satburst_synth, set the sample folder name
-                args.sample_id = sample_id
-                args.root_satburst_synth = f"data/{sample_id}/scale_{args.df}_shift_{args.lr_shift:.1f}px_aug_{args.aug}"
-            else:
-                # For other datasets, we'll use the same dataset but focus on sample i
-                args.sample_id = sample_id
-            
-            # Create fresh dataset for this sample
-            try:
-                sample_data = get_dataset(args=args, name=args.dataset)
-                print(f"Dataset created successfully with {len(sample_data)} samples")
-            except Exception as e:
-                print(f"❌ Failed to create dataset for sample {sample_id}: {e}")
-                continue
-            
-            # Create fresh model for this sample
-            try:
-                model = INR(input_projection, decoder, len(sample_data), use_gnll=args.use_gnll).to(device)
-                print(f"Model created successfully")
-            except Exception as e:
-                print(f"❌ Failed to create model for sample {sample_id}: {e}")
-                continue
-            
-            # Optimize and evaluate this sample
-            try:
-                sample_result = optimize_and_evaluate_sample(model, sample_data, device, i, args, output_dir)
-                all_results.append(sample_result)
-                
-                # Add to aggregated metrics - handle nested structure
-                for key in aggregated_metrics:
-                    if key in sample_result.get('image_metrics', {}):
-                        aggregated_metrics[key].append(sample_result['image_metrics'][key])
-                    elif key in sample_result.get('alignment_metrics', {}):
-                        aggregated_metrics[key].append(sample_result['alignment_metrics'][key])
-                    elif key in sample_result.get('training_metrics', {}):
-                        aggregated_metrics[key].append(sample_result['training_metrics'][key])
-                    elif key in sample_result.get('timing_metrics', {}):
-                        aggregated_metrics[key].append(sample_result['timing_metrics'][key])
-                    elif key in sample_result:
-                        aggregated_metrics[key].append(sample_result[key])
-                
-                print(f"✅ Sample {i+1} completed successfully")
-                print(f"   Model PSNR: {sample_result['image_metrics']['model_psnr']:.2f} dB")
-                print(f"   Bilinear PSNR: {sample_result['image_metrics']['bilinear_psnr']:.2f} dB")
-                print(f"   PSNR Improvement: {sample_result['image_metrics']['psnr_improvement']:.2f} dB")
-                print(f"   Training Time: {sample_result['timing_metrics']['training_time_minutes']:.2f} min")
-                print(f"   Total Time: {sample_result['timing_metrics']['total_time_minutes']:.2f} min")
-                
-            except Exception as e:
-                print(f"❌ Sample {i+1} failed: {e}")
-                import traceback
-                traceback.print_exc()
-                continue
-        
-        # Calculate aggregated statistics
-        print(f"\n{'='*80}")
-        print("AGGREGATED RESULTS")
-        print(f"{'='*80}")
-        
-        summary_stats = {}
-        for metric, values in aggregated_metrics.items():
-            if values:
-                summary_stats[metric] = {
-                    'mean': np.mean(values),
-                    'std': np.std(values),
-                    'min': np.min(values),
-                    'max': np.max(values),
-                    'count': len(values)
-                }
-                print(f"{metric.replace('_', ' ').title()}: {summary_stats[metric]['mean']:.3f} ± {summary_stats[metric]['std']:.3f}")
-        
-        # Create summary visualization
-        create_summary_visualization(all_results, output_dir)
-        
-        # Save comprehensive results
-        results_data = {
-            'args': vars(args),
-            'individual_results': all_results,
-            'aggregated_metrics': summary_stats,
-            'sample_ids': sample_ids,
-            'timestamp': datetime.now().isoformat()
-        }
-        
-        results_file = output_dir / "comprehensive_results.json"
-        with open(results_file, 'w') as f:
-            json.dump(results_data, f, indent=2)
-        
-        # Save CSV summary - flatten the nested structure
-        df_data = []
-        for result in all_results:
-            row = {
-                'sample_idx': result['sample_idx'],
-                'sample_id': sample_ids[result['sample_idx']] if result['sample_idx'] < len(sample_ids) else f"sample_{result['sample_idx']}",
-            }
-            
-            # Flatten nested structures
-            for category in ['sample_info', 'image_metrics', 'alignment_metrics', 'training_metrics', 'timing_metrics', 'image_dimensions']:
-                if category in result:
-                    for key, value in result[category].items():
-                        if isinstance(value, (list, dict)):
-                            # Skip complex nested structures for CSV
-                            continue
-                        row[f"{category}_{key}"] = value
-            
-            df_data.append(row)
-        
-        df = pd.DataFrame(df_data)
-        csv_file = output_dir / "results_summary.csv"
-        df.to_csv(csv_file, index=False)
-        
-        print(f"\n📊 Results saved to:")
-        print(f"   JSON: {results_file}")
-        print(f"   CSV: {csv_file}")
-        print(f"   Images: {output_dir}/sample_*/")
-        
-        return
-    
-    # Single-sample optimization (original behavior)
+            args.root_satburst_synth = f"data/{args.sample_id}/scale_{args.df}_shift_{args.lr_shift:.1f}px_aug_{args.aug}"
+    elif args.dataset == "burst_synth":
+        # Set the path to SyntheticBurstVal
+        if 'DATA_DIR_ABSOLUTE' in os.environ:
+            args.root_burst_synth = os.environ['DATA_DIR_ABSOLUTE']
+        else:
+            args.root_burst_synth = "SyntheticBurstVal"
+
     train_data = get_dataset(args=args, name=args.dataset)
     train_dataloader = DataLoader(train_data, batch_size=1, shuffle=False)
 
@@ -762,6 +579,7 @@ def main():
     decoder = get_decoder(args.model, args.network_depth, args.projection_dim, args.network_hidden_dim)
     model = INR(input_projection, decoder, args.num_samples, use_gnll=args.use_gnll).to(device)
     # model = NIR(input_projection, decoder, args.num_samples, use_gnll=args.use_gnll).to(device)
+
     # Setup optimizer
     optimizer = optim.AdamW(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
     scheduler = CosineAnnealingLR(optimizer, T_max=args.iters, eta_min=1e-6)
@@ -832,7 +650,33 @@ def main():
         # Convert tensors to numpy for saving as images
         pred_np = output.squeeze().cpu().numpy()
         gt_np = hr_image.squeeze().cpu().numpy()
-        lr_original = train_data.get_lr_sample(0).cpu().numpy()
+
+        # Build a 3-channel LR baseline image
+        if hasattr(train_data, 'get_lr_sample_hwc'):
+            lr_original = train_data.get_lr_sample_hwc(0).cpu().numpy()  # H x W x 3
+        else:
+            lr_original = train_data.get_lr_sample(0).cpu().numpy()      # possibly H x W x (3*T)
+            if lr_original.ndim == 3 and lr_original.shape[2] > 3:
+                H, W, C = lr_original.shape
+                if C % 3 == 0:
+                    T = C // 3
+                    lr_original = lr_original.reshape(H, W, T, 3)
+                    # Use first frame as baseline (or replace with .mean(axis=2) to average)
+                    lr_original = lr_original[:, :, 0, :]
+                else:
+                    # Fallback: take first 3 channels
+                    lr_original = lr_original[:, :, :3]
+
+        # Unstandardize LR using dataset stats to get proper colors
+        lr_std = train_data.get_lr_std(0).cpu().numpy()
+        lr_mean = train_data.get_lr_mean(0).cpu().numpy()
+        # Ensure shapes broadcast to HxWx3
+        if lr_std.ndim == 1:
+            lr_std = lr_std.reshape(1, 1, -1)
+        if lr_mean.ndim == 1:
+            lr_mean = lr_mean.reshape(1, 1, -1)
+        lr_original = lr_original * lr_std + lr_mean
+
         lr_h, lr_w = lr_original.shape[:2]
         hr_h, hr_w = gt_np.shape[:2]
         lr_bilinear = cv2.resize(lr_original, (hr_w, hr_h), interpolation=cv2.INTER_LINEAR)
