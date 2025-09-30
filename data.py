@@ -11,26 +11,53 @@ import glob
 import tifffile
 
 def get_and_standardize_image(image):
-    """Get and standardize image to have zero mean and unit std for each channel"""
-    # Check if image has a channel dimension
-    if image.dim() >= 3:
-        # Calculate mean and std along spatial dimensions only (not across channels)
-        # For [C, H, W] format
-        if image.dim() == 4:
-            mean = image.mean(dim=(1, 2, 3), keepdim=True)
-            std = image.std(dim=(1, 2, 3), keepdim=True)
-        # For [H, W, C] format
+    """Standardize an image per channel to zero mean and unit std.
+
+    Supports tensors in either HWC or CHW layout (and their batched variants).
+    Returns the standardized image along with mean and std tensors that are
+    broadcastable to the input image shape.
+    """
+    # 2D grayscale: add channel dim for consistent handling
+    if image.dim() == 2:
+        img = image.unsqueeze(-1)  # H, W, 1 (treat as HWC)
+        mean = img.mean(dim=(0, 1), keepdim=True)        # 1,1,1
+        std = img.std(dim=(0, 1), keepdim=True)
+        std = torch.clamp(std, min=1e-8)
+        standardized = (img - mean) / std
+        return standardized.squeeze(-1), mean.squeeze(0), std.squeeze(0)
+
+    # 3D tensors: HWC or CHW
+    if image.dim() == 3:
+        H, W, C = image.shape[-3], image.shape[-2], image.shape[-1]
+        # Heuristic: if first dim equals 3 and last doesn't, assume CHW
+        if image.shape[0] in (1, 3, 4) and image.shape[0] != image.shape[-1]:
+            # CHW
+            mean = image.mean(dim=(1, 2), keepdim=True)  # C,1,1
+            std = image.std(dim=(1, 2), keepdim=True)
         else:
-            mean = image.mean(dim=(0, 1, 2), keepdim=True)
-            std = image.std(dim=(0, 1, 2), keepdim=True)
-    else:
-        # For grayscale without channel dimension
-        mean = image.mean()
-        std = image.std()
-    
-    # Avoid division by zero
-    std = torch.clamp(std, min=1e-8)
-    
+            # HWC
+            mean = image.mean(dim=(0, 1), keepdim=True)  # 1,1,C
+            std = image.std(dim=(0, 1), keepdim=True)
+
+        std = torch.clamp(std, min=1e-8)
+        return (image - mean) / std, mean, std
+
+    # 4D tensors: BCHW or BHWC
+    if image.dim() == 4:
+        # Detect layout by channel position
+        if image.shape[-1] in (1, 3, 4):  # BHWC
+            mean = image.mean(dim=(1, 2), keepdim=True)  # B,1,1,C
+            std = image.std(dim=(1, 2), keepdim=True)
+        else:  # BCHW
+            mean = image.mean(dim=(2, 3), keepdim=True)  # B,C,1,1
+            std = image.std(dim=(2, 3), keepdim=True)
+
+        std = torch.clamp(std, min=1e-8)
+        return (image - mean) / std, mean, std
+
+    # Fallback for unexpected shapes
+    mean = image.mean()
+    std = torch.clamp(image.std(), min=1e-8)
     return (image - mean) / std, mean, std
 
 def get_dataset(args, name='satburst', keep_in_memory=True):
@@ -45,6 +72,7 @@ def get_dataset(args, name='satburst', keep_in_memory=True):
         return WorldStratDatasetFrame(data_dir=args.root_worldstrat, 
                                       area_name=args.area_name, hr_size=args.worldstrat_hr_size)
     elif name == 'worldstrat_test':
+        args.root_worldstrat_test = "worldstrat_test_data"
         return WorldStratTestDataset(data_dir=args.root_worldstrat_test, 
                                      sample_id=args.sample_id, keep_in_memory=keep_in_memory, scale_factor=args.scale_factor)
     else:
@@ -265,7 +293,7 @@ class SyntheticBurstVal(torch.utils.data.Dataset):
             h, w = self.gt_image.shape[:-1]
             coords_h = np.linspace(0, 1, h, endpoint=False)
             coords_w = np.linspace(0, 1, w, endpoint=False)
-            coords = np.stack(np.meshgrid(coords_w, coords_h), -1)  # Note: w, h order
+            coords = np.stack(np.meshgrid(coords_h, coords_w), -1)  # Note: w, h order
             self.hr_coords = torch.FloatTensor(coords).cuda()
         else:
             self.hr_coords = None
@@ -406,7 +434,7 @@ class SyntheticBurstVal(torch.utils.data.Dataset):
             'std': std,
             'sample_id': idx,
             'burst_id': self.sample_id,
-            'scale_factor': self.scale_factor,
+            'scale_factor': self.scale_factor[0],
             'shifts': {
                 'dx_percent': 0.0,  # Placeholder
                 'dy_percent': 0.0   # Placeholder
@@ -604,7 +632,7 @@ class WorldStratTestDataset(torch.utils.data.Dataset):
     
     def __init__(self, data_dir, sample_id, keep_in_memory=True, scale_factor=4):
         """
-        Initialize WorldStrat test dataset.
+        Initialize WorldStrat test dataset following SRData template.
         
         Args:
             data_dir: Base path to worldstrat_test_data directory
@@ -615,16 +643,8 @@ class WorldStratTestDataset(torch.utils.data.Dataset):
         self.data_dir = Path(data_dir)
         self.sample_id = sample_id
         self.keep_in_memory = keep_in_memory
-        self.scale_factor = scale_factor
         self.vmin, self.vmax = 0, 1
 
-        # In this case we should set scale factor so that the input coordinates are the same as the HR coordinates
-        self.hr_image = self._load_image(self.hr_path)
-        self.hr_h, self.hr_w = self.hr_image.shape[:2]
-        self.scale_factor = [self.hr_w / self.lr_w]
-
-        # NB!!!: Remember to set to 1 when doing the NIR
-        
         # Path to the specific sample
         self.sample_dir = self.data_dir / sample_id
         if not self.sample_dir.exists():
@@ -637,7 +657,7 @@ class WorldStratTestDataset(torch.utils.data.Dataset):
         if not self.hr_dir.exists() or not self.lr_dir.exists():
             raise ValueError(f"HR or LR directory not found in {self.sample_dir}")
         
-        # Get HR image path
+        # Get HR image path and load it
         hr_files = list(self.hr_dir.glob("*.png"))
         if not hr_files:
             raise ValueError(f"No HR image found in {self.hr_dir}")
@@ -650,39 +670,46 @@ class WorldStratTestDataset(torch.utils.data.Dataset):
         
         print(f"Found {len(self.lr_paths)} LR images for sample {sample_id}")
         
-        # Load HR image
+        # Load HR image (following SRData pattern)
         self.hr_image = self._load_image(self.hr_path)
         self.hr_h, self.hr_w = self.hr_image.shape[:2]
         
-        # Generate coordinate grids - handle non-square images
-        hr_coords_h = np.linspace(self.vmin, self.vmax, self.hr_h, endpoint=False)
-        hr_coords_w = np.linspace(self.vmin, self.vmax, self.hr_w, endpoint=False)
-        self.hr_coords = np.stack(np.meshgrid(hr_coords_w, hr_coords_h), -1)
+        # Load first LR image to determine size and make it square (following SRData pattern)
+        first_lr_img, _, _ = self._load_and_standardize_image(self.lr_paths[0])
+        original_lr_size = first_lr_img.shape[:2]
+        
+        # Make LR images square by using the larger dimension (following SRData pattern)
+        self.lr_size = max(original_lr_size)  # Use larger dimension for square images
+        self.target_lr_size = (self.lr_size, self.lr_size)
+        
+        # Calculate actual scale factor based on HR/LR ratio (following SRData pattern)
+        actual_scale_factor = self.hr_h / self.lr_size
+        self.scale_factor = [actual_scale_factor]  # Use actual scale factor as list like SRData
+        
+        # Generate coordinate grids following SRData pattern
+        # HR coordinates
+        self.hr_coords = np.linspace(self.vmin, self.vmax, self.hr_h, endpoint=False)
+        self.hr_coords = np.stack(np.meshgrid(self.hr_coords, self.hr_coords), -1)
         self.hr_coords = torch.FloatTensor(self.hr_coords).cuda()
         
-        # Load LR images and determine consistent size
+        # LR coordinates (for reference, following SRData pattern)
+        self.lr_coords = np.linspace(self.vmin, self.vmax, self.lr_size, endpoint=False)
+        self.lr_coords = np.stack(np.meshgrid(self.lr_coords, self.lr_coords), -1)
+        self.lr_coords = torch.FloatTensor(self.lr_coords).cuda()
+        
+        # Initialize lists for LR data (following SRData pattern)
         self.means = []
         self.stds = []
         self.lr_image_sizes = []
         
-        # First, determine a consistent target size by loading the first image
-        first_lr_img, _, _ = self._load_and_standardize_image(self.lr_paths[0])
-        self.target_lr_size = first_lr_img.shape[:2]
-
-        
-        # Generate LR coordinates based on target size (handle non-square images)
-        lr_h, lr_w = self.target_lr_size
-        lr_coords_h = np.linspace(self.vmin, self.vmax, lr_h, endpoint=False)
-        lr_coords_w = np.linspace(self.vmin, self.vmax, lr_w, endpoint=False)
-        self.lr_coords = np.stack(np.meshgrid(lr_coords_w, lr_coords_h), -1)
-        self.lr_coords = torch.FloatTensor(self.lr_coords).cuda()
-        
         if self.keep_in_memory:
             self.lr_images = []
             for lr_path in self.lr_paths:
-                lr_img, mean, std = self._load_and_standardize_image(lr_path)
-                # Resize to consistent size
+                # Load image and resize to square size first
+                lr_img = self._load_image(lr_path)
                 lr_img = self._resize_to_consistent_size(lr_img, self.target_lr_size)
+                # Then standardize the resized image
+                lr_img, mean, std = get_and_standardize_image(lr_img)
                 self.lr_images.append(lr_img)
                 self.means.append(mean)
                 self.stds.append(std)
@@ -690,9 +717,6 @@ class WorldStratTestDataset(torch.utils.data.Dataset):
         else:
             # Set consistent size for all images
             self.lr_image_sizes = [self.target_lr_size] * len(self.lr_paths)
-        
-        # Set scale factor as list like in SRData
-        self.scale_factor = [scale_factor]
     
     def _load_image(self, path):
         """Load an image from file."""
@@ -701,14 +725,14 @@ class WorldStratTestDataset(torch.utils.data.Dataset):
         return torch.from_numpy(img).float() / 255.0
     
     def _resize_to_consistent_size(self, img, target_size=None):
-        """Resize image to a consistent size for all LR images."""
+        """Resize image to a consistent square size for all LR images (following SRData pattern)."""
         if target_size is None:
             target_size = self.target_lr_size
         
-        if img.shape[:2] != target_size:
-            img_np = img.numpy()
-            img_resized = cv2.resize(img_np, (target_size[1], target_size[0]), interpolation=cv2.INTER_LINEAR)
-            img = torch.from_numpy(img_resized)
+        # Always resize to square size to match SRData pattern
+        img_np = img.numpy()
+        img_resized = cv2.resize(img_np, (target_size[1], target_size[0]), interpolation=cv2.INTER_LINEAR)
+        img = torch.from_numpy(img_resized)
         
         return img
     
@@ -721,33 +745,32 @@ class WorldStratTestDataset(torch.utils.data.Dataset):
         return len(self.lr_paths)
     
     def get_input_coordinates(self):
-        """Generate input coordinates for the model - handle non-square images."""
+        """Generate input coordinates for the model - following SRData pattern exactly."""
         scale_factor = random.choice(self.scale_factor)
         
-        lr_h, lr_w = self.lr_image_sizes[0]
-        input_h = int(lr_h * scale_factor)
-        input_w = int(lr_w * scale_factor)
-        
-        input_coords_h = np.linspace(self.vmin, self.vmax, input_h, endpoint=False)
-        input_coords_w = np.linspace(self.vmin, self.vmax, input_w, endpoint=False)
-        input_coordinates = np.stack(np.meshgrid(input_coords_w, input_coords_h), -1)
+        # Follow SRData pattern: use lr_size for square coordinates
+        input_coordinates = np.linspace(self.vmin, self.vmax, int(self.lr_size * scale_factor), endpoint=False)
+        input_coordinates = np.stack(np.meshgrid(input_coordinates, input_coordinates), -1)
         input_coordinates = torch.FloatTensor(input_coordinates).cuda()
         return input_coordinates, scale_factor
     
     def __getitem__(self, idx):
-        """Get a single LR sample."""
+        """Get a single LR sample following SRData pattern."""
         lr_path = self.lr_paths[idx]
+        
+        # Generate input coordinates first (following SRData pattern)
+        input_coordinates, scale_factor = self.get_input_coordinates()
         
         if self.keep_in_memory:
             lr_img = self.lr_images[idx]
             mean = self.means[idx]
             std = self.stds[idx]
         else:
-            lr_img, mean, std = self._load_and_standardize_image(lr_path)
-            # Resize to consistent size
+            # Load image and resize to square size first
+            lr_img = self._load_image(lr_path)
             lr_img = self._resize_to_consistent_size(lr_img, self.target_lr_size)
-        
-        input_coordinates, scale_factor = self.get_input_coordinates()
+            # Then standardize the resized image
+            lr_img, mean, std = get_and_standardize_image(lr_img)
         
         return {
             'input': input_coordinates,
@@ -755,7 +778,7 @@ class WorldStratTestDataset(torch.utils.data.Dataset):
             'scale_factor': scale_factor,
             'mean': mean,
             'std': std,
-            'sample_id': idx,  # Use index as sample_id
+            'sample_id': idx,  # Use index as sample_id (following SRData pattern)
             'shifts': {
                 'dx_lr': 0.0,  # No ground truth shifts available
                 'dy_lr': 0.0,
@@ -767,7 +790,7 @@ class WorldStratTestDataset(torch.utils.data.Dataset):
         }
     
     def get_original_hr(self):
-        """Return the original HR image."""
+        """Return the original HR image (following SRData pattern)."""
         return self.hr_image
     
     def get_hr_coordinates(self):
@@ -779,9 +802,11 @@ class WorldStratTestDataset(torch.utils.data.Dataset):
         if self.keep_in_memory:
             return self.lr_images[index].permute(2, 0, 1)
         else:
-            lr_img, _, _ = self._load_and_standardize_image(self.lr_paths[index])
-            # Resize to consistent size
+            # Load image and resize to square size first
+            lr_img = self._load_image(self.lr_paths[index])
             lr_img = self._resize_to_consistent_size(lr_img, self.target_lr_size)
+            # Then standardize the resized image
+            lr_img, _, _ = get_and_standardize_image(lr_img)
             return lr_img.permute(2, 0, 1)
     
     def get_lr_sample_hwc(self, index):
@@ -789,9 +814,11 @@ class WorldStratTestDataset(torch.utils.data.Dataset):
         if self.keep_in_memory:
             return self.lr_images[index]  # Already in HWC format
         else:
-            lr_img, _, _ = self._load_and_standardize_image(self.lr_paths[index])
-            # Resize to consistent size
+            # Load image and resize to square size first
+            lr_img = self._load_image(self.lr_paths[index])
             lr_img = self._resize_to_consistent_size(lr_img, self.target_lr_size)
+            # Then standardize the resized image
+            lr_img, _, _ = get_and_standardize_image(lr_img)
             return lr_img  # Return in HWC format
     
     def get_lr_mean(self, index):
@@ -799,7 +826,11 @@ class WorldStratTestDataset(torch.utils.data.Dataset):
         if self.keep_in_memory:
             return self.means[index]
         else:
-            _, mean, _ = self._load_and_standardize_image(self.lr_paths[index])
+            # Load image and resize to square size first
+            lr_img = self._load_image(self.lr_paths[index])
+            lr_img = self._resize_to_consistent_size(lr_img, self.target_lr_size)
+            # Then standardize the resized image
+            _, mean, _ = get_and_standardize_image(lr_img)
             return mean
     
     def get_lr_std(self, index):
@@ -807,7 +838,11 @@ class WorldStratTestDataset(torch.utils.data.Dataset):
         if self.keep_in_memory:
             return self.stds[index]
         else:
-            _, _, std = self._load_and_standardize_image(self.lr_paths[index])
+            # Load image and resize to square size first
+            lr_img = self._load_image(self.lr_paths[index])
+            lr_img = self._resize_to_consistent_size(lr_img, self.target_lr_size)
+            # Then standardize the resized image
+            _, _, std = get_and_standardize_image(lr_img)
             return std
 
 
