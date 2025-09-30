@@ -1,0 +1,41 @@
+Super-Resolution Results
+    =======================
+
+    Dataset: worldstrat_test
+    Sample ID: UNHCR-IRQs035254
+    Downsampling Factor: 4
+    Model: mlp
+    Iterations: 2000
+
+    PSNR Results:
+    - Model Output: 25.68 dB
+    - Bilinear Interpolation: 25.94 dB
+    - PSNR Improvement: -0.26 dB
+
+    SSIM Results:
+    - Model Output: 0.6804
+    - Bilinear Interpolation: 0.6839
+    - SSIM Improvement: -0.0036
+
+    LPIPS Results:
+    - Model Output: 0.6168
+    - Bilinear Interpolation: 0.6314
+    - LPIPS Improvement: 0.0147
+
+    Training Results:
+    - Final Test Loss: 0.066130
+    - Final Test PSNR: 11.80 dB
+    - Final Reconstruction Loss: 0.062007
+    - Final Transformation Loss: 0.000493
+    - Final Total Loss: 0.062500
+
+    Training Metrics History:
+    - Number of evaluation points: 20
+- PSNR range: 11.66 - 11.90 dB
+- Reconstruction loss range: 0.055320 - 0.093810
+- Transformation loss range: 0.000325 - 0.004908
+- Total loss range: 0.060216 - 0.096982
+- Final PSNR: 11.80 dB
+- Final reconstruction loss: 0.062007
+- Final transformation loss: 0.000493
+- Final total loss: 0.062500

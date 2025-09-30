@@ -1,0 +1,1244 @@
+{
+  "iteration": 0,
+  "timestamp": "2025-09-30T06:50:29.294764",
+  "model_config": {
+    "model_type": "mlp",
+    "network_depth": 4,
+    "network_hidden_dim": 256,
+    "downsample_factor": 4,
+    "num_samples": 22
+  },
+  "training_config": {
+    "learning_rate": 0.002,
+    "weight_decay": 0.01,
+    "total_iterations": 20000
+  },
+  "losses": {
+    "iteration": 0,
+    "recon_loss": null,
+    "trans_loss": null,
+    "total_loss": null
+  },
+  "samples": [
+    {
+      "sample_id": 0,
+      "images": {
+        "sr_web": "sr_sample_0_web.png",
+        "sr_fullscreen": "sr_sample_0_fullscreen.png",
+        "sr_thumbnail": "sr_sample_0_thumb.png",
+        "lr_web": "lr_sample_0_web.png",
+        "lr_fullscreen": "lr_sample_0_fullscreen.png",
+        "lr_thumbnail": "lr_sample_0_thumb.png",
+        "bilinear_web": "bilinear_sample_0_web.png",
+        "bilinear_fullscreen": "bilinear_sample_0_fullscreen.png",
+        "bilinear_thumbnail": "bilinear_sample_0_thumb.png"
+      },
+      "lr_reference_paths": {
+        "web": "lr_reference/lr_sample_0_web.png",
+        "fullscreen": "lr_reference/lr_sample_0_fullscreen.png",
+        "thumbnail": "lr_reference/lr_sample_0_thumb.png"
+      },
+      "alignment": {
+        "dx": 0.0,
+        "dy": 0.0,
+        "magnitude": 0.0,
+        "angle_degrees": 0
+      },
+      "image_stats": {
+        "original_sr_shape": [
+          800,
+          800,
+          3
+        ],
+        "original_lr_shape": [
+          200,
+          200,
+          3
+        ],
+        "bilinear_shape": [
+          800,
+          800,
+          3
+        ],
+        "square_shape": [
+          800,
+          800,
+          3
+        ],
+        "sr_mean": 0.17052558064460754,
+        "sr_std": 0.139505535364151,
+        "sr_min": 0.0,
+        "sr_max": 0.7469999194145203,
+        "bilinear_mean": 0.24411097168922424,
+        "bilinear_std": 0.17327551543712616,
+        "bilinear_min": 0.0,
+        "bilinear_max": 1.0
+      }
+    },
+    {
+      "sample_id": 1,
+      "images": {
+        "sr_web": "sr_sample_1_web.png",
+        "sr_fullscreen": "sr_sample_1_fullscreen.png",
+        "sr_thumbnail": "sr_sample_1_thumb.png",
+        "lr_web": "lr_sample_1_web.png",
+        "lr_fullscreen": "lr_sample_1_fullscreen.png",
+        "lr_thumbnail": "lr_sample_1_thumb.png",
+        "bilinear_web": "bilinear_sample_1_web.png",
+        "bilinear_fullscreen": "bilinear_sample_1_fullscreen.png",
+        "bilinear_thumbnail": "bilinear_sample_1_thumb.png"
+      },
+      "lr_reference_paths": {
+        "web": "lr_reference/lr_sample_1_web.png",
+        "fullscreen": "lr_reference/lr_sample_1_fullscreen.png",
+        "thumbnail": "lr_reference/lr_sample_1_thumb.png"
+      },
+      "alignment": {
+        "dx": 0.0,
+        "dy": 0.0,
+        "magnitude": 0.0,
+        "angle_degrees": 0
+      },
+      "image_stats": {
+        "original_sr_shape": [
+          800,
+          800,
+          3
+        ],
+        "original_lr_shape": [
+          200,
+          200,
+          3
+        ],
+        "bilinear_shape": [
+          800,
+          800,
+          3
+        ],
+        "square_shape": [
+          800,
+          800,
+          3
+        ],
+        "sr_mean": 0.15855960547924042,
+        "sr_std": 0.1321135312318802,
+        "sr_min": 0.0,
+        "sr_max": 0.7071290016174316,
+        "bilinear_mean": 0.22968457639217377,
+        "bilinear_std": 0.1681404560804367,
+        "bilinear_min": 0.0,
+        "bilinear_max": 1.0
+      }
+    },
+    {
+      "sample_id": 2,
+      "images": {
+        "sr_web": "sr_sample_2_web.png",
+        "sr_fullscreen": "sr_sample_2_fullscreen.png",
+        "sr_thumbnail": "sr_sample_2_thumb.png",
+        "lr_web": "lr_sample_2_web.png",
+        "lr_fullscreen": "lr_sample_2_fullscreen.png",
+        "lr_thumbnail": "lr_sample_2_thumb.png",
+        "bilinear_web": "bilinear_sample_2_web.png",
+        "bilinear_fullscreen": "bilinear_sample_2_fullscreen.png",
+        "bilinear_thumbnail": "bilinear_sample_2_thumb.png"
+      },
+      "lr_reference_paths": {
+        "web": "lr_reference/lr_sample_2_web.png",
+        "fullscreen": "lr_reference/lr_sample_2_fullscreen.png",
+        "thumbnail": "lr_reference/lr_sample_2_thumb.png"
+      },
+      "alignment": {
+        "dx": 0.0,
+        "dy": 0.0,
+        "magnitude": 0.0,
+        "angle_degrees": 0
+      },
+      "image_stats": {
+        "original_sr_shape": [
+          800,
+          800,
+          3
+        ],
+        "original_lr_shape": [
+          200,
+          200,
+          3
+        ],
+        "bilinear_shape": [
+          800,
+          800,
+          3
+        ],
+        "square_shape": [
+          800,
+          800,
+          3
+        ],
+        "sr_mean": 0.1011330857872963,
+        "sr_std": 0.08792285621166229,
+        "sr_min": 0.0,
+        "sr_max": 0.4718165099620819,
+        "bilinear_mean": 0.14811551570892334,
+        "bilinear_std": 0.11450650542974472,
+        "bilinear_min": 0.0,
+        "bilinear_max": 1.0
+      }
+    },
+    {
+      "sample_id": 3,
+      "images": {
+        "sr_web": "sr_sample_3_web.png",
+        "sr_fullscreen": "sr_sample_3_fullscreen.png",
+        "sr_thumbnail": "sr_sample_3_thumb.png",
+        "lr_web": "lr_sample_3_web.png",
+        "lr_fullscreen": "lr_sample_3_fullscreen.png",
+        "lr_thumbnail": "lr_sample_3_thumb.png",
+        "bilinear_web": "bilinear_sample_3_web.png",
+        "bilinear_fullscreen": "bilinear_sample_3_fullscreen.png",
+        "bilinear_thumbnail": "bilinear_sample_3_thumb.png"
+      },
+      "lr_reference_paths": {
+        "web": "lr_reference/lr_sample_3_web.png",
+        "fullscreen": "lr_reference/lr_sample_3_fullscreen.png",
+        "thumbnail": "lr_reference/lr_sample_3_thumb.png"
+      },
+      "alignment": {
+        "dx": 0.0,
+        "dy": 0.0,
+        "magnitude": 0.0,
+        "angle_degrees": 0
+      },
+      "image_stats": {
+        "original_sr_shape": [
+          800,
+          800,
+          3
+        ],
+        "original_lr_shape": [
+          200,
+          200,
+          3
+        ],
+        "bilinear_shape": [
+          800,
+          800,
+          3
+        ],
+        "square_shape": [
+          800,
+          800,
+          3
+        ],
+        "sr_mean": 0.15851230919361115,
+        "sr_std": 0.12843839824199677,
+        "sr_min": 0.0,
+        "sr_max": 0.6239113807678223,
+        "bilinear_mean": 0.21802835166454315,
+        "bilinear_std": 0.13236504793167114,
+        "bilinear_min": 0.013664214871823788,
+        "bilinear_max": 1.0
+      }
+    },
+    {
+      "sample_id": 4,
+      "images": {
+        "sr_web": "sr_sample_4_web.png",
+        "sr_fullscreen": "sr_sample_4_fullscreen.png",
+        "sr_thumbnail": "sr_sample_4_thumb.png",
+        "lr_web": "lr_sample_4_web.png",
+        "lr_fullscreen": "lr_sample_4_fullscreen.png",
+        "lr_thumbnail": "lr_sample_4_thumb.png",
+        "bilinear_web": "bilinear_sample_4_web.png",
+        "bilinear_fullscreen": "bilinear_sample_4_fullscreen.png",
+        "bilinear_thumbnail": "bilinear_sample_4_thumb.png"
+      },
+      "lr_reference_paths": {
+        "web": "lr_reference/lr_sample_4_web.png",
+        "fullscreen": "lr_reference/lr_sample_4_fullscreen.png",
+        "thumbnail": "lr_reference/lr_sample_4_thumb.png"
+      },
+      "alignment": {
+        "dx": 0.0,
+        "dy": 0.0,
+        "magnitude": 0.0,
+        "angle_degrees": 0
+      },
+      "image_stats": {
+        "original_sr_shape": [
+          800,
+          800,
+          3
+        ],
+        "original_lr_shape": [
+          200,
+          200,
+          3
+        ],
+        "bilinear_shape": [
+          800,
+          800,
+          3
+        ],
+        "square_shape": [
+          800,
+          800,
+          3
+        ],
+        "sr_mean": 0.1396060436964035,
+        "sr_std": 0.1272318810224533,
+        "sr_min": 0.0,
+        "sr_max": 0.6702532768249512,
+        "bilinear_mean": 0.20095737278461456,
+        "bilinear_std": 0.15844053030014038,
+        "bilinear_min": -1.4901161193847656e-08,
+        "bilinear_max": 1.0
+      }
+    },
+    {
+      "sample_id": 5,
+      "images": {
+        "sr_web": "sr_sample_5_web.png",
+        "sr_fullscreen": "sr_sample_5_fullscreen.png",
+        "sr_thumbnail": "sr_sample_5_thumb.png",
+        "lr_web": "lr_sample_5_web.png",
+        "lr_fullscreen": "lr_sample_5_fullscreen.png",
+        "lr_thumbnail": "lr_sample_5_thumb.png",
+        "bilinear_web": "bilinear_sample_5_web.png",
+        "bilinear_fullscreen": "bilinear_sample_5_fullscreen.png",
+        "bilinear_thumbnail": "bilinear_sample_5_thumb.png"
+      },
+      "lr_reference_paths": {
+        "web": "lr_reference/lr_sample_5_web.png",
+        "fullscreen": "lr_reference/lr_sample_5_fullscreen.png",
+        "thumbnail": "lr_reference/lr_sample_5_thumb.png"
+      },
+      "alignment": {
+        "dx": 0.0,
+        "dy": 0.0,
+        "magnitude": 0.0,
+        "angle_degrees": 0
+      },
+      "image_stats": {
+        "original_sr_shape": [
+          800,
+          800,
+          3
+        ],
+        "original_lr_shape": [
+          200,
+          200,
+          3
+        ],
+        "bilinear_shape": [
+          800,
+          800,
+          3
+        ],
+        "square_shape": [
+          800,
+          800,
+          3
+        ],
+        "sr_mean": 0.1503484696149826,
+        "sr_std": 0.13236179947853088,
+        "sr_min": 0.0,
+        "sr_max": 0.707705557346344,
+        "bilinear_mean": 0.217482790350914,
+        "bilinear_std": 0.1680818647146225,
+        "bilinear_min": 0.0,
+        "bilinear_max": 1.0000001192092896
+      }
+    },
+    {
+      "sample_id": 6,
+      "images": {
+        "sr_web": "sr_sample_6_web.png",
+        "sr_fullscreen": "sr_sample_6_fullscreen.png",
+        "sr_thumbnail": "sr_sample_6_thumb.png",
+        "lr_web": "lr_sample_6_web.png",
+        "lr_fullscreen": "lr_sample_6_fullscreen.png",
+        "lr_thumbnail": "lr_sample_6_thumb.png",
+        "bilinear_web": "bilinear_sample_6_web.png",
+        "bilinear_fullscreen": "bilinear_sample_6_fullscreen.png",
+        "bilinear_thumbnail": "bilinear_sample_6_thumb.png"
+      },
+      "lr_reference_paths": {
+        "web": "lr_reference/lr_sample_6_web.png",
+        "fullscreen": "lr_reference/lr_sample_6_fullscreen.png",
+        "thumbnail": "lr_reference/lr_sample_6_thumb.png"
+      },
+      "alignment": {
+        "dx": 0.0,
+        "dy": 0.0,
+        "magnitude": 0.0,
+        "angle_degrees": 0
+      },
+      "image_stats": {
+        "original_sr_shape": [
+          800,
+          800,
+          3
+        ],
+        "original_lr_shape": [
+          200,
+          200,
+          3
+        ],
+        "bilinear_shape": [
+          800,
+          800,
+          3
+        ],
+        "square_shape": [
+          800,
+          800,
+          3
+        ],
+        "sr_mean": 0.1973474621772766,
+        "sr_std": 0.15749335289001465,
+        "sr_min": 0.0,
+        "sr_max": 0.8177629113197327,
+        "bilinear_mean": 0.2770630717277527,
+        "bilinear_std": 0.1811799705028534,
+        "bilinear_min": 0.0,
+        "bilinear_max": 1.0
+      }
+    },
+    {
+      "sample_id": 7,
+      "images": {
+        "sr_web": "sr_sample_7_web.png",
+        "sr_fullscreen": "sr_sample_7_fullscreen.png",
+        "sr_thumbnail": "sr_sample_7_thumb.png",
+        "lr_web": "lr_sample_7_web.png",
+        "lr_fullscreen": "lr_sample_7_fullscreen.png",
+        "lr_thumbnail": "lr_sample_7_thumb.png",
+        "bilinear_web": "bilinear_sample_7_web.png",
+        "bilinear_fullscreen": "bilinear_sample_7_fullscreen.png",
+        "bilinear_thumbnail": "bilinear_sample_7_thumb.png"
+      },
+      "lr_reference_paths": {
+        "web": "lr_reference/lr_sample_7_web.png",
+        "fullscreen": "lr_reference/lr_sample_7_fullscreen.png",
+        "thumbnail": "lr_reference/lr_sample_7_thumb.png"
+      },
+      "alignment": {
+        "dx": 0.0,
+        "dy": 0.0,
+        "magnitude": 0.0,
+        "angle_degrees": 0
+      },
+      "image_stats": {
+        "original_sr_shape": [
+          800,
+          800,
+          3
+        ],
+        "original_lr_shape": [
+          200,
+          200,
+          3
+        ],
+        "bilinear_shape": [
+          800,
+          800,
+          3
+        ],
+        "square_shape": [
+          800,
+          800,
+          3
+        ],
+        "sr_mean": 0.09961708635091782,
+        "sr_std": 0.10618072748184204,
+        "sr_min": 0.0,
+        "sr_max": 0.5847741365432739,
+        "bilinear_mean": 0.1432436853647232,
+        "bilinear_std": 0.14918439090251923,
+        "bilinear_min": 0.0,
+        "bilinear_max": 1.0
+      }
+    },
+    {
+      "sample_id": 8,
+      "images": {
+        "sr_web": "sr_sample_8_web.png",
+        "sr_fullscreen": "sr_sample_8_fullscreen.png",
+        "sr_thumbnail": "sr_sample_8_thumb.png",
+        "lr_web": "lr_sample_8_web.png",
+        "lr_fullscreen": "lr_sample_8_fullscreen.png",
+        "lr_thumbnail": "lr_sample_8_thumb.png",
+        "bilinear_web": "bilinear_sample_8_web.png",
+        "bilinear_fullscreen": "bilinear_sample_8_fullscreen.png",
+        "bilinear_thumbnail": "bilinear_sample_8_thumb.png"
+      },
+      "lr_reference_paths": {
+        "web": "lr_reference/lr_sample_8_web.png",
+        "fullscreen": "lr_reference/lr_sample_8_fullscreen.png",
+        "thumbnail": "lr_reference/lr_sample_8_thumb.png"
+      },
+      "alignment": {
+        "dx": 0.0,
+        "dy": 0.0,
+        "magnitude": 0.0,
+        "angle_degrees": 0
+      },
+      "image_stats": {
+        "original_sr_shape": [
+          800,
+          800,
+          3
+        ],
+        "original_lr_shape": [
+          200,
+          200,
+          3
+        ],
+        "bilinear_shape": [
+          800,
+          800,
+          3
+        ],
+        "square_shape": [
+          800,
+          800,
+          3
+        ],
+        "sr_mean": 0.1733250617980957,
+        "sr_std": 0.14516717195510864,
+        "sr_min": 0.0,
+        "sr_max": 0.7627578973770142,
+        "bilinear_mean": 0.24663285911083221,
+        "bilinear_std": 0.17327573895454407,
+        "bilinear_min": 0.0,
+        "bilinear_max": 1.0
+      }
+    },
+    {
+      "sample_id": 9,
+      "images": {
+        "sr_web": "sr_sample_9_web.png",
+        "sr_fullscreen": "sr_sample_9_fullscreen.png",
+        "sr_thumbnail": "sr_sample_9_thumb.png",
+        "lr_web": "lr_sample_9_web.png",
+        "lr_fullscreen": "lr_sample_9_fullscreen.png",
+        "lr_thumbnail": "lr_sample_9_thumb.png",
+        "bilinear_web": "bilinear_sample_9_web.png",
+        "bilinear_fullscreen": "bilinear_sample_9_fullscreen.png",
+        "bilinear_thumbnail": "bilinear_sample_9_thumb.png"
+      },
+      "lr_reference_paths": {
+        "web": "lr_reference/lr_sample_9_web.png",
+        "fullscreen": "lr_reference/lr_sample_9_fullscreen.png",
+        "thumbnail": "lr_reference/lr_sample_9_thumb.png"
+      },
+      "alignment": {
+        "dx": 0.0,
+        "dy": 0.0,
+        "magnitude": 0.0,
+        "angle_degrees": 0
+      },
+      "image_stats": {
+        "original_sr_shape": [
+          800,
+          800,
+          3
+        ],
+        "original_lr_shape": [
+          200,
+          200,
+          3
+        ],
+        "bilinear_shape": [
+          800,
+          800,
+          3
+        ],
+        "square_shape": [
+          800,
+          800,
+          3
+        ],
+        "sr_mean": 0.19478286802768707,
+        "sr_std": 0.15547092258930206,
+        "sr_min": 0.0,
+        "sr_max": 0.6613449454307556,
+        "bilinear_mean": 0.2491304874420166,
+        "bilinear_std": 0.11752580106258392,
+        "bilinear_min": 0.046629898250103,
+        "bilinear_max": 1.0
+      }
+    },
+    {
+      "sample_id": 10,
+      "images": {
+        "sr_web": "sr_sample_10_web.png",
+        "sr_fullscreen": "sr_sample_10_fullscreen.png",
+        "sr_thumbnail": "sr_sample_10_thumb.png",
+        "lr_web": "lr_sample_10_web.png",
+        "lr_fullscreen": "lr_sample_10_fullscreen.png",
+        "lr_thumbnail": "lr_sample_10_thumb.png",
+        "bilinear_web": "bilinear_sample_10_web.png",
+        "bilinear_fullscreen": "bilinear_sample_10_fullscreen.png",
+        "bilinear_thumbnail": "bilinear_sample_10_thumb.png"
+      },
+      "lr_reference_paths": {
+        "web": "lr_reference/lr_sample_10_web.png",
+        "fullscreen": "lr_reference/lr_sample_10_fullscreen.png",
+        "thumbnail": "lr_reference/lr_sample_10_thumb.png"
+      },
+      "alignment": {
+        "dx": 0.0,
+        "dy": 0.0,
+        "magnitude": 0.0,
+        "angle_degrees": 0
+      },
+      "image_stats": {
+        "original_sr_shape": [
+          800,
+          800,
+          3
+        ],
+        "original_lr_shape": [
+          200,
+          200,
+          3
+        ],
+        "bilinear_shape": [
+          800,
+          800,
+          3
+        ],
+        "square_shape": [
+          800,
+          800,
+          3
+        ],
+        "sr_mean": 0.21071314811706543,
+        "sr_std": 0.1488019824028015,
+        "sr_min": 0.0,
+        "sr_max": 0.7728910446166992,
+        "bilinear_mean": 0.2910940647125244,
+        "bilinear_std": 0.16458667814731598,
+        "bilinear_min": 0.022487755864858627,
+        "bilinear_max": 1.0
+      }
+    },
+    {
+      "sample_id": 11,
+      "images": {
+        "sr_web": "sr_sample_11_web.png",
+        "sr_fullscreen": "sr_sample_11_fullscreen.png",
+        "sr_thumbnail": "sr_sample_11_thumb.png",
+        "lr_web": "lr_sample_11_web.png",
+        "lr_fullscreen": "lr_sample_11_fullscreen.png",
+        "lr_thumbnail": "lr_sample_11_thumb.png",
+        "bilinear_web": "bilinear_sample_11_web.png",
+        "bilinear_fullscreen": "bilinear_sample_11_fullscreen.png",
+        "bilinear_thumbnail": "bilinear_sample_11_thumb.png"
+      },
+      "lr_reference_paths": {
+        "web": "lr_reference/lr_sample_11_web.png",
+        "fullscreen": "lr_reference/lr_sample_11_fullscreen.png",
+        "thumbnail": "lr_reference/lr_sample_11_thumb.png"
+      },
+      "alignment": {
+        "dx": 0.0,
+        "dy": 0.0,
+        "magnitude": 0.0,
+        "angle_degrees": 0
+      },
+      "image_stats": {
+        "original_sr_shape": [
+          800,
+          800,
+          3
+        ],
+        "original_lr_shape": [
+          200,
+          200,
+          3
+        ],
+        "bilinear_shape": [
+          800,
+          800,
+          3
+        ],
+        "square_shape": [
+          800,
+          800,
+          3
+        ],
+        "sr_mean": 0.1610112488269806,
+        "sr_std": 0.14394408464431763,
+        "sr_min": 0.0,
+        "sr_max": 0.7466174960136414,
+        "bilinear_mean": 0.22840219736099243,
+        "bilinear_std": 0.17225439846515656,
+        "bilinear_min": 0.0,
+        "bilinear_max": 1.0000001192092896
+      }
+    },
+    {
+      "sample_id": 12,
+      "images": {
+        "sr_web": "sr_sample_12_web.png",
+        "sr_fullscreen": "sr_sample_12_fullscreen.png",
+        "sr_thumbnail": "sr_sample_12_thumb.png",
+        "lr_web": "lr_sample_12_web.png",
+        "lr_fullscreen": "lr_sample_12_fullscreen.png",
+        "lr_thumbnail": "lr_sample_12_thumb.png",
+        "bilinear_web": "bilinear_sample_12_web.png",
+        "bilinear_fullscreen": "bilinear_sample_12_fullscreen.png",
+        "bilinear_thumbnail": "bilinear_sample_12_thumb.png"
+      },
+      "lr_reference_paths": {
+        "web": "lr_reference/lr_sample_12_web.png",
+        "fullscreen": "lr_reference/lr_sample_12_fullscreen.png",
+        "thumbnail": "lr_reference/lr_sample_12_thumb.png"
+      },
+      "alignment": {
+        "dx": 0.0,
+        "dy": 0.0,
+        "magnitude": 0.0,
+        "angle_degrees": 0
+      },
+      "image_stats": {
+        "original_sr_shape": [
+          800,
+          800,
+          3
+        ],
+        "original_lr_shape": [
+          200,
+          200,
+          3
+        ],
+        "bilinear_shape": [
+          800,
+          800,
+          3
+        ],
+        "square_shape": [
+          800,
+          800,
+          3
+        ],
+        "sr_mean": 0.1760958433151245,
+        "sr_std": 0.14582273364067078,
+        "sr_min": 0.0,
+        "sr_max": 0.7540917992591858,
+        "bilinear_mean": 0.2502865195274353,
+        "bilinear_std": 0.17148533463478088,
+        "bilinear_min": 0.0,
+        "bilinear_max": 1.0
+      }
+    },
+    {
+      "sample_id": 13,
+      "images": {
+        "sr_web": "sr_sample_13_web.png",
+        "sr_fullscreen": "sr_sample_13_fullscreen.png",
+        "sr_thumbnail": "sr_sample_13_thumb.png",
+        "lr_web": "lr_sample_13_web.png",
+        "lr_fullscreen": "lr_sample_13_fullscreen.png",
+        "lr_thumbnail": "lr_sample_13_thumb.png",
+        "bilinear_web": "bilinear_sample_13_web.png",
+        "bilinear_fullscreen": "bilinear_sample_13_fullscreen.png",
+        "bilinear_thumbnail": "bilinear_sample_13_thumb.png"
+      },
+      "lr_reference_paths": {
+        "web": "lr_reference/lr_sample_13_web.png",
+        "fullscreen": "lr_reference/lr_sample_13_fullscreen.png",
+        "thumbnail": "lr_reference/lr_sample_13_thumb.png"
+      },
+      "alignment": {
+        "dx": 0.0,
+        "dy": 0.0,
+        "magnitude": 0.0,
+        "angle_degrees": 0
+      },
+      "image_stats": {
+        "original_sr_shape": [
+          800,
+          800,
+          3
+        ],
+        "original_lr_shape": [
+          200,
+          200,
+          3
+        ],
+        "bilinear_shape": [
+          800,
+          800,
+          3
+        ],
+        "square_shape": [
+          800,
+          800,
+          3
+        ],
+        "sr_mean": 0.18530884385108948,
+        "sr_std": 0.1442621797323227,
+        "sr_min": 0.0,
+        "sr_max": 0.7574172019958496,
+        "bilinear_mean": 0.26125651597976685,
+        "bilinear_std": 0.17140460014343262,
+        "bilinear_min": 0.003799019381403923,
+        "bilinear_max": 1.0
+      }
+    },
+    {
+      "sample_id": 14,
+      "images": {
+        "sr_web": "sr_sample_14_web.png",
+        "sr_fullscreen": "sr_sample_14_fullscreen.png",
+        "sr_thumbnail": "sr_sample_14_thumb.png",
+        "lr_web": "lr_sample_14_web.png",
+        "lr_fullscreen": "lr_sample_14_fullscreen.png",
+        "lr_thumbnail": "lr_sample_14_thumb.png",
+        "bilinear_web": "bilinear_sample_14_web.png",
+        "bilinear_fullscreen": "bilinear_sample_14_fullscreen.png",
+        "bilinear_thumbnail": "bilinear_sample_14_thumb.png"
+      },
+      "lr_reference_paths": {
+        "web": "lr_reference/lr_sample_14_web.png",
+        "fullscreen": "lr_reference/lr_sample_14_fullscreen.png",
+        "thumbnail": "lr_reference/lr_sample_14_thumb.png"
+      },
+      "alignment": {
+        "dx": 0.0,
+        "dy": 0.0,
+        "magnitude": 0.0,
+        "angle_degrees": 0
+      },
+      "image_stats": {
+        "original_sr_shape": [
+          800,
+          800,
+          3
+        ],
+        "original_lr_shape": [
+          200,
+          200,
+          3
+        ],
+        "bilinear_shape": [
+          800,
+          800,
+          3
+        ],
+        "square_shape": [
+          800,
+          800,
+          3
+        ],
+        "sr_mean": 0.1851760894060135,
+        "sr_std": 0.14500002562999725,
+        "sr_min": 0.0,
+        "sr_max": 0.7510700225830078,
+        "bilinear_mean": 0.260960191488266,
+        "bilinear_std": 0.16754910349845886,
+        "bilinear_min": 0.009742646478116512,
+        "bilinear_max": 1.0000001192092896
+      }
+    },
+    {
+      "sample_id": 15,
+      "images": {
+        "sr_web": "sr_sample_15_web.png",
+        "sr_fullscreen": "sr_sample_15_fullscreen.png",
+        "sr_thumbnail": "sr_sample_15_thumb.png",
+        "lr_web": "lr_sample_15_web.png",
+        "lr_fullscreen": "lr_sample_15_fullscreen.png",
+        "lr_thumbnail": "lr_sample_15_thumb.png",
+        "bilinear_web": "bilinear_sample_15_web.png",
+        "bilinear_fullscreen": "bilinear_sample_15_fullscreen.png",
+        "bilinear_thumbnail": "bilinear_sample_15_thumb.png"
+      },
+      "lr_reference_paths": {
+        "web": "lr_reference/lr_sample_15_web.png",
+        "fullscreen": "lr_reference/lr_sample_15_fullscreen.png",
+        "thumbnail": "lr_reference/lr_sample_15_thumb.png"
+      },
+      "alignment": {
+        "dx": 0.0,
+        "dy": 0.0,
+        "magnitude": 0.0,
+        "angle_degrees": 0
+      },
+      "image_stats": {
+        "original_sr_shape": [
+          800,
+          800,
+          3
+        ],
+        "original_lr_shape": [
+          200,
+          200,
+          3
+        ],
+        "bilinear_shape": [
+          800,
+          800,
+          3
+        ],
+        "square_shape": [
+          800,
+          800,
+          3
+        ],
+        "sr_mean": 0.3008122146129608,
+        "sr_std": 0.15217848122119904,
+        "sr_min": 0.0,
+        "sr_max": 0.8169421553611755,
+        "bilinear_mean": 0.3795899748802185,
+        "bilinear_std": 0.14410069584846497,
+        "bilinear_min": 0.13431374728679657,
+        "bilinear_max": 1.0
+      }
+    },
+    {
+      "sample_id": 16,
+      "images": {
+        "sr_web": "sr_sample_16_web.png",
+        "sr_fullscreen": "sr_sample_16_fullscreen.png",
+        "sr_thumbnail": "sr_sample_16_thumb.png",
+        "lr_web": "lr_sample_16_web.png",
+        "lr_fullscreen": "lr_sample_16_fullscreen.png",
+        "lr_thumbnail": "lr_sample_16_thumb.png",
+        "bilinear_web": "bilinear_sample_16_web.png",
+        "bilinear_fullscreen": "bilinear_sample_16_fullscreen.png",
+        "bilinear_thumbnail": "bilinear_sample_16_thumb.png"
+      },
+      "lr_reference_paths": {
+        "web": "lr_reference/lr_sample_16_web.png",
+        "fullscreen": "lr_reference/lr_sample_16_fullscreen.png",
+        "thumbnail": "lr_reference/lr_sample_16_thumb.png"
+      },
+      "alignment": {
+        "dx": 0.0,
+        "dy": 0.0,
+        "magnitude": 0.0,
+        "angle_degrees": 0
+      },
+      "image_stats": {
+        "original_sr_shape": [
+          800,
+          800,
+          3
+        ],
+        "original_lr_shape": [
+          200,
+          200,
+          3
+        ],
+        "bilinear_shape": [
+          800,
+          800,
+          3
+        ],
+        "square_shape": [
+          800,
+          800,
+          3
+        ],
+        "sr_mean": 0.15253548324108124,
+        "sr_std": 0.13382595777511597,
+        "sr_min": 0.0,
+        "sr_max": 0.7107716798782349,
+        "bilinear_mean": 0.2192230075597763,
+        "bilinear_std": 0.1668974906206131,
+        "bilinear_min": 0.0,
+        "bilinear_max": 1.0
+      }
+    },
+    {
+      "sample_id": 17,
+      "images": {
+        "sr_web": "sr_sample_17_web.png",
+        "sr_fullscreen": "sr_sample_17_fullscreen.png",
+        "sr_thumbnail": "sr_sample_17_thumb.png",
+        "lr_web": "lr_sample_17_web.png",
+        "lr_fullscreen": "lr_sample_17_fullscreen.png",
+        "lr_thumbnail": "lr_sample_17_thumb.png",
+        "bilinear_web": "bilinear_sample_17_web.png",
+        "bilinear_fullscreen": "bilinear_sample_17_fullscreen.png",
+        "bilinear_thumbnail": "bilinear_sample_17_thumb.png"
+      },
+      "lr_reference_paths": {
+        "web": "lr_reference/lr_sample_17_web.png",
+        "fullscreen": "lr_reference/lr_sample_17_fullscreen.png",
+        "thumbnail": "lr_reference/lr_sample_17_thumb.png"
+      },
+      "alignment": {
+        "dx": 0.0,
+        "dy": 0.0,
+        "magnitude": 0.0,
+        "angle_degrees": 0
+      },
+      "image_stats": {
+        "original_sr_shape": [
+          800,
+          800,
+          3
+        ],
+        "original_lr_shape": [
+          200,
+          200,
+          3
+        ],
+        "bilinear_shape": [
+          800,
+          800,
+          3
+        ],
+        "square_shape": [
+          800,
+          800,
+          3
+        ],
+        "sr_mean": 0.1348024606704712,
+        "sr_std": 0.12167017161846161,
+        "sr_min": 0.0,
+        "sr_max": 0.602441668510437,
+        "bilinear_mean": 0.18957145512104034,
+        "bilinear_std": 0.13560880720615387,
+        "bilinear_min": 0.0,
+        "bilinear_max": 1.0
+      }
+    },
+    {
+      "sample_id": 18,
+      "images": {
+        "sr_web": "sr_sample_18_web.png",
+        "sr_fullscreen": "sr_sample_18_fullscreen.png",
+        "sr_thumbnail": "sr_sample_18_thumb.png",
+        "lr_web": "lr_sample_18_web.png",
+        "lr_fullscreen": "lr_sample_18_fullscreen.png",
+        "lr_thumbnail": "lr_sample_18_thumb.png",
+        "bilinear_web": "bilinear_sample_18_web.png",
+        "bilinear_fullscreen": "bilinear_sample_18_fullscreen.png",
+        "bilinear_thumbnail": "bilinear_sample_18_thumb.png"
+      },
+      "lr_reference_paths": {
+        "web": "lr_reference/lr_sample_18_web.png",
+        "fullscreen": "lr_reference/lr_sample_18_fullscreen.png",
+        "thumbnail": "lr_reference/lr_sample_18_thumb.png"
+      },
+      "alignment": {
+        "dx": 0.0,
+        "dy": 0.0,
+        "magnitude": 0.0,
+        "angle_degrees": 0
+      },
+      "image_stats": {
+        "original_sr_shape": [
+          800,
+          800,
+          3
+        ],
+        "original_lr_shape": [
+          200,
+          200,
+          3
+        ],
+        "bilinear_shape": [
+          800,
+          800,
+          3
+        ],
+        "square_shape": [
+          800,
+          800,
+          3
+        ],
+        "sr_mean": 0.2060554325580597,
+        "sr_std": 0.14191393554210663,
+        "sr_min": 0.0,
+        "sr_max": 0.7216467261314392,
+        "bilinear_mean": 0.2821134626865387,
+        "bilinear_std": 0.1499050408601761,
+        "bilinear_min": 0.0518995076417923,
+        "bilinear_max": 1.0
+      }
+    },
+    {
+      "sample_id": 19,
+      "images": {
+        "sr_web": "sr_sample_19_web.png",
+        "sr_fullscreen": "sr_sample_19_fullscreen.png",
+        "sr_thumbnail": "sr_sample_19_thumb.png",
+        "lr_web": "lr_sample_19_web.png",
+        "lr_fullscreen": "lr_sample_19_fullscreen.png",
+        "lr_thumbnail": "lr_sample_19_thumb.png",
+        "bilinear_web": "bilinear_sample_19_web.png",
+        "bilinear_fullscreen": "bilinear_sample_19_fullscreen.png",
+        "bilinear_thumbnail": "bilinear_sample_19_thumb.png"
+      },
+      "lr_reference_paths": {
+        "web": "lr_reference/lr_sample_19_web.png",
+        "fullscreen": "lr_reference/lr_sample_19_fullscreen.png",
+        "thumbnail": "lr_reference/lr_sample_19_thumb.png"
+      },
+      "alignment": {
+        "dx": 0.0,
+        "dy": 0.0,
+        "magnitude": 0.0,
+        "angle_degrees": 0
+      },
+      "image_stats": {
+        "original_sr_shape": [
+          800,
+          800,
+          3
+        ],
+        "original_lr_shape": [
+          200,
+          200,
+          3
+        ],
+        "bilinear_shape": [
+          800,
+          800,
+          3
+        ],
+        "square_shape": [
+          800,
+          800,
+          3
+        ],
+        "sr_mean": 0.20675912499427795,
+        "sr_std": 0.16782987117767334,
+        "sr_min": 0.0,
+        "sr_max": 0.7604697942733765,
+        "bilinear_mean": 0.2761467695236206,
+        "bilinear_std": 0.15202449262142181,
+        "bilinear_min": 0.01776960678398609,
+        "bilinear_max": 1.0
+      }
+    },
+    {
+      "sample_id": 20,
+      "images": {
+        "sr_web": "sr_sample_20_web.png",
+        "sr_fullscreen": "sr_sample_20_fullscreen.png",
+        "sr_thumbnail": "sr_sample_20_thumb.png",
+        "lr_web": "lr_sample_20_web.png",
+        "lr_fullscreen": "lr_sample_20_fullscreen.png",
+        "lr_thumbnail": "lr_sample_20_thumb.png",
+        "bilinear_web": "bilinear_sample_20_web.png",
+        "bilinear_fullscreen": "bilinear_sample_20_fullscreen.png",
+        "bilinear_thumbnail": "bilinear_sample_20_thumb.png"
+      },
+      "lr_reference_paths": {
+        "web": "lr_reference/lr_sample_20_web.png",
+        "fullscreen": "lr_reference/lr_sample_20_fullscreen.png",
+        "thumbnail": "lr_reference/lr_sample_20_thumb.png"
+      },
+      "alignment": {
+        "dx": 0.0,
+        "dy": 0.0,
+        "magnitude": 0.0,
+        "angle_degrees": 0
+      },
+      "image_stats": {
+        "original_sr_shape": [
+          800,
+          800,
+          3
+        ],
+        "original_lr_shape": [
+          200,
+          200,
+          3
+        ],
+        "bilinear_shape": [
+          800,
+          800,
+          3
+        ],
+        "square_shape": [
+          800,
+          800,
+          3
+        ],
+        "sr_mean": 0.1610233634710312,
+        "sr_std": 0.13520023226737976,
+        "sr_min": 0.0,
+        "sr_max": 0.7274993658065796,
+        "bilinear_mean": 0.23366139829158783,
+        "bilinear_std": 0.1741613894701004,
+        "bilinear_min": 0.0,
+        "bilinear_max": 1.0
+      }
+    },
+    {
+      "sample_id": 21,
+      "images": {
+        "sr_web": "sr_sample_21_web.png",
+        "sr_fullscreen": "sr_sample_21_fullscreen.png",
+        "sr_thumbnail": "sr_sample_21_thumb.png",
+        "lr_web": "lr_sample_21_web.png",
+        "lr_fullscreen": "lr_sample_21_fullscreen.png",
+        "lr_thumbnail": "lr_sample_21_thumb.png",
+        "bilinear_web": "bilinear_sample_21_web.png",
+        "bilinear_fullscreen": "bilinear_sample_21_fullscreen.png",
+        "bilinear_thumbnail": "bilinear_sample_21_thumb.png"
+      },
+      "lr_reference_paths": {
+        "web": "lr_reference/lr_sample_21_web.png",
+        "fullscreen": "lr_reference/lr_sample_21_fullscreen.png",
+        "thumbnail": "lr_reference/lr_sample_21_thumb.png"
+      },
+      "alignment": {
+        "dx": 0.0,
+        "dy": 0.0,
+        "magnitude": 0.0,
+        "angle_degrees": 0
+      },
+      "image_stats": {
+        "original_sr_shape": [
+          800,
+          800,
+          3
+        ],
+        "original_lr_shape": [
+          200,
+          200,
+          3
+        ],
+        "bilinear_shape": [
+          800,
+          800,
+          3
+        ],
+        "square_shape": [
+          800,
+          800,
+          3
+        ],
+        "sr_mean": 0.21389634907245636,
+        "sr_std": 0.174204021692276,
+        "sr_min": 0.0,
+        "sr_max": 0.9244998097419739,
+        "bilinear_mean": 0.2968255877494812,
+        "bilinear_std": 0.20292307436466217,
+        "bilinear_min": 0.0,
+        "bilinear_max": 1.0
+      }
+    }
+  ],
+  "alignment_stats": {
+    "mean_dx": 0.0,
+    "mean_dy": 0.0,
+    "std_dx": 0.0,
+    "std_dy": 0.0,
+    "mean_magnitude": 0.0,
+    "max_magnitude": 0.0,
+    "min_magnitude": 0.0,
+    "alignment_convergence": 0.0
+  }
+}

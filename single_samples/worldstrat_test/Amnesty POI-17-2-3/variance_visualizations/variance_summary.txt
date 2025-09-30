@@ -1,0 +1,7 @@
+Variance Analysis Summary
+==================================================
+
+Number of LR samples: 8
+Each sample has been processed individually to show model uncertainty.
+High variance regions indicate where the model is less confident.
+Check individual sample_XXX_variance_analysis.png files for detailed analysis.

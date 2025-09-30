@@ -1,0 +1,474 @@
+{
+  "iteration": 20000,
+  "timestamp": "2025-09-24T09:50:24.692673",
+  "model_config": {
+    "model_type": "mlp",
+    "network_depth": 4,
+    "network_hidden_dim": 256,
+    "downsample_factor": 4,
+    "num_samples": 8
+  },
+  "training_config": {
+    "learning_rate": 0.002,
+    "weight_decay": 0.01,
+    "total_iterations": 20000
+  },
+  "losses": {
+    "iteration": 20000,
+    "recon_loss": 0.03917618840932846,
+    "trans_loss": 0.0020781471394002438,
+    "total_loss": 0.041254335548728704
+  },
+  "samples": [
+    {
+      "sample_id": 0,
+      "images": {
+        "sr_web": "sr_sample_0_web.png",
+        "sr_fullscreen": "sr_sample_0_fullscreen.png",
+        "sr_thumbnail": "sr_sample_0_thumb.png",
+        "lr_web": "lr_sample_0_web.png",
+        "lr_fullscreen": "lr_sample_0_fullscreen.png",
+        "lr_thumbnail": "lr_sample_0_thumb.png",
+        "bilinear_web": "bilinear_sample_0_web.png",
+        "bilinear_fullscreen": "bilinear_sample_0_fullscreen.png",
+        "bilinear_thumbnail": "bilinear_sample_0_thumb.png"
+      },
+      "lr_reference_paths": {
+        "web": "lr_reference/lr_sample_0_web.png",
+        "fullscreen": "lr_reference/lr_sample_0_fullscreen.png",
+        "thumbnail": "lr_reference/lr_sample_0_thumb.png"
+      },
+      "alignment": {
+        "dx": 0.0,
+        "dy": 0.0,
+        "magnitude": 0.0,
+        "angle_degrees": 0
+      },
+      "image_stats": {
+        "original_sr_shape": [
+          400,
+          400,
+          3
+        ],
+        "original_lr_shape": [
+          100,
+          100,
+          3
+        ],
+        "bilinear_shape": [
+          400,
+          400,
+          3
+        ],
+        "square_shape": [
+          400,
+          400,
+          3
+        ],
+        "sr_mean": 0.26267683506011963,
+        "sr_std": 0.21350128948688507,
+        "sr_min": 0.0,
+        "sr_max": 1.0,
+        "bilinear_mean": 0.26301541924476624,
+        "bilinear_std": 0.2079702466726303,
+        "bilinear_min": 0.0,
+        "bilinear_max": 1.0
+      }
+    },
+    {
+      "sample_id": 1,
+      "images": {
+        "sr_web": "sr_sample_1_web.png",
+        "sr_fullscreen": "sr_sample_1_fullscreen.png",
+        "sr_thumbnail": "sr_sample_1_thumb.png",
+        "lr_web": "lr_sample_1_web.png",
+        "lr_fullscreen": "lr_sample_1_fullscreen.png",
+        "lr_thumbnail": "lr_sample_1_thumb.png",
+        "bilinear_web": "bilinear_sample_1_web.png",
+        "bilinear_fullscreen": "bilinear_sample_1_fullscreen.png",
+        "bilinear_thumbnail": "bilinear_sample_1_thumb.png"
+      },
+      "lr_reference_paths": {
+        "web": "lr_reference/lr_sample_1_web.png",
+        "fullscreen": "lr_reference/lr_sample_1_fullscreen.png",
+        "thumbnail": "lr_reference/lr_sample_1_thumb.png"
+      },
+      "alignment": {
+        "dx": 0.001720849541015923,
+        "dy": -5.2860752475680783e-05,
+        "magnitude": 0.0017216612332183728,
+        "angle_degrees": -1.7594483855313314
+      },
+      "image_stats": {
+        "original_sr_shape": [
+          400,
+          400,
+          3
+        ],
+        "original_lr_shape": [
+          100,
+          100,
+          3
+        ],
+        "bilinear_shape": [
+          400,
+          400,
+          3
+        ],
+        "square_shape": [
+          400,
+          400,
+          3
+        ],
+        "sr_mean": 0.2534964978694916,
+        "sr_std": 0.21229225397109985,
+        "sr_min": 0.0,
+        "sr_max": 1.0,
+        "bilinear_mean": 0.25356459617614746,
+        "bilinear_std": 0.20620255172252655,
+        "bilinear_min": 0.0,
+        "bilinear_max": 1.0
+      }
+    },
+    {
+      "sample_id": 2,
+      "images": {
+        "sr_web": "sr_sample_2_web.png",
+        "sr_fullscreen": "sr_sample_2_fullscreen.png",
+        "sr_thumbnail": "sr_sample_2_thumb.png",
+        "lr_web": "lr_sample_2_web.png",
+        "lr_fullscreen": "lr_sample_2_fullscreen.png",
+        "lr_thumbnail": "lr_sample_2_thumb.png",
+        "bilinear_web": "bilinear_sample_2_web.png",
+        "bilinear_fullscreen": "bilinear_sample_2_fullscreen.png",
+        "bilinear_thumbnail": "bilinear_sample_2_thumb.png"
+      },
+      "lr_reference_paths": {
+        "web": "lr_reference/lr_sample_2_web.png",
+        "fullscreen": "lr_reference/lr_sample_2_fullscreen.png",
+        "thumbnail": "lr_reference/lr_sample_2_thumb.png"
+      },
+      "alignment": {
+        "dx": 0.001480260631069541,
+        "dy": -0.0016422774642705917,
+        "magnitude": 0.002210937992243437,
+        "angle_degrees": -47.970200359798376
+      },
+      "image_stats": {
+        "original_sr_shape": [
+          400,
+          400,
+          3
+        ],
+        "original_lr_shape": [
+          100,
+          100,
+          3
+        ],
+        "bilinear_shape": [
+          400,
+          400,
+          3
+        ],
+        "square_shape": [
+          400,
+          400,
+          3
+        ],
+        "sr_mean": 0.24636946618556976,
+        "sr_std": 0.21457506716251373,
+        "sr_min": 0.0,
+        "sr_max": 1.0,
+        "bilinear_mean": 0.24615566432476044,
+        "bilinear_std": 0.2091006487607956,
+        "bilinear_min": -1.4901161193847656e-08,
+        "bilinear_max": 1.0
+      }
+    },
+    {
+      "sample_id": 3,
+      "images": {
+        "sr_web": "sr_sample_3_web.png",
+        "sr_fullscreen": "sr_sample_3_fullscreen.png",
+        "sr_thumbnail": "sr_sample_3_thumb.png",
+        "lr_web": "lr_sample_3_web.png",
+        "lr_fullscreen": "lr_sample_3_fullscreen.png",
+        "lr_thumbnail": "lr_sample_3_thumb.png",
+        "bilinear_web": "bilinear_sample_3_web.png",
+        "bilinear_fullscreen": "bilinear_sample_3_fullscreen.png",
+        "bilinear_thumbnail": "bilinear_sample_3_thumb.png"
+      },
+      "lr_reference_paths": {
+        "web": "lr_reference/lr_sample_3_web.png",
+        "fullscreen": "lr_reference/lr_sample_3_fullscreen.png",
+        "thumbnail": "lr_reference/lr_sample_3_thumb.png"
+      },
+      "alignment": {
+        "dx": -0.0006862343288958073,
+        "dy": -0.00046420368016697466,
+        "magnitude": 0.0008284941827409785,
+        "angle_degrees": -145.92358717929932
+      },
+      "image_stats": {
+        "original_sr_shape": [
+          400,
+          400,
+          3
+        ],
+        "original_lr_shape": [
+          100,
+          100,
+          3
+        ],
+        "bilinear_shape": [
+          400,
+          400,
+          3
+        ],
+        "square_shape": [
+          400,
+          400,
+          3
+        ],
+        "sr_mean": 0.25865644216537476,
+        "sr_std": 0.21308159828186035,
+        "sr_min": 0.0,
+        "sr_max": 1.0,
+        "bilinear_mean": 0.258882611989975,
+        "bilinear_std": 0.2068554311990738,
+        "bilinear_min": 0.0,
+        "bilinear_max": 1.0
+      }
+    },
+    {
+      "sample_id": 4,
+      "images": {
+        "sr_web": "sr_sample_4_web.png",
+        "sr_fullscreen": "sr_sample_4_fullscreen.png",
+        "sr_thumbnail": "sr_sample_4_thumb.png",
+        "lr_web": "lr_sample_4_web.png",
+        "lr_fullscreen": "lr_sample_4_fullscreen.png",
+        "lr_thumbnail": "lr_sample_4_thumb.png",
+        "bilinear_web": "bilinear_sample_4_web.png",
+        "bilinear_fullscreen": "bilinear_sample_4_fullscreen.png",
+        "bilinear_thumbnail": "bilinear_sample_4_thumb.png"
+      },
+      "lr_reference_paths": {
+        "web": "lr_reference/lr_sample_4_web.png",
+        "fullscreen": "lr_reference/lr_sample_4_fullscreen.png",
+        "thumbnail": "lr_reference/lr_sample_4_thumb.png"
+      },
+      "alignment": {
+        "dx": 0.0023988329339772463,
+        "dy": -0.0013877968303859234,
+        "magnitude": 0.0027713497591540298,
+        "angle_degrees": -30.050669534542717
+      },
+      "image_stats": {
+        "original_sr_shape": [
+          400,
+          400,
+          3
+        ],
+        "original_lr_shape": [
+          100,
+          100,
+          3
+        ],
+        "bilinear_shape": [
+          400,
+          400,
+          3
+        ],
+        "square_shape": [
+          400,
+          400,
+          3
+        ],
+        "sr_mean": 0.2680491805076599,
+        "sr_std": 0.21330463886260986,
+        "sr_min": 0.0,
+        "sr_max": 1.0,
+        "bilinear_mean": 0.2684682309627533,
+        "bilinear_std": 0.20673729479312897,
+        "bilinear_min": 0.0,
+        "bilinear_max": 1.0
+      }
+    },
+    {
+      "sample_id": 5,
+      "images": {
+        "sr_web": "sr_sample_5_web.png",
+        "sr_fullscreen": "sr_sample_5_fullscreen.png",
+        "sr_thumbnail": "sr_sample_5_thumb.png",
+        "lr_web": "lr_sample_5_web.png",
+        "lr_fullscreen": "lr_sample_5_fullscreen.png",
+        "lr_thumbnail": "lr_sample_5_thumb.png",
+        "bilinear_web": "bilinear_sample_5_web.png",
+        "bilinear_fullscreen": "bilinear_sample_5_fullscreen.png",
+        "bilinear_thumbnail": "bilinear_sample_5_thumb.png"
+      },
+      "lr_reference_paths": {
+        "web": "lr_reference/lr_sample_5_web.png",
+        "fullscreen": "lr_reference/lr_sample_5_fullscreen.png",
+        "thumbnail": "lr_reference/lr_sample_5_thumb.png"
+      },
+      "alignment": {
+        "dx": 0.0014721557963639498,
+        "dy": -0.0011935530928894877,
+        "magnitude": 0.0018952075544156205,
+        "angle_degrees": -39.03347595159164
+      },
+      "image_stats": {
+        "original_sr_shape": [
+          400,
+          400,
+          3
+        ],
+        "original_lr_shape": [
+          100,
+          100,
+          3
+        ],
+        "bilinear_shape": [
+          400,
+          400,
+          3
+        ],
+        "square_shape": [
+          400,
+          400,
+          3
+        ],
+        "sr_mean": 0.2540079653263092,
+        "sr_std": 0.21359975636005402,
+        "sr_min": 0.0,
+        "sr_max": 1.0,
+        "bilinear_mean": 0.2541084289550781,
+        "bilinear_std": 0.20744433999061584,
+        "bilinear_min": -1.4901161193847656e-08,
+        "bilinear_max": 1.0
+      }
+    },
+    {
+      "sample_id": 6,
+      "images": {
+        "sr_web": "sr_sample_6_web.png",
+        "sr_fullscreen": "sr_sample_6_fullscreen.png",
+        "sr_thumbnail": "sr_sample_6_thumb.png",
+        "lr_web": "lr_sample_6_web.png",
+        "lr_fullscreen": "lr_sample_6_fullscreen.png",
+        "lr_thumbnail": "lr_sample_6_thumb.png",
+        "bilinear_web": "bilinear_sample_6_web.png",
+        "bilinear_fullscreen": "bilinear_sample_6_fullscreen.png",
+        "bilinear_thumbnail": "bilinear_sample_6_thumb.png"
+      },
+      "lr_reference_paths": {
+        "web": "lr_reference/lr_sample_6_web.png",
+        "fullscreen": "lr_reference/lr_sample_6_fullscreen.png",
+        "thumbnail": "lr_reference/lr_sample_6_thumb.png"
+      },
+      "alignment": {
+        "dx": -0.00035978821688331664,
+        "dy": -0.000594529730733484,
+        "magnitude": 0.0006949195361580401,
+        "angle_degrees": -121.18083242912158
+      },
+      "image_stats": {
+        "original_sr_shape": [
+          400,
+          400,
+          3
+        ],
+        "original_lr_shape": [
+          100,
+          100,
+          3
+        ],
+        "bilinear_shape": [
+          400,
+          400,
+          3
+        ],
+        "square_shape": [
+          400,
+          400,
+          3
+        ],
+        "sr_mean": 0.26058560609817505,
+        "sr_std": 0.2154964953660965,
+        "sr_min": 0.0,
+        "sr_max": 1.0,
+        "bilinear_mean": 0.2609131932258606,
+        "bilinear_std": 0.20925354957580566,
+        "bilinear_min": 0.0,
+        "bilinear_max": 1.0
+      }
+    },
+    {
+      "sample_id": 7,
+      "images": {
+        "sr_web": "sr_sample_7_web.png",
+        "sr_fullscreen": "sr_sample_7_fullscreen.png",
+        "sr_thumbnail": "sr_sample_7_thumb.png",
+        "lr_web": "lr_sample_7_web.png",
+        "lr_fullscreen": "lr_sample_7_fullscreen.png",
+        "lr_thumbnail": "lr_sample_7_thumb.png",
+        "bilinear_web": "bilinear_sample_7_web.png",
+        "bilinear_fullscreen": "bilinear_sample_7_fullscreen.png",
+        "bilinear_thumbnail": "bilinear_sample_7_thumb.png"
+      },
+      "lr_reference_paths": {
+        "web": "lr_reference/lr_sample_7_web.png",
+        "fullscreen": "lr_reference/lr_sample_7_fullscreen.png",
+        "thumbnail": "lr_reference/lr_sample_7_thumb.png"
+      },
+      "alignment": {
+        "dx": 0.0008823915850371122,
+        "dy": -0.0011957461247220635,
+        "magnitude": 0.001486076614489354,
+        "angle_degrees": -53.574816616047805
+      },
+      "image_stats": {
+        "original_sr_shape": [
+          400,
+          400,
+          3
+        ],
+        "original_lr_shape": [
+          100,
+          100,
+          3
+        ],
+        "bilinear_shape": [
+          400,
+          400,
+          3
+        ],
+        "square_shape": [
+          400,
+          400,
+          3
+        ],
+        "sr_mean": 0.24813130497932434,
+        "sr_std": 0.21340495347976685,
+        "sr_min": 0.0,
+        "sr_max": 1.0,
+        "bilinear_mean": 0.2480044811964035,
+        "bilinear_std": 0.20744481682777405,
+        "bilinear_min": -1.4901161193847656e-08,
+        "bilinear_max": 1.0
+      }
+    }
+  ],
+  "alignment_stats": {
+    "mean_dx": 0.000863558492710581,
+    "mean_dy": -0.0008163709594555257,
+    "std_dx": 0.001030003074901834,
+    "std_dy": 0.0005828256237326003,
+    "mean_magnitude": 0.001451080859052479,
+    "max_magnitude": 0.0027713497591540298,
+    "min_magnitude": 0.0,
+    "alignment_convergence": 0.0008409228241955105
+  }
+}

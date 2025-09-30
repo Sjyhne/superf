@@ -18,7 +18,8 @@ class INR(nn.Module):
                  coordinate_dim=2,
                  use_gnll=False,
                  use_base_frame=True,
-                 use_direct_param_T=True):
+                 use_direct_param_T=True,
+                 use_color_shift=False):
         super(INR, self).__init__()
 
         self.input_projection = input_projection
@@ -26,11 +27,9 @@ class INR(nn.Module):
 
         self.num_samples = num_samples
         self.time_vectors = torch.FloatTensor(np.linspace(0, 1, self.num_samples))
-<<<<<<< Updated upstream
-=======
 
         self.use_base_frame = use_base_frame
->>>>>>> Stashed changes
+        self.use_color_shift = use_color_shift
         
         self.use_gnll = use_gnll
 
@@ -41,25 +40,22 @@ class INR(nn.Module):
             self.affine_mlp = Affine(hidden_features=256, hidden_layers=2)
 
         self.use_direct_param_T = use_direct_param_T
-<<<<<<< Updated upstream
         self.use_base_frame = use_base_frame
         
-        #ct = nn.ModuleList([nn.Linear(1, 1) for _ in range(3)])
-        #self.color_transforms = nn.ModuleList([ct for _ in range(num_samples)])
+        ct = nn.ModuleList([nn.Linear(1, 1) for _ in range(3)])
+        self.color_transforms = nn.ModuleList([ct for _ in range(num_samples)])
 
-        #self.color_transforms[0].requires_grad = False
+        self.color_transforms[0].requires_grad = False
 
         # Initialize all biases to 0
-        #for color_transform in self.color_transforms:
-        #    for ct in color_transform:
-        #        ct.bias.data.zero_()
+        for color_transform in self.color_transforms:
+            for ct in color_transform:
+                ct.bias.data.zero_()
 
         # Initialize all weights to 1
-        #for color_transform in self.color_transforms:
-        #    for ct in color_transform:
-        #        ct.weight.data.fill_(1)
-=======
->>>>>>> Stashed changes
+        for color_transform in self.color_transforms:
+            for ct in color_transform:
+                ct.weight.data.fill_(1)
 
         if self.use_gnll:
 
@@ -68,18 +64,6 @@ class INR(nn.Module):
                 nn.ReLU(),
                 nn.Linear(128, self.decoder.output_dim)
             )
-
-    def apply_color_transform(self, x, sample_idx):
-        """Apply per-channel color scaling."""
-        result = x.clone()
-
-        for i, idx in enumerate(sample_idx):
-            if idx != 0:  # Skip reference sample
-                for channel in range(3):
-                    transformed = self.color_transforms[idx][channel](x[i, :, :, channel].unsqueeze(-1))
-                    result[i, :, :, channel] = transformed.squeeze(-1)
-
-        return result
     
     def get_affine_transform(self, sample_id):
 
@@ -159,6 +143,17 @@ class INR(nn.Module):
 
         return transformed_coords.reshape(B, H, W, C)
 
+    def apply_color_transform(self, x, sample_idx):
+        """Apply per-channel color scaling."""
+        result = x.clone()
+
+        for i, idx in enumerate(sample_idx):
+            if idx != 0:  # Skip reference sample
+                for channel in range(3):
+                    transformed = self.color_transforms[idx][channel](x[i, :, :, channel].unsqueeze(-1))
+                    result[i, :, :, channel] = transformed.squeeze(-1)
+
+        return result
 
     def forward(self, coords, sample_idx=None, scale_factor=None, training=True, lr_frames=None):
         B, H, W, C = coords.shape
@@ -176,13 +171,6 @@ class INR(nn.Module):
 
             coords = self.apply_affine(coords, A)
         
-<<<<<<< Updated upstream
-        if not training and not self.use_base_frame and not self.use_direct_param_T:
-            A = self.get_affine_transform(sample_idx) # [B, 2, 3]
-            dx_list = A[:, 0, 2]
-            dy_list = A[:, 1, 2]
-            coords = self.apply_affine(coords, A)
-=======
         if not training:
             A = self.get_affine_transform(sample_idx) # [B, 2, 3]
             dx_list = A[:, 0, 2]
@@ -190,13 +178,17 @@ class INR(nn.Module):
             if not self.use_direct_param_T:
                 coords = self.apply_affine(coords, A)
         
->>>>>>> Stashed changes
 
 
         if self.input_projection is not None:
             coords = self.input_projection(coords)
 
         output = self.decoder(coords)
+
+        if self.use_base_frame and self.use_direct_param_T:
+            output = self.apply_color_transform(output, sample_idx)
+        elif self.use_color_shift:
+            output = self.apply_color_transform(output, sample_idx)
 
         shifts = [dx_list, dy_list] if dx_list is not None else None
 
@@ -215,7 +207,25 @@ class INR(nn.Module):
             variances = []
             if lr_frames is not None:
                 for i, sample_id in enumerate(sample_idx):
-                    variances.append(torch.exp(self.variance_predictor(torch.cat([output[i], lr_frames[i]], dim=-1))))
+                    # Get raw variance prediction
+                    raw_variance = self.variance_predictor(torch.cat([output[i], lr_frames[i]], dim=-1))
+                    
+                    # Clamp to prevent numerical instability
+                    # Variance should be positive, so we clamp log variance to reasonable range
+                    raw_variance = torch.clamp(raw_variance, min=-10, max=10)  # exp(-10) ≈ 4.5e-5, exp(10) ≈ 22026
+                    
+                    # Convert to variance with numerical stability
+                    variance = torch.exp(raw_variance)
+                    
+                    # Additional safety: ensure variance is not too small or too large
+                    variance = torch.clamp(variance, min=1e-6, max=1e6)
+                    
+                    # Check for NaN or Inf values
+                    if torch.isnan(variance).any() or torch.isinf(variance).any():
+                        print(f"Warning: NaN/Inf detected in variance for sample {i}, replacing with small positive value")
+                        variance = torch.full_like(variance, 1e-6)
+                    
+                    variances.append(variance)
                 variances = torch.stack(variances, dim=0)
 
             return output, shifts, variances

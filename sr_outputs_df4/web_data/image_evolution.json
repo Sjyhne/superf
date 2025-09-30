@@ -1,0 +1,445 @@
+{
+  "iterations": [
+    0,
+    20000
+  ],
+  "image_paths": {
+    "sample_0": {
+      "lr_reference": {
+        "web": "lr_reference/lr_sample_0_web.png",
+        "fullscreen": "lr_reference/lr_sample_0_fullscreen.png",
+        "thumbnail": "lr_reference/lr_sample_0_thumb.png"
+      },
+      "sr_progression": {
+        "web": [
+          "checkpoints/iter_0000/sr_sample_0_web.png",
+          "checkpoints/iter_20000/sr_sample_0_web.png"
+        ],
+        "fullscreen": [
+          "checkpoints/iter_0000/sr_sample_0_fullscreen.png",
+          "checkpoints/iter_20000/sr_sample_0_fullscreen.png"
+        ],
+        "thumbnail": [
+          "checkpoints/iter_0000/sr_sample_0_thumb.png",
+          "checkpoints/iter_20000/sr_sample_0_thumb.png"
+        ]
+      },
+      "bilinear_progression": {
+        "web": [
+          "checkpoints/iter_0000/bilinear_sample_0_web.png",
+          "checkpoints/iter_20000/bilinear_sample_0_web.png"
+        ],
+        "fullscreen": [
+          "checkpoints/iter_0000/bilinear_sample_0_fullscreen.png",
+          "checkpoints/iter_20000/bilinear_sample_0_fullscreen.png"
+        ],
+        "thumbnail": [
+          "checkpoints/iter_0000/bilinear_sample_0_thumb.png",
+          "checkpoints/iter_20000/bilinear_sample_0_thumb.png"
+        ]
+      }
+    },
+    "sample_1": {
+      "lr_reference": {
+        "web": "lr_reference/lr_sample_1_web.png",
+        "fullscreen": "lr_reference/lr_sample_1_fullscreen.png",
+        "thumbnail": "lr_reference/lr_sample_1_thumb.png"
+      },
+      "sr_progression": {
+        "web": [
+          "checkpoints/iter_0000/sr_sample_1_web.png",
+          "checkpoints/iter_20000/sr_sample_1_web.png"
+        ],
+        "fullscreen": [
+          "checkpoints/iter_0000/sr_sample_1_fullscreen.png",
+          "checkpoints/iter_20000/sr_sample_1_fullscreen.png"
+        ],
+        "thumbnail": [
+          "checkpoints/iter_0000/sr_sample_1_thumb.png",
+          "checkpoints/iter_20000/sr_sample_1_thumb.png"
+        ]
+      },
+      "bilinear_progression": {
+        "web": [
+          "checkpoints/iter_0000/bilinear_sample_1_web.png",
+          "checkpoints/iter_20000/bilinear_sample_1_web.png"
+        ],
+        "fullscreen": [
+          "checkpoints/iter_0000/bilinear_sample_1_fullscreen.png",
+          "checkpoints/iter_20000/bilinear_sample_1_fullscreen.png"
+        ],
+        "thumbnail": [
+          "checkpoints/iter_0000/bilinear_sample_1_thumb.png",
+          "checkpoints/iter_20000/bilinear_sample_1_thumb.png"
+        ]
+      }
+    },
+    "sample_2": {
+      "lr_reference": {
+        "web": "lr_reference/lr_sample_2_web.png",
+        "fullscreen": "lr_reference/lr_sample_2_fullscreen.png",
+        "thumbnail": "lr_reference/lr_sample_2_thumb.png"
+      },
+      "sr_progression": {
+        "web": [
+          "checkpoints/iter_0000/sr_sample_2_web.png",
+          "checkpoints/iter_20000/sr_sample_2_web.png"
+        ],
+        "fullscreen": [
+          "checkpoints/iter_0000/sr_sample_2_fullscreen.png",
+          "checkpoints/iter_20000/sr_sample_2_fullscreen.png"
+        ],
+        "thumbnail": [
+          "checkpoints/iter_0000/sr_sample_2_thumb.png",
+          "checkpoints/iter_20000/sr_sample_2_thumb.png"
+        ]
+      },
+      "bilinear_progression": {
+        "web": [
+          "checkpoints/iter_0000/bilinear_sample_2_web.png",
+          "checkpoints/iter_20000/bilinear_sample_2_web.png"
+        ],
+        "fullscreen": [
+          "checkpoints/iter_0000/bilinear_sample_2_fullscreen.png",
+          "checkpoints/iter_20000/bilinear_sample_2_fullscreen.png"
+        ],
+        "thumbnail": [
+          "checkpoints/iter_0000/bilinear_sample_2_thumb.png",
+          "checkpoints/iter_20000/bilinear_sample_2_thumb.png"
+        ]
+      }
+    },
+    "sample_3": {
+      "lr_reference": {
+        "web": "lr_reference/lr_sample_3_web.png",
+        "fullscreen": "lr_reference/lr_sample_3_fullscreen.png",
+        "thumbnail": "lr_reference/lr_sample_3_thumb.png"
+      },
+      "sr_progression": {
+        "web": [
+          "checkpoints/iter_0000/sr_sample_3_web.png",
+          "checkpoints/iter_20000/sr_sample_3_web.png"
+        ],
+        "fullscreen": [
+          "checkpoints/iter_0000/sr_sample_3_fullscreen.png",
+          "checkpoints/iter_20000/sr_sample_3_fullscreen.png"
+        ],
+        "thumbnail": [
+          "checkpoints/iter_0000/sr_sample_3_thumb.png",
+          "checkpoints/iter_20000/sr_sample_3_thumb.png"
+        ]
+      },
+      "bilinear_progression": {
+        "web": [
+          "checkpoints/iter_0000/bilinear_sample_3_web.png",
+          "checkpoints/iter_20000/bilinear_sample_3_web.png"
+        ],
+        "fullscreen": [
+          "checkpoints/iter_0000/bilinear_sample_3_fullscreen.png",
+          "checkpoints/iter_20000/bilinear_sample_3_fullscreen.png"
+        ],
+        "thumbnail": [
+          "checkpoints/iter_0000/bilinear_sample_3_thumb.png",
+          "checkpoints/iter_20000/bilinear_sample_3_thumb.png"
+        ]
+      }
+    },
+    "sample_4": {
+      "lr_reference": {
+        "web": "lr_reference/lr_sample_4_web.png",
+        "fullscreen": "lr_reference/lr_sample_4_fullscreen.png",
+        "thumbnail": "lr_reference/lr_sample_4_thumb.png"
+      },
+      "sr_progression": {
+        "web": [
+          "checkpoints/iter_0000/sr_sample_4_web.png",
+          "checkpoints/iter_20000/sr_sample_4_web.png"
+        ],
+        "fullscreen": [
+          "checkpoints/iter_0000/sr_sample_4_fullscreen.png",
+          "checkpoints/iter_20000/sr_sample_4_fullscreen.png"
+        ],
+        "thumbnail": [
+          "checkpoints/iter_0000/sr_sample_4_thumb.png",
+          "checkpoints/iter_20000/sr_sample_4_thumb.png"
+        ]
+      },
+      "bilinear_progression": {
+        "web": [
+          "checkpoints/iter_0000/bilinear_sample_4_web.png",
+          "checkpoints/iter_20000/bilinear_sample_4_web.png"
+        ],
+        "fullscreen": [
+          "checkpoints/iter_0000/bilinear_sample_4_fullscreen.png",
+          "checkpoints/iter_20000/bilinear_sample_4_fullscreen.png"
+        ],
+        "thumbnail": [
+          "checkpoints/iter_0000/bilinear_sample_4_thumb.png",
+          "checkpoints/iter_20000/bilinear_sample_4_thumb.png"
+        ]
+      }
+    },
+    "sample_5": {
+      "lr_reference": {
+        "web": "lr_reference/lr_sample_5_web.png",
+        "fullscreen": "lr_reference/lr_sample_5_fullscreen.png",
+        "thumbnail": "lr_reference/lr_sample_5_thumb.png"
+      },
+      "sr_progression": {
+        "web": [
+          "checkpoints/iter_0000/sr_sample_5_web.png",
+          "checkpoints/iter_20000/sr_sample_5_web.png"
+        ],
+        "fullscreen": [
+          "checkpoints/iter_0000/sr_sample_5_fullscreen.png",
+          "checkpoints/iter_20000/sr_sample_5_fullscreen.png"
+        ],
+        "thumbnail": [
+          "checkpoints/iter_0000/sr_sample_5_thumb.png",
+          "checkpoints/iter_20000/sr_sample_5_thumb.png"
+        ]
+      },
+      "bilinear_progression": {
+        "web": [
+          "checkpoints/iter_0000/bilinear_sample_5_web.png",
+          "checkpoints/iter_20000/bilinear_sample_5_web.png"
+        ],
+        "fullscreen": [
+          "checkpoints/iter_0000/bilinear_sample_5_fullscreen.png",
+          "checkpoints/iter_20000/bilinear_sample_5_fullscreen.png"
+        ],
+        "thumbnail": [
+          "checkpoints/iter_0000/bilinear_sample_5_thumb.png",
+          "checkpoints/iter_20000/bilinear_sample_5_thumb.png"
+        ]
+      }
+    },
+    "sample_6": {
+      "lr_reference": {
+        "web": "lr_reference/lr_sample_6_web.png",
+        "fullscreen": "lr_reference/lr_sample_6_fullscreen.png",
+        "thumbnail": "lr_reference/lr_sample_6_thumb.png"
+      },
+      "sr_progression": {
+        "web": [
+          "checkpoints/iter_0000/sr_sample_6_web.png",
+          "checkpoints/iter_20000/sr_sample_6_web.png"
+        ],
+        "fullscreen": [
+          "checkpoints/iter_0000/sr_sample_6_fullscreen.png",
+          "checkpoints/iter_20000/sr_sample_6_fullscreen.png"
+        ],
+        "thumbnail": [
+          "checkpoints/iter_0000/sr_sample_6_thumb.png",
+          "checkpoints/iter_20000/sr_sample_6_thumb.png"
+        ]
+      },
+      "bilinear_progression": {
+        "web": [
+          "checkpoints/iter_0000/bilinear_sample_6_web.png",
+          "checkpoints/iter_20000/bilinear_sample_6_web.png"
+        ],
+        "fullscreen": [
+          "checkpoints/iter_0000/bilinear_sample_6_fullscreen.png",
+          "checkpoints/iter_20000/bilinear_sample_6_fullscreen.png"
+        ],
+        "thumbnail": [
+          "checkpoints/iter_0000/bilinear_sample_6_thumb.png",
+          "checkpoints/iter_20000/bilinear_sample_6_thumb.png"
+        ]
+      }
+    },
+    "sample_7": {
+      "lr_reference": {
+        "web": "lr_reference/lr_sample_7_web.png",
+        "fullscreen": "lr_reference/lr_sample_7_fullscreen.png",
+        "thumbnail": "lr_reference/lr_sample_7_thumb.png"
+      },
+      "sr_progression": {
+        "web": [
+          "checkpoints/iter_0000/sr_sample_7_web.png",
+          "checkpoints/iter_20000/sr_sample_7_web.png"
+        ],
+        "fullscreen": [
+          "checkpoints/iter_0000/sr_sample_7_fullscreen.png",
+          "checkpoints/iter_20000/sr_sample_7_fullscreen.png"
+        ],
+        "thumbnail": [
+          "checkpoints/iter_0000/sr_sample_7_thumb.png",
+          "checkpoints/iter_20000/sr_sample_7_thumb.png"
+        ]
+      },
+      "bilinear_progression": {
+        "web": [
+          "checkpoints/iter_0000/bilinear_sample_7_web.png",
+          "checkpoints/iter_20000/bilinear_sample_7_web.png"
+        ],
+        "fullscreen": [
+          "checkpoints/iter_0000/bilinear_sample_7_fullscreen.png",
+          "checkpoints/iter_20000/bilinear_sample_7_fullscreen.png"
+        ],
+        "thumbnail": [
+          "checkpoints/iter_0000/bilinear_sample_7_thumb.png",
+          "checkpoints/iter_20000/bilinear_sample_7_thumb.png"
+        ]
+      }
+    }
+  },
+  "quality_metrics": {
+    "sample_0": {
+      "sr_mean": [
+        0.19153138995170593,
+        0.26267683506011963
+      ],
+      "sr_std": [
+        0.17445655167102814,
+        0.21350128948688507
+      ],
+      "bilinear_mean": [
+        0.26301541924476624,
+        0.26301541924476624
+      ],
+      "bilinear_std": [
+        0.2079702466726303,
+        0.2079702466726303
+      ]
+    },
+    "sample_1": {
+      "sr_mean": [
+        0.18424679338932037,
+        0.2534964978694916
+      ],
+      "sr_std": [
+        0.17059382796287537,
+        0.21229225397109985
+      ],
+      "bilinear_mean": [
+        0.25356459617614746,
+        0.25356459617614746
+      ],
+      "bilinear_std": [
+        0.20620255172252655,
+        0.20620255172252655
+      ]
+    },
+    "sample_2": {
+      "sr_mean": [
+        0.18080784380435944,
+        0.24636946618556976
+      ],
+      "sr_std": [
+        0.17130053043365479,
+        0.21457506716251373
+      ],
+      "bilinear_mean": [
+        0.24615566432476044,
+        0.24615566432476044
+      ],
+      "bilinear_std": [
+        0.2091006487607956,
+        0.2091006487607956
+      ]
+    },
+    "sample_3": {
+      "sr_mean": [
+        0.1890876442193985,
+        0.25865644216537476
+      ],
+      "sr_std": [
+        0.17279112339019775,
+        0.21308159828186035
+      ],
+      "bilinear_mean": [
+        0.258882611989975,
+        0.258882611989975
+      ],
+      "bilinear_std": [
+        0.2068554311990738,
+        0.2068554311990738
+      ]
+    },
+    "sample_4": {
+      "sr_mean": [
+        0.19361966848373413,
+        0.2680491805076599
+      ],
+      "sr_std": [
+        0.1716056764125824,
+        0.21330463886260986
+      ],
+      "bilinear_mean": [
+        0.2684682309627533,
+        0.2684682309627533
+      ],
+      "bilinear_std": [
+        0.20673729479312897,
+        0.20673729479312897
+      ]
+    },
+    "sample_5": {
+      "sr_mean": [
+        0.18405194580554962,
+        0.2540079653263092
+      ],
+      "sr_std": [
+        0.1699189841747284,
+        0.21359975636005402
+      ],
+      "bilinear_mean": [
+        0.2541084289550781,
+        0.2541084289550781
+      ],
+      "bilinear_std": [
+        0.20744433999061584,
+        0.20744433999061584
+      ]
+    },
+    "sample_6": {
+      "sr_mean": [
+        0.1899576485157013,
+        0.26058560609817505
+      ],
+      "sr_std": [
+        0.17252790927886963,
+        0.2154964953660965
+      ],
+      "bilinear_mean": [
+        0.2609131932258606,
+        0.2609131932258606
+      ],
+      "bilinear_std": [
+        0.20925354957580566,
+        0.20925354957580566
+      ]
+    },
+    "sample_7": {
+      "sr_mean": [
+        0.1819303184747696,
+        0.24813130497932434
+      ],
+      "sr_std": [
+        0.170564204454422,
+        0.21340495347976685
+      ],
+      "bilinear_mean": [
+        0.2480044811964035,
+        0.2480044811964035
+      ],
+      "bilinear_std": [
+        0.20744481682777405,
+        0.20744481682777405
+      ]
+    }
+  },
+  "includes_initial_state": true,
+  "available_sizes": [
+    "web",
+    "fullscreen",
+    "thumbnail"
+  ],
+  "available_methods": [
+    "sr",
+    "lr",
+    "bilinear"
+  ]
+}

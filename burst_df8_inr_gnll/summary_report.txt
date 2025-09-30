@@ -1,0 +1,52 @@
+Multi-Sample Super-Resolution Results Summary
+================================================
+
+Total Samples Processed: 50
+
+PSNR Results (dB):
+------------------
+Model Output:
+  Mean: 25.99 ± 3.80
+  Range: 19.07 - 41.11
+
+Bilinear Baseline:
+  Mean: 25.44 ± 3.83
+  Range: 18.95 - 42.41
+
+PSNR Improvement (Model - Bilinear):
+  Mean: 0.55 ± 0.95
+  Range: -2.55 - 2.51
+
+SSIM Results:
+-------------
+Model Output:
+  Mean: 0.7192 ± 0.1237
+  Range: 0.3384 - 0.9750
+
+Bilinear Baseline:
+  Mean: 0.7111 ± 0.1350
+  Range: 0.3085 - 0.9872
+
+SSIM Improvement (Model - Bilinear):
+  Mean: 0.0081 ± 0.0335
+  Range: -0.0681 - 0.0792
+
+LPIPS Results:
+--------------
+Model Output:
+  Mean: 0.4986 ± 0.0578
+  Range: 0.3605 - 0.6116
+
+Bilinear Baseline:
+  Mean: 0.5321 ± 0.0619
+  Range: 0.3552 - 0.6746
+
+LPIPS Improvement (Bilinear - Model):
+  Mean: 0.0335 ± 0.0356
+  Range: -0.0795 - 0.1122
+
+Files Generated:
+- summary_metrics.png: Bar charts comparing metrics across samples
+- metrics_distribution.png: Box plots showing metric distributions
+- summary_statistics.json: Detailed numerical statistics
+- sample_XXX/: Individual results for each sample

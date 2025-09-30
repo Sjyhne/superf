@@ -1,0 +1,30 @@
+{
+  "dataset": "worldstrat_test",
+  "sample_id": "Amnesty POI-17-2-3",
+  "downsampling_factor": 8,
+  "model": "mlp",
+  "iterations": 2000,
+  "learning_rate": 0.002,
+  "psnr": {
+    "model": 22.25274085998535,
+    "bilinear": 22.20061492919922,
+    "improvement": 0.05212593078613281
+  },
+  "ssim": {
+    "model": 0.628049373626709,
+    "bilinear": 0.6228067874908447,
+    "improvement": 0.005242586135864258
+  },
+  "lpips": {
+    "model": 0.5914402604103088,
+    "bilinear": 0.5851236581802368,
+    "improvement": -0.0063166022300720215
+  },
+  "training": {
+    "final_test_loss": 0.008052141405642033,
+    "final_test_psnr": 20.940885543823242,
+    "final_recon_loss": 0.09857236593961716,
+    "final_trans_loss": 0.009126246441155672,
+    "final_total_loss": 0.10769861238077283
+  }
+}
