@@ -33,6 +33,9 @@ class ImageDataset:
         self.device = device
         self.num_samples = len(images)
         self.downsample_factor = downsample_factor
+        # Record LR spatial size from first image
+        lr_h, lr_w = lr_images[0].shape[:2]
+        self.lr_size = (lr_h, lr_w)
         
     def __len__(self):
         return len(self.images)
@@ -80,6 +83,9 @@ class ImageDataset:
     def get_lr_std(self, index):
         """Return std for index."""
         return self.stds[index]
+
+    def get_lr_size(self):
+        return self.lr_size
 
 
 def create_image_dataset(folder_path, downsample_factor, device):
@@ -794,7 +800,7 @@ def train_one_iteration(model, optimizer, train_sample, device, downsample_facto
     pred_dx, pred_dy = pred_shifts
     trans_loss = trans_criterion(pred_dx, gt_dx) + trans_criterion(pred_dy, gt_dy)
 
-    # Only backpropagate the reconstruction loss
+    # Backpropagate only the reconstruction term
     recon_loss.backward()
     optimizer.step()
     
@@ -829,12 +835,13 @@ def main():
                        choices=["linear", "fourier_10", "fourier_5", "fourier_20", "fourier_40", "fourier", "legendre", "none"])
     parser.add_argument("--fourier_scale", type=float, default=10)
     parser.add_argument("--use_gnll", action="store_true")
+    parser.add_argument("--variance_init", type=float, default=0.1, help="Initial variance value for per-pixel params when using GNLL")
     
     # Training parameters
     parser.add_argument("--seed", type=int, default=10)
     parser.add_argument("--iters", type=int, default=1000)
     parser.add_argument("--learning_rate", type=float, default=2e-3)
-    parser.add_argument("--weight_decay", type=float, default=0.01)
+    parser.add_argument("--weight_decay", type=float, default=0.05)
     parser.add_argument("--device", type=str, default="7", help="CUDA device number")
     
     # Web visualization parameters
@@ -873,7 +880,16 @@ def main():
     
     input_projection = get_input_projection(args.input_projection, 2, args.projection_dim, device, args.fourier_scale)
     decoder = get_decoder(args.model, args.network_depth, args.projection_dim, args.network_hidden_dim)
-    model = INR(input_projection, decoder, actual_num_samples, use_gnll=args.use_gnll, use_base_frame=True).to(device)
+    # Provide LR size for variance parameter allocation when GNLL is used
+    variance_param_size = None
+    if args.use_gnll:
+        lr_h, lr_w = train_data.get_lr_size()
+        variance_param_size = (lr_h, lr_w)
+
+    model = INR(
+        input_projection, decoder, actual_num_samples, use_gnll=args.use_gnll, use_base_frame=True,
+        variance_param_size=variance_param_size
+    ).to(device)
 
     # Setup optimizer and scheduler
     optimizer = optim.AdamW(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)

@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 import numpy as np
+from typing import Optional, Tuple
 
 from utils import bilinear_resize_torch
 
@@ -19,7 +20,8 @@ class INR(nn.Module):
                  use_gnll=False,
                  use_base_frame=True,
                  use_direct_param_T=True,
-                 use_color_shift=False):
+                 use_color_shift=False,
+                 variance_param_size=(100, 100)):
         super(INR, self).__init__()
 
         self.input_projection = input_projection
@@ -58,12 +60,16 @@ class INR(nn.Module):
                 ct.weight.data.fill_(1)
 
         if self.use_gnll:
-
-            self.variance_predictor = nn.Sequential(
-                nn.Linear(self.decoder.output_dim * 2, 128),
-                nn.ReLU(),
-                nn.Linear(128, self.decoder.output_dim)
-            )
+            # Initialize pixel-wise, per-sample, per-band learnable log-variance
+            # parameters at construction time when image size is known.
+            if variance_param_size is None:
+                raise ValueError("variance_param_size (H_lr, W_lr) must be provided when use_gnll=True to allocate per-pixel variance parameters in __init__.")
+            H_lr, W_lr = variance_param_size
+            C_out = self.decoder.output_dim
+            self.variance_params = nn.ParameterList()
+            for _ in range(self.num_samples):
+                p = nn.Parameter(torch.full((H_lr, W_lr, C_out), -2.0))
+                self.variance_params.append(p)
     
     def get_affine_transform(self, sample_id):
 
@@ -204,29 +210,13 @@ class INR(nn.Module):
                              mode='area').permute(0, 2, 3, 1)
 
         if self.use_gnll:
+            # Use the pre-allocated per-sample parameters from __init__
             variances = []
-            if lr_frames is not None:
-                for i, sample_id in enumerate(sample_idx):
-                    # Get raw variance prediction
-                    raw_variance = self.variance_predictor(torch.cat([output[i], lr_frames[i]], dim=-1))
-                    
-                    # Clamp to prevent numerical instability
-                    # Variance should be positive, so we clamp log variance to reasonable range
-                    raw_variance = torch.clamp(raw_variance, min=-10, max=10)  # exp(-10) ≈ 4.5e-5, exp(10) ≈ 22026
-                    
-                    # Convert to variance with numerical stability
-                    variance = torch.exp(raw_variance)
-                    
-                    # Additional safety: ensure variance is not too small or too large
-                    variance = torch.clamp(variance, min=1e-6, max=1e6)
-                    
-                    # Check for NaN or Inf values
-                    if torch.isnan(variance).any() or torch.isinf(variance).any():
-                        print(f"Warning: NaN/Inf detected in variance for sample {i}, replacing with small positive value")
-                        variance = torch.full_like(variance, 1e-6)
-                    
-                    variances.append(variance)
-                variances = torch.stack(variances, dim=0)
+            for i, sid in enumerate(sample_idx):
+                log_var = self.variance_params[sid.item()].to(output.device)
+                var = F.softplus(log_var) + 1e-6
+                variances.append(var)
+            variances = torch.stack(variances, dim=0)
 
             return output, shifts, variances
         else:
