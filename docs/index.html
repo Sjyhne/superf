@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Satellite Super Resolution</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 0;
+            border-bottom: 2px solid #e0e0e0;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.2em;
+        }
+
+        section {
+            margin-bottom: 40px;
+        }
+
+        h2 {
+            color: #34495e;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
+
+        h3 {
+            color: #2c3e50;
+            font-size: 1.3em;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        ul, ol {
+            margin-left: 30px;
+            margin-bottom: 20px;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        pre {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            color: inherit;
+        }
+
+        .highlight-box {
+            background-color: #e8f4f8;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 3px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #3498db;
+            color: white;
+            font-weight: bold;
+        }
+
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px 0;
+            margin-top: 40px;
+            border-top: 2px solid #e0e0e0;
+            color: #7f8c8d;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+            
+            .container {
+                padding: 15px;
+            }
+            
+            pre {
+                font-size: 0.85em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Satellite Super Resolution</h1>
+            <p class="subtitle">Self-supervised super-resolution using coordinate-based MLPs</p>
+        </header>
+
+        <section>
+            <h2>About</h2>
+            <p>
+                This project implements a self-supervised approach for satellite image super-resolution 
+                by learning sub-pixel transformations from low-resolution (LR) images. The method uses 
+                coordinate-based Multi-Layer Perceptrons (MLPs) to overfit and optimize transformations 
+                that can upsample LR satellite images to higher resolution.
+            </p>
+        </section>
+
+        <section>
+            <h2>Main Idea</h2>
+            <div class="highlight-box">
+                <p>
+                    The main idea is to overfit/optimize a Coordinate-based MLP to learn the sub-pixel 
+                    transformations in the LR images from a HR image and try to upsample it. This will 
+                    be a self-supervised approach.
+                </p>
+            </div>
+        </section>
+
+        <section>
+            <h2>Data Generation Flow</h2>
+            <ol>
+                <li><strong>Start with Original HR Image</strong> - Input: Original HR image (e.g., 256×256)</li>
+                <li><strong>Upsampling Phase</strong> - Double the size of original image (512×512) using bilinear interpolation</li>
+                <li><strong>Translation Phase</strong> - Generate 16 different random translations between -6 and +6 pixels</li>
+                <li><strong>HR-LR Pair Creation</strong> - For each translated image, downsample to create HR (256×256) and LR (64×64) pairs</li>
+                <li><strong>Data Organization</strong> - Save LR images, HR images, and transformation parameters in JSON format</li>
+            </ol>
+        </section>
+
+        <section>
+            <h2>Quick Start</h2>
+            <h3>Installation</h3>
+            <pre><code>git clone https://github.com/yourusername/satellite_sr.git
+cd satellite_sr
+pip install -r requirements.txt</code></pre>
+
+            <h3>Generate Training Data</h3>
+            <pre><code>python create_data_from_single_image.py --input_image path/to/image.png --output_dir data/sample_1</code></pre>
+
+            <h3>Basic Training</h3>
+            <pre><code>python main.py --dataset satburst_synth --sample_id sample_1 --df 4 --lr_shift 1.0 --iters 1000 --d 0</code></pre>
+        </section>
+
+        <section>
+            <h2>Key Parameters</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Description</th>
+                        <th>Default</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>--dataset</code></td>
+                        <td>Dataset type: "satburst_synth", "worldstrat", "burst_synth"</td>
+                        <td>"satburst_synth"</td>
+                    </tr>
+                    <tr>
+                        <td><code>--df</code></td>
+                        <td>Downsampling factor</td>
+                        <td>4</td>
+                    </tr>
+                    <tr>
+                        <td><code>--model</code></td>
+                        <td>Model type: "mlp", "siren", "wire", "linear", "conv", "thera"</td>
+                        <td>"mlp"</td>
+                    </tr>
+                    <tr>
+                        <td><code>--input_projection</code></td>
+                        <td>Input projection: "linear", "fourier_10", "legendre", "none"</td>
+                        <td>"fourier_10"</td>
+                    </tr>
+                    <tr>
+                        <td><code>--iters</code></td>
+                        <td>Number of training iterations</td>
+                        <td>1000</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section>
+            <h2>Results</h2>
+            <p>
+                After training, results are saved in a structured directory with comparison images, 
+                training curves, translation visualizations, and performance metrics. The project 
+                includes comprehensive visualization utilities for analyzing model performance.
+            </p>
+        </section>
+
+        <footer>
+            <p>For more details, see the <a href="https://github.com/yourusername/satellite_sr">GitHub repository</a></p>
+        </footer>
+    </div>
+</body>
+</html>
+
