@@ -12,143 +12,269 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             line-height: 1.6;
             color: #333;
-            background-color: #f5f5f5;
+            background-color: #fff;
         }
 
         .container {
-            max-width: 900px;
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
-            background-color: white;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 0 40px;
         }
 
+        /* Header */
         header {
+            padding: 80px 0 60px;
             text-align: center;
-            padding: 40px 0;
-            border-bottom: 2px solid #e0e0e0;
-            margin-bottom: 40px;
+            border-bottom: 1px solid #e0e0e0;
         }
 
         h1 {
-            color: #2c3e50;
-            font-size: 2.5em;
-            margin-bottom: 10px;
+            font-size: 48px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 20px;
+            letter-spacing: -0.02em;
         }
 
-        .subtitle {
-            color: #7f8c8d;
-            font-size: 1.2em;
+        .authors {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 30px;
         }
 
+        .links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .link-button {
+            display: inline-block;
+            padding: 10px 24px;
+            background-color: #1a1a1a;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+
+        .link-button:hover {
+            background-color: #333;
+        }
+
+        .link-button.secondary {
+            background-color: #fff;
+            color: #1a1a1a;
+            border: 1px solid #1a1a1a;
+        }
+
+        .link-button.secondary:hover {
+            background-color: #f5f5f5;
+        }
+
+        /* Hero Image */
+        .hero-image {
+            margin: 60px 0;
+            text-align: center;
+        }
+
+        .hero-image img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        /* Sections */
         section {
-            margin-bottom: 40px;
+            margin: 80px 0;
         }
 
         h2 {
-            color: #34495e;
-            font-size: 1.8em;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #3498db;
+            font-size: 32px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 30px;
+            letter-spacing: -0.01em;
         }
 
         h3 {
-            color: #2c3e50;
-            font-size: 1.3em;
-            margin-top: 25px;
-            margin-bottom: 15px;
+            font-size: 24px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-top: 40px;
+            margin-bottom: 20px;
         }
 
         p {
-            margin-bottom: 15px;
-            text-align: justify;
+            font-size: 18px;
+            color: #444;
+            margin-bottom: 20px;
+            line-height: 1.8;
         }
 
+        /* Abstract */
+        .abstract {
+            background-color: #f8f9fa;
+            padding: 40px;
+            border-radius: 8px;
+            margin: 40px 0;
+            border-left: 4px solid #1a1a1a;
+        }
+
+        .abstract p {
+            margin-bottom: 0;
+        }
+
+        /* Method/Approach */
+        .method-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+
+        .method-item {
+            padding: 30px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .method-item h4 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #1a1a1a;
+        }
+
+        .method-item p {
+            font-size: 16px;
+            color: #666;
+        }
+
+        /* Results */
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+
+        .result-item {
+            text-align: center;
+        }
+
+        .result-item img {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+        }
+
+        .result-item h4 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 10px;
+        }
+
+        .result-item p {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* Code Block */
+        pre {
+            background-color: #1a1a1a;
+            color: #f8f9fa;
+            padding: 24px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 30px 0;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        code {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+        }
+
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        /* Lists */
         ul, ol {
             margin-left: 30px;
             margin-bottom: 20px;
         }
 
         li {
+            font-size: 18px;
+            color: #444;
             margin-bottom: 10px;
+            line-height: 1.8;
         }
 
-        code {
-            background-color: #f4f4f4;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9em;
-        }
-
-        pre {
-            background-color: #2c3e50;
-            color: #ecf0f1;
-            padding: 15px;
-            border-radius: 5px;
-            overflow-x: auto;
-            margin: 15px 0;
-        }
-
-        pre code {
-            background-color: transparent;
-            padding: 0;
-            color: inherit;
-        }
-
-        .highlight-box {
-            background-color: #e8f4f8;
-            border-left: 4px solid #3498db;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 3px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-        }
-
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-
-        th {
-            background-color: #3498db;
-            color: white;
-            font-weight: bold;
-        }
-
-        tr:hover {
-            background-color: #f5f5f5;
-        }
-
+        /* Footer */
         footer {
             text-align: center;
-            padding: 30px 0;
-            margin-top: 40px;
-            border-top: 2px solid #e0e0e0;
-            color: #7f8c8d;
+            padding: 60px 0;
+            margin-top: 80px;
+            border-top: 1px solid #e0e0e0;
+            color: #666;
         }
 
+        /* Responsive */
         @media (max-width: 768px) {
-            h1 {
-                font-size: 2em;
-            }
-            
             .container {
-                padding: 15px;
+                padding: 0 20px;
             }
-            
-            pre {
-                font-size: 0.85em;
+
+            h1 {
+                font-size: 36px;
+            }
+
+            h2 {
+                font-size: 28px;
+            }
+
+            section {
+                margin: 60px 0;
+            }
+
+            .abstract {
+                padding: 24px;
+            }
+
+            .method-grid,
+            .results-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -157,39 +283,95 @@
     <div class="container">
         <header>
             <h1>Satellite Super Resolution</h1>
-            <p class="subtitle">Self-supervised super-resolution using coordinate-based MLPs</p>
+            <p class="authors">Self-supervised super-resolution using coordinate-based MLPs</p>
+            <div class="links">
+                <a href="https://github.com/yourusername/satellite_sr" class="link-button">Code</a>
+                <a href="#" class="link-button secondary">Paper</a>
+            </div>
         </header>
 
-        <section>
-            <h2>About</h2>
-            <p>
-                This project implements a self-supervised approach for satellite image super-resolution 
-                by learning sub-pixel transformations from low-resolution (LR) images. The method uses 
-                coordinate-based Multi-Layer Perceptrons (MLPs) to overfit and optimize transformations 
-                that can upsample LR satellite images to higher resolution.
-            </p>
-        </section>
+        <div class="hero-image">
+            <img src="../images/hr_image.png" alt="Satellite Super Resolution Results" onerror="this.style.display='none'">
+        </div>
 
         <section>
-            <h2>Main Idea</h2>
-            <div class="highlight-box">
+            <h2>Abstract</h2>
+            <div class="abstract">
                 <p>
-                    The main idea is to overfit/optimize a Coordinate-based MLP to learn the sub-pixel 
-                    transformations in the LR images from a HR image and try to upsample it. This will 
-                    be a self-supervised approach.
+                    We present a self-supervised approach for satellite image super-resolution that learns 
+                    sub-pixel transformations from low-resolution (LR) images using coordinate-based Multi-Layer 
+                    Perceptrons (MLPs). Our method overfits and optimizes a Coordinate-based MLP to learn the 
+                    sub-pixel transformations in the LR images from a HR image and upsample it. This approach 
+                    eliminates the need for paired training data and enables high-quality super-resolution through 
+                    the exploitation of sub-pixel translations in multiple LR views of the same scene.
                 </p>
             </div>
         </section>
 
         <section>
-            <h2>Data Generation Flow</h2>
+            <h2>Method</h2>
+            <p>
+                Our approach consists of several key components:
+            </p>
+
+            <div class="method-grid">
+                <div class="method-item">
+                    <h4>1. Data Generation</h4>
+                    <p>
+                        Start with an original HR image, upsample it, apply random translations, 
+                        and create HR-LR pairs with tracked transformation parameters.
+                    </p>
+                </div>
+                <div class="method-item">
+                    <h4>2. Coordinate-based MLP</h4>
+                    <p>
+                        Use a neural network that takes spatial coordinates as input and outputs 
+                        pixel values, enabling sub-pixel learning of transformations.
+                    </p>
+                </div>
+                <div class="method-item">
+                    <h4>3. Self-supervised Learning</h4>
+                    <p>
+                        Optimize the network to learn transformations from multiple LR views, 
+                        leveraging the known sub-pixel translations between images.
+                    </p>
+                </div>
+            </div>
+
+            <h3>Data Generation Flow</h3>
             <ol>
                 <li><strong>Start with Original HR Image</strong> - Input: Original HR image (e.g., 256×256)</li>
                 <li><strong>Upsampling Phase</strong> - Double the size of original image (512×512) using bilinear interpolation</li>
-                <li><strong>Translation Phase</strong> - Generate 16 different random translations between -6 and +6 pixels</li>
-                <li><strong>HR-LR Pair Creation</strong> - For each translated image, downsample to create HR (256×256) and LR (64×64) pairs</li>
+                <li><strong>Translation Phase</strong> - Generate 16 different random translations between -6 and +6 pixels in both x and y directions</li>
+                <li><strong>HR-LR Pair Creation</strong> - For each translated upsampled image, downsample to create HR (256×256) and LR (64×64) pairs using AREA interpolation</li>
                 <li><strong>Data Organization</strong> - Save LR images, HR images, and transformation parameters in JSON format</li>
             </ol>
+        </section>
+
+        <section>
+            <h2>Results</h2>
+            <p>
+                Our method successfully learns sub-pixel transformations and produces high-quality 
+                super-resolved images. Results are saved with comparison visualizations, training 
+                curves, and performance metrics.
+            </p>
+            <div class="results-grid">
+                <div class="result-item">
+                    <img src="../images/hr_image.png" alt="High Resolution Output" onerror="this.style.display='none'">
+                    <h4>Super-Resolved Output</h4>
+                    <p>High-quality upsampled image</p>
+                </div>
+                <div class="result-item">
+                    <img src="../images/hr_image.png" alt="Comparison" onerror="this.style.display='none'">
+                    <h4>Model Comparison</h4>
+                    <p>Visualization of different models</p>
+                </div>
+                <div class="result-item">
+                    <img src="../images/hr_image.png" alt="Training Curves" onerror="this.style.display='none'">
+                    <h4>Training Progress</h4>
+                    <p>Loss and metrics over time</p>
+                </div>
+            </div>
         </section>
 
         <section>
@@ -202,7 +384,7 @@ pip install -r requirements.txt</code></pre>
             <h3>Generate Training Data</h3>
             <pre><code>python create_data_from_single_image.py --input_image path/to/image.png --output_dir data/sample_1</code></pre>
 
-            <h3>Basic Training</h3>
+            <h3>Training</h3>
             <pre><code>python main.py --dataset satburst_synth --sample_id sample_1 --df 4 --lr_shift 1.0 --iters 1000 --d 0</code></pre>
         </section>
 
@@ -242,23 +424,28 @@ pip install -r requirements.txt</code></pre>
                         <td>Number of training iterations</td>
                         <td>1000</td>
                     </tr>
+                    <tr>
+                        <td><code>--lr_shift</code></td>
+                        <td>Low-resolution shift amount</td>
+                        <td>1.0</td>
+                    </tr>
                 </tbody>
             </table>
         </section>
 
         <section>
-            <h2>Results</h2>
-            <p>
-                After training, results are saved in a structured directory with comparison images, 
-                training curves, translation visualizations, and performance metrics. The project 
-                includes comprehensive visualization utilities for analyzing model performance.
-            </p>
+            <h2>Citation</h2>
+            <pre><code>@misc{satellite_sr,
+  title={Satellite Super Resolution},
+  author={Your Name},
+  year={2024},
+  howpublished={\url{https://github.com/yourusername/satellite_sr}}
+}</code></pre>
         </section>
 
         <footer>
-            <p>For more details, see the <a href="https://github.com/yourusername/satellite_sr">GitHub repository</a></p>
+            <p>&copy; 2024 Satellite Super Resolution Project</p>
         </footer>
     </div>
 </body>
 </html>
-
