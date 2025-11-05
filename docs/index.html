@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Satellite Super Resolution</title>
+    <title>SuperF: Neural Implicit Fields for Multi-Image Super-Resolution</title>
     <style>
         * {
             margin: 0;
@@ -282,11 +282,11 @@
 <body>
     <div class="container">
         <header>
-            <h1>Satellite Super Resolution</h1>
-            <p class="authors">Self-supervised super-resolution using coordinate-based MLPs</p>
+            <h1>SuperF: Neural Implicit Fields for<br>Multi-Image Super-Resolution</h1>
+            <p class="authors">Anonymous Authors</p>
             <div class="links">
-                <a href="https://github.com/yourusername/satellite_sr" class="link-button">Code</a>
-                <a href="#" class="link-button secondary">Paper</a>
+                <a href="https://github.com/yourusername/superf" class="link-button">Code</a>
+                <a href="../2025___ICLR___SuperF_neural_implicit_fields (3).pdf" class="link-button secondary">Paper</a>
             </div>
         </header>
 
@@ -298,12 +298,26 @@
             <h2>Abstract</h2>
             <div class="abstract">
                 <p>
-                    We present a self-supervised approach for satellite image super-resolution that learns 
-                    sub-pixel transformations from low-resolution (LR) images using coordinate-based Multi-Layer 
-                    Perceptrons (MLPs). Our method overfits and optimizes a Coordinate-based MLP to learn the 
-                    sub-pixel transformations in the LR images from a HR image and upsample it. This approach 
-                    eliminates the need for paired training data and enables high-quality super-resolution through 
-                    the exploitation of sub-pixel translations in multiple LR views of the same scene.
+                    High-resolution imagery is often hindered by limitations in sensor technology, atmospheric 
+                    conditions, and costs. Such challenges occur in satellite remote sensing, but also with handheld 
+                    cameras, such as our smartphones. Hence, super-resolution aims to enhance the image resolution 
+                    algorithmically. Since single-image super-resolution requires solving an inverse problem, such 
+                    methods must exploit strong priors, e.g. learned from high-resolution training data, or be 
+                    constrained by auxiliary data, e.g. by a high-resolution guide from another modality. While 
+                    qualitatively pleasing, such approaches often lead to "hallucinated" structures that do not 
+                    match reality. In contrast, multi-image super-resolution (MISR) aims to improve the (optical) 
+                    resolution by constraining the super-resolution process with multiple views taken with sub-pixel 
+                    shifts. Here, we propose SuperF, a test-time optimization approach for MISR that leverages 
+                    coordinate-based neural networks, also called neural fields. Their ability to represent continuous 
+                    signals with an implicit neural representation (INR) makes them an ideal fit for the MISR task. 
+                    The key characteristic of our approach is to share an INR for multiple shifted low-resolution 
+                    frames and to jointly optimize the frame alignment with the INR. Our approach advances related 
+                    INR baselines, adopted from burst fusion for layer separation, by directly parameterizing the 
+                    sub-pixel alignment as optimizable affine transformation parameters and by optimizing via a 
+                    super-sampled coordinate grid that corresponds to the output resolution. Our experiments yield 
+                    compelling results on simulated bursts of satellite imagery and ground-level images from handheld 
+                    cameras, with upsampling factors of up to 8. A key advantage of SuperF is that this approach 
+                    does not rely on any high-resolution training data.
                 </p>
             </div>
         </section>
@@ -311,65 +325,97 @@
         <section>
             <h2>Method</h2>
             <p>
-                Our approach consists of several key components:
+                SuperF achieves multi-image super-resolution by sharing an implicit neural representation (INR) 
+                across multiple low-resolution (LR) frames with sub-pixel shifts. The LR frames are aligned by 
+                jointly optimizing an affine coordinate transformation for each LR frame, together with the 
+                parameters of a coordinate-based multi-layer perceptron (MLP) that decodes the input coordinates 
+                to RGB values. Hence, leveraging the continuous characteristics of INRs for both the sub-pixel 
+                alignment in the pixel coordinate space and for representing the underlying high-resolution (HR) signal.
             </p>
 
             <div class="method-grid">
                 <div class="method-item">
-                    <h4>1. Data Generation</h4>
+                    <h4>1. Implicit Neural Representation</h4>
                     <p>
-                        Start with an original HR image, upsample it, apply random translations, 
-                        and create HR-LR pairs with tracked transformation parameters.
+                        We use a coordinate-based MLP that maps continuous input coordinates (2D image locations) 
+                        directly to RGB pixel intensities. This INR is shared across all frames.
                     </p>
                 </div>
                 <div class="method-item">
-                    <h4>2. Coordinate-based MLP</h4>
+                    <h4>2. Joint Alignment Optimization</h4>
                     <p>
-                        Use a neural network that takes spatial coordinates as input and outputs 
-                        pixel values, enabling sub-pixel learning of transformations.
+                        We directly parameterize affine transformations (translation and rotation) for each frame 
+                        and jointly optimize them with the INR parameters, using the base frame as the reference 
+                        coordinate system.
                     </p>
                 </div>
                 <div class="method-item">
-                    <h4>3. Self-supervised Learning</h4>
+                    <h4>3. Supersampling Strategy</h4>
                     <p>
-                        Optimize the network to learn transformations from multiple LR views, 
-                        leveraging the known sub-pixel translations between images.
+                        We optimize the INR on a high-resolution coordinate grid that corresponds to the output 
+                        resolution, then downsample for supervision with the LR frames, improving sub-pixel alignment.
+                    </p>
+                </div>
+                <div class="method-item">
+                    <h4>4. Fourier Features</h4>
+                    <p>
+                        We use Fourier feature positional encoding to overcome the spectral bias of coordinate-based 
+                        MLPs and enable learning of high-frequency details.
                     </p>
                 </div>
             </div>
 
-            <h3>Data Generation Flow</h3>
+            <h3>Key Contributions</h3>
             <ol>
-                <li><strong>Start with Original HR Image</strong> - Input: Original HR image (e.g., 256×256)</li>
-                <li><strong>Upsampling Phase</strong> - Double the size of original image (512×512) using bilinear interpolation</li>
-                <li><strong>Translation Phase</strong> - Generate 16 different random translations between -6 and +6 pixels in both x and y directions</li>
-                <li><strong>HR-LR Pair Creation</strong> - For each translated upsampled image, downsample to create HR (256×256) and LR (64×64) pairs using AREA interpolation</li>
-                <li><strong>Data Organization</strong> - Save LR images, HR images, and transformation parameters in JSON format</li>
+                <li><strong>Test-time Optimization for MISR</strong> - We propose SuperF, a test-time optimization method 
+                    for MISR based on implicit neural representations that jointly optimizes sub-pixel frame alignment 
+                    with an MLP shared across frames.</li>
+                <li><strong>Improved Sub-pixel Alignment</strong> - Our method yields improved alignment and continuous 
+                    representation by directly parameterizing affine transformations and using a supersampling strategy.</li>
+                <li><strong>No Training Data Required</strong> - As a TTO method, SuperF does not require any high-resolution 
+                    training data, facilitating applicability to new domains and minimizing the risk of hallucinating 
+                    high-resolution structures.</li>
             </ol>
         </section>
 
         <section>
             <h2>Results</h2>
             <p>
-                Our method successfully learns sub-pixel transformations and produces high-quality 
-                super-resolved images. Results are saved with comparison visualizations, training 
-                curves, and performance metrics.
+                We validate SuperF on two domains: satellite imagery (SatSynthBurst dataset) and ground-level 
+                images from handheld cameras (SyntheticBurst dataset). Our approach outperforms existing test-time 
+                optimization baselines including steerable kernel regression (Lafenetre et al., 2023) and NIR (Nam 
+                et al., 2022), achieving upsampling factors of up to 8×.
             </p>
+
+            <h3>Quantitative Results</h3>
+            <p>
+                On the SatSynthBurst dataset with upsampling factor ×4, SuperF achieves <strong>32.94 dB PSNR</strong>, 
+                <strong>0.853 SSIM</strong>, and <strong>0.287 LPIPS</strong>, significantly outperforming bilinear upsampling 
+                (29.71 dB PSNR) and other baselines. On the SyntheticBurst dataset, SuperF achieves 
+                <strong>27.90 dB PSNR</strong>, <strong>0.774 SSIM</strong>, and <strong>0.385 LPIPS</strong> for ×4 upsampling.
+            </p>
+
+            <h3>Real-World Application</h3>
+            <p>
+                We demonstrate that SuperF can be applied to real-world satellite images from Sentinel-2, achieving 
+                upsampling factors of 5× using filtered time series from Sentinel-2 STAC endpoints.
+            </p>
+
             <div class="results-grid">
                 <div class="result-item">
-                    <img src="../images/hr_image.png" alt="High Resolution Output" onerror="this.style.display='none'">
-                    <h4>Super-Resolved Output</h4>
-                    <p>High-quality upsampled image</p>
+                    <img src="../images/hr_image.png" alt="Satellite Super-Resolution" onerror="this.style.display='none'">
+                    <h4>Satellite Imagery</h4>
+                    <p>Results on SatSynthBurst dataset</p>
                 </div>
                 <div class="result-item">
-                    <img src="../images/hr_image.png" alt="Comparison" onerror="this.style.display='none'">
-                    <h4>Model Comparison</h4>
-                    <p>Visualization of different models</p>
+                    <img src="../images/hr_image.png" alt="Ground-Level Bursts" onerror="this.style.display='none'">
+                    <h4>Ground-Level Bursts</h4>
+                    <p>Results on SyntheticBurst dataset</p>
                 </div>
                 <div class="result-item">
-                    <img src="../images/hr_image.png" alt="Training Curves" onerror="this.style.display='none'">
-                    <h4>Training Progress</h4>
-                    <p>Loss and metrics over time</p>
+                    <img src="../images/hr_image.png" alt="Real Sentinel-2" onerror="this.style.display='none'">
+                    <h4>Real Sentinel-2</h4>
+                    <p>Application to real satellite imagery</p>
                 </div>
             </div>
         </section>
@@ -377,8 +423,8 @@
         <section>
             <h2>Quick Start</h2>
             <h3>Installation</h3>
-            <pre><code>git clone https://github.com/yourusername/satellite_sr.git
-cd satellite_sr
+            <pre><code>git clone https://github.com/yourusername/superf.git
+cd superf
 pip install -r requirements.txt</code></pre>
 
             <h3>Generate Training Data</h3>
@@ -435,16 +481,16 @@ pip install -r requirements.txt</code></pre>
 
         <section>
             <h2>Citation</h2>
-            <pre><code>@misc{satellite_sr,
-  title={Satellite Super Resolution},
-  author={Your Name},
-  year={2024},
-  howpublished={\url{https://github.com/yourusername/satellite_sr}}
+            <pre><code>@article{superf2026,
+  title={SuperF: Neural Implicit Fields for Multi-Image Super-Resolution},
+  author={Anonymous},
+  journal={arXiv preprint},
+  year={2026}
 }</code></pre>
         </section>
 
         <footer>
-            <p>&copy; 2024 Satellite Super Resolution Project</p>
+            <p>&copy; 2026 SuperF Project</p>
         </footer>
     </div>
 </body>
