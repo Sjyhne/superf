@@ -189,6 +189,44 @@
             color: #666;
         }
 
+        /* Figures */
+        .figure-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+
+        .figure-item {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        .figure-item h4 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 15px;
+        }
+
+        .figure-frame {
+            width: 100%;
+            height: 420px;
+            border: none;
+            border-radius: 6px;
+            box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.05);
+            background-color: white;
+        }
+
+        .figure-caption {
+            margin-top: 12px;
+            font-size: 14px;
+            color: #666;
+            text-align: left;
+        }
+
         /* Code Block */
         pre {
             background-color: #1a1a1a;
@@ -275,6 +313,14 @@
             .method-grid,
             .results-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .figure-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .figure-frame {
+                height: 360px;
             }
         }
     </style>
@@ -416,6 +462,36 @@
                     <img src="../images/hr_image.png" alt="Real Sentinel-2" onerror="this.style.display='none'">
                     <h4>Real Sentinel-2</h4>
                     <p>Application to real satellite imagery</p>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Figures</h2>
+            <div class="figure-grid">
+                <div class="figure-item">
+                    <h4>Method Overview</h4>
+                    <iframe class="figure-frame" src="figs/SuperF_method (1).pdf#view=FitH"></iframe>
+                    <p class="figure-caption">
+                        Illustration of the SuperF pipeline and the joint optimization of the implicit neural representation with frame alignment.
+                        <a href="figs/SuperF_method (1).pdf">Download PDF</a>
+                    </p>
+                </div>
+                <div class="figure-item">
+                    <h4>Qualitative Comparisons</h4>
+                    <iframe class="figure-frame" src="figs/qualitative_examples (2).pdf#view=FitH"></iframe>
+                    <p class="figure-caption">
+                        Qualitative results showcasing SuperF compared with existing methods across satellite and ground-level scenes.
+                        <a href="figs/qualitative_examples (2).pdf">Download PDF</a>
+                    </p>
+                </div>
+                <div class="figure-item">
+                    <h4>Real-World Sentinel-2 Examples</h4>
+                    <iframe class="figure-frame" src="figs/SuperF Real Ex-2.pdf#view=FitH"></iframe>
+                    <p class="figure-caption">
+                        Application of SuperF to real Sentinel-2 satellite imagery with upsampling factors of 5×.
+                        <a href="figs/SuperF Real Ex-2.pdf">Download PDF</a>
+                    </p>
                 </div>
             </div>
         </section>
