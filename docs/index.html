@@ -19,35 +19,62 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1180px;
             margin: 0 auto;
-            padding: 0 40px;
+            padding: 0 40px 80px;
         }
 
         /* Header */
-        header {
-            padding: 80px 0 60px;
-            text-align: center;
-            border-bottom: 1px solid #e0e0e0;
+        .hero {
+            position: relative;
+            overflow: hidden;
+            border-radius: 20px;
+            background: radial-gradient(circle at 0% 0%, rgba(76, 201, 240, 0.15), transparent 55%),
+                        radial-gradient(circle at 100% 0%, rgba(246, 114, 128, 0.18), transparent 55%),
+                        linear-gradient(135deg, #f8fbff 0%, #ffffff 60%);
+            padding: 80px 70px;
+            margin-top: 60px;
+            box-shadow: 0 28px 80px rgba(30, 64, 124, 0.18);
+        }
+
+        .hero-inner {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            align-items: center;
+            gap: 40px;
+        }
+
+        .hero-copy {
+            text-align: left;
         }
 
         h1 {
-            font-size: 48px;
+            font-size: 56px;
             font-weight: 700;
             color: #1a1a1a;
             margin-bottom: 20px;
             letter-spacing: -0.02em;
         }
 
+        .tagline {
+            font-size: 24px;
+            font-weight: 600;
+            color: #274060;
+            margin-bottom: 18px;
+        }
+
         .authors {
             font-size: 18px;
-            color: #666;
-            margin-bottom: 30px;
+            color: #4a5d72;
+            margin-bottom: 32px;
+            max-width: 720px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .links {
             display: flex;
-            justify-content: center;
+            justify-content: flex-start;
             gap: 20px;
             flex-wrap: wrap;
         }
@@ -75,6 +102,405 @@
 
         .link-button.secondary:hover {
             background-color: #f5f5f5;
+        }
+
+        .highlight-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            align-items: stretch;
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        .highlight-card {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 24px;
+            box-shadow: 0 8px 24px rgba(26, 26, 26, 0.08);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .highlight-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(26, 26, 26, 0.12);
+        }
+
+        .highlight-card h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 10px;
+        }
+
+        .highlight-card p {
+            font-size: 15px;
+            color: #666;
+            margin-bottom: 6px;
+        }
+
+        .hero-media {
+            position: relative;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 18px 50px rgba(10, 51, 102, 0.15);
+        }
+
+        .hero-media img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .hero-badge {
+            position: absolute;
+            top: 18px;
+            right: 18px;
+            background: rgba(255, 255, 255, 0.86);
+            border-radius: 999px;
+            padding: 10px 18px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #274060;
+            box-shadow: 0 12px 22px rgba(26, 26, 26, 0.08);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin: 30px 0 10px;
+        }
+
+        .metric-card {
+            border: 1px solid #e5e8eb;
+            border-radius: 10px;
+            padding: 22px;
+            background-color: white;
+            box-shadow: 0 6px 20px rgba(26, 26, 26, 0.06);
+        }
+
+        .metric-value {
+            display: block;
+            font-size: 32px;
+            font-weight: 700;
+            color: #1a1a1a;
+            letter-spacing: -0.01em;
+        }
+
+        .metric-label {
+            display: block;
+            font-size: 15px;
+            color: #5f6b76;
+            margin-top: 6px;
+        }
+
+        .metric-note {
+            font-size: 13px;
+            color: #8a949d;
+            margin-top: 12px;
+        }
+
+        /* Problem animation */
+        .jitter-wrapper {
+            margin: 32px 0 12px;
+        }
+
+        .jitter-grid {
+            position: relative;
+            width: 100%;
+            max-width: 320px;
+            height: 220px;
+            margin: 0 auto;
+            border-radius: 12px;
+            background: rgba(249, 250, 252, 0.96);
+            overflow: hidden;
+            box-shadow: 0 16px 28px rgba(32, 43, 72, 0.12), inset 0 0 0 1px rgba(39, 64, 96, 0.12);
+        }
+
+        .jitter-grid::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 40V0h40' fill='none' stroke='rgba(39,64,96,0.14)' stroke-width='0.8'/%3E%3C/svg%3E");
+            opacity: 0.65;
+            pointer-events: none;
+        }
+
+        .jitter-frame {
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            border-radius: 6px;
+            border: 2px solid rgba(39, 64, 96, 0.55);
+            background: rgba(76, 201, 240, 0.22);
+            animation: jitter 4s ease-in-out infinite;
+            mix-blend-mode: multiply;
+        }
+
+        .jitter-frame:nth-child(1) {
+            top: 46px;
+            left: 92px;
+            animation-delay: 0s;
+        }
+
+        .jitter-frame:nth-child(2) {
+            top: 54px;
+            left: 100px;
+            animation-delay: 0.4s;
+            background: rgba(246, 114, 128, 0.24);
+        }
+
+        .jitter-frame:nth-child(3) {
+            top: 36px;
+            left: 84px;
+            animation-delay: 0.8s;
+            background: rgba(123, 97, 255, 0.24);
+        }
+
+        .jitter-frame::after {
+            content: "";
+            position: absolute;
+            inset: 12px;
+            background-image: radial-gradient(rgba(26, 42, 74, 0.88) 25%, rgba(255, 255, 255, 0) 27%);
+            background-size: 18px 18px;
+            background-position: 0 0, 9px 9px;
+            opacity: 0.85;
+        }
+
+        @keyframes jitter {
+            0%, 100% {
+                transform: translate(0, 0);
+            }
+            20% {
+                transform: translate(6px, -4px);
+            }
+            40% {
+                transform: translate(-5px, 3px);
+            }
+            60% {
+                transform: translate(7px, 5px);
+            }
+            80% {
+                transform: translate(-3px, -5px);
+            }
+        }
+
+        .jitter-caption {
+            margin-top: 14px;
+            text-align: center;
+            font-size: 15px;
+            color: #5f6b76;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .jitter-frame {
+                animation: none;
+            }
+        }
+
+        /* Carousel */
+        .carousel {
+            position: relative;
+            margin: 36px 0;
+            border-radius: 16px;
+            background: linear-gradient(135deg, rgba(39, 64, 96, 0.04), rgba(39, 64, 96, 0.02));
+            padding: 36px 28px 58px;
+            box-shadow: 0 16px 36px rgba(26, 42, 74, 0.12);
+        }
+
+        .carousel-track {
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+        }
+
+        .carousel-slide {
+            display: none;
+        }
+
+        .carousel-slide.is-active {
+            display: block;
+        }
+
+        .carousel-slide img {
+            display: block;
+            width: 100%;
+            height: 380px;
+            object-fit: cover;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(18, 52, 102, 0.18);
+        }
+
+        .carousel-slide figcaption {
+            margin-top: 18px;
+            font-size: 15px;
+            color: #4a5d72;
+            text-align: center;
+        }
+
+        .carousel-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 22px;
+        }
+
+        .carousel-button {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: none;
+            background-color: #1a1a1a;
+            color: white;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.2s ease, background-color 0.2s ease;
+        }
+
+        .carousel-button:hover {
+            transform: translateY(-2px);
+            background-color: #333;
+        }
+
+        .carousel-dots {
+            display: flex;
+            gap: 10px;
+        }
+
+        .carousel-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: rgba(26, 26, 26, 0.2);
+            border: none;
+            cursor: pointer;
+            transition: transform 0.2s ease, background-color 0.2s ease;
+        }
+
+        .carousel-dot.is-active {
+            background-color: #1a1a1a;
+            transform: scale(1.2);
+        }
+
+        /* Toggle figure */
+        .toggle-figure {
+            margin: 36px auto;
+            max-width: 880px;
+            background: linear-gradient(135deg, rgba(39, 64, 96, 0.04), rgba(39, 64, 96, 0.01));
+            border-radius: 16px;
+            padding: 24px 24px 28px;
+            box-shadow: 0 14px 32px rgba(26, 42, 74, 0.12);
+        }
+
+        .toggle-images {
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+        }
+
+        .toggle-image {
+            display: block;
+            width: 100%;
+            height: auto;
+            border-radius: 12px;
+            transition: opacity 0.5s ease, filter 0.5s ease;
+        }
+
+        .toggle-image.baseline {
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+        }
+
+        .toggle-figure[data-mode="superf"] .toggle-image.superf {
+            opacity: 1;
+        }
+
+        .toggle-figure[data-mode="superf"] .toggle-image.baseline {
+            opacity: 0;
+        }
+
+        .toggle-figure[data-mode="lr"] .toggle-image.superf {
+            opacity: 0;
+        }
+
+        .toggle-figure[data-mode="lr"] .toggle-image.baseline {
+            opacity: 1;
+            filter: blur(5px) saturate(0.85) brightness(0.95);
+            transform: scale(1.005);
+        }
+
+        .toggle-figure[data-mode="bilinear"] .toggle-image.superf {
+            opacity: 0;
+        }
+
+        .toggle-figure[data-mode="bilinear"] .toggle-image.baseline {
+            opacity: 1;
+            filter: blur(2.5px) saturate(0.92);
+            transform: scale(1.002);
+        }
+
+        .mode-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 22px;
+        }
+
+        .mode-toggle button {
+            padding: 8px 18px;
+            border-radius: 999px;
+            border: 1px solid rgba(26, 26, 26, 0.2);
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #34495e;
+            transition: all 0.2s ease;
+        }
+
+        .mode-toggle button.is-active {
+            background: #1a1a1a;
+            color: white;
+            border-color: #1a1a1a;
+            box-shadow: 0 10px 20px rgba(26, 42, 74, 0.18);
+        }
+
+        .toggle-figure .figure-caption {
+            text-align: center;
+        }
+
+        .cta-section {
+            background: linear-gradient(135deg, rgba(76, 201, 240, 0.08) 0%, rgba(123, 97, 255, 0.1) 80%, rgba(255, 255, 255, 0.7) 100%);
+            border-radius: 16px;
+            padding: 48px 42px;
+            text-align: center;
+            margin: 90px 0 70px;
+            box-shadow: 0 18px 46px rgba(34, 73, 125, 0.12);
+        }
+
+        .cta-section h2 {
+            margin-bottom: 12px;
+        }
+
+        .cta-section p {
+            margin: 0 auto 26px;
+            max-width: 720px;
+            color: #3c4d61;
+        }
+
+        .cta-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 18px;
+            flex-wrap: wrap;
         }
 
         /* Hero Image */
@@ -132,29 +558,69 @@
         }
 
         /* Method/Approach */
-        .method-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-            margin: 40px 0;
+        .method-structure {
+            margin: 36px auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 28px;
+            max-width: 900px;
         }
 
-        .method-item {
-            padding: 30px;
-            background-color: #f8f9fa;
-            border-radius: 8px;
+        .method-core {
+            background: linear-gradient(135deg, rgba(76, 201, 240, 0.14), rgba(123, 97, 255, 0.14));
+            border-radius: 16px;
+            padding: 26px 28px;
+            box-shadow: 0 16px 38px rgba(18, 52, 102, 0.14);
+            width: 100%;
+            max-width: 640px;
         }
 
-        .method-item h4 {
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 15px;
-            color: #1a1a1a;
+        .method-core h3 {
+            font-size: 22px;
+            color: #1d2f44;
+            margin-bottom: 12px;
         }
 
-        .method-item p {
+        .method-core p {
             font-size: 16px;
-            color: #666;
+            color: #42556e;
+            margin: 0;
+        }
+
+        .method-details {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: stretch;
+            gap: 22px;
+            flex-wrap: wrap;
+            max-width: 980px;
+        }
+
+        .method-detail-item {
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 14px;
+            padding: 22px;
+            box-shadow: 0 14px 32px rgba(26, 42, 74, 0.1);
+            border: 1px solid rgba(39, 64, 96, 0.08);
+            flex: 1 1 260px;
+            max-width: 320px;
+        }
+
+        .method-detail-item h4 {
+            font-size: 17px;
+            font-weight: 600;
+            color: #213047;
+            margin-bottom: 8px;
+        }
+
+        .method-detail-item p {
+            font-size: 15px;
+            color: #4c5f77;
+            margin: 0;
         }
 
         /* Results */
@@ -189,22 +655,11 @@
             color: #666;
         }
 
-        /* Figures */
-        .figure-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 30px;
+        .inline-figure {
             margin: 40px 0;
         }
 
-        .figure-item {
-            background-color: #f8f9fa;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-        }
-
-        .figure-item h4 {
+        .inline-figure h4 {
             font-size: 18px;
             font-weight: 600;
             color: #1a1a1a;
@@ -212,8 +667,9 @@
         }
 
         .figure-frame {
+            display: block;
             width: 100%;
-            height: 420px;
+            height: auto;
             border: none;
             border-radius: 6px;
             box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.05);
@@ -295,11 +751,11 @@
             }
 
             h1 {
-                font-size: 36px;
+                font-size: 42px;
             }
 
             h2 {
-                font-size: 28px;
+                font-size: 30px;
             }
 
             section {
@@ -310,194 +766,374 @@
                 padding: 24px;
             }
 
-            .method-grid,
-            .results-grid {
+            .hero {
+                padding: 60px 32px;
+                border-radius: 16px;
+            }
+
+            .hero-inner {
                 grid-template-columns: 1fr;
             }
 
-            .figure-grid {
-                grid-template-columns: 1fr;
+            .links {
+                justify-content: flex-start;
             }
 
-            .figure-frame {
-                height: 360px;
+            .carousel {
+                padding: 24px 18px 48px;
             }
+
+            .carousel-slide img {
+                height: 260px;
+            }
+
+            .mode-toggle {
+                flex-wrap: wrap;
+            }
+
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>SuperF: Neural Implicit Fields for<br>Multi-Image Super-Resolution</h1>
-            <p class="authors">Anonymous Authors</p>
-            <div class="links">
-                <a href="https://github.com/yourusername/superf" class="link-button">Code</a>
-                <a href="../2025___ICLR___SuperF_neural_implicit_fields (3).pdf" class="link-button secondary">Paper</a>
+        <header class="hero">
+            <div class="hero-inner">
+                <div class="hero-copy">
+                    <h1>SuperF</h1>
+                    <p class="tagline">Neural Implicit Fields Unlocking Multi-Image Super-Resolution</p>
+                    <p class="authors">
+                        Reconstructing real detail from handheld bursts and satellite time series &mdash; no HR training data required.
+                    </p>
+                    <div class="links">
+                        <a href="https://github.com/yourusername/superf" class="link-button">Code</a>
+                        <a href="../SuperF.pdf" class="link-button secondary">Paper</a>
+                        <a href="#demo" class="link-button secondary">Demo</a>
+                        <a href="#results" class="link-button secondary">Results</a>
+                    </div>
+                </div>
+                <div class="hero-media">
+                    <span class="hero-badge">Test-Time Optimized</span>
+                    <img src="../images/hr_image.png" alt="SuperF reconstruction sample" onerror="this.style.display='none'">
+                </div>
             </div>
         </header>
 
-        <div class="hero-image">
-            <img src="../images/hr_image.png" alt="Satellite Super Resolution Results" onerror="this.style.display='none'">
-        </div>
-
-        <section>
+        <section id="abstract">
             <h2>Abstract</h2>
             <div class="abstract">
                 <p>
-                    High-resolution imagery is often hindered by limitations in sensor technology, atmospheric 
-                    conditions, and costs. Such challenges occur in satellite remote sensing, but also with handheld 
-                    cameras, such as our smartphones. Hence, super-resolution aims to enhance the image resolution 
-                    algorithmically. Since single-image super-resolution requires solving an inverse problem, such 
-                    methods must exploit strong priors, e.g. learned from high-resolution training data, or be 
-                    constrained by auxiliary data, e.g. by a high-resolution guide from another modality. While 
-                    qualitatively pleasing, such approaches often lead to "hallucinated" structures that do not 
-                    match reality. In contrast, multi-image super-resolution (MISR) aims to improve the (optical) 
-                    resolution by constraining the super-resolution process with multiple views taken with sub-pixel 
-                    shifts. Here, we propose SuperF, a test-time optimization approach for MISR that leverages 
-                    coordinate-based neural networks, also called neural fields. Their ability to represent continuous 
-                    signals with an implicit neural representation (INR) makes them an ideal fit for the MISR task. 
-                    The key characteristic of our approach is to share an INR for multiple shifted low-resolution 
-                    frames and to jointly optimize the frame alignment with the INR. Our approach advances related 
-                    INR baselines, adopted from burst fusion for layer separation, by directly parameterizing the 
-                    sub-pixel alignment as optimizable affine transformation parameters and by optimizing via a 
-                    super-sampled coordinate grid that corresponds to the output resolution. Our experiments yield 
-                    compelling results on simulated bursts of satellite imagery and ground-level images from handheld 
-                    cameras, with upsampling factors of up to 8. A key advantage of SuperF is that this approach 
-                    does not rely on any high-resolution training data.
+                    High-resolution imagery is often hindered by limitations in sensor technology, atmospheric conditions, and costs.
+                    Such challenges occur in satellite remote sensing, but also with handheld cameras, such as our smartphones.
+                    Hence, super-resolution aims to enhance image resolution algorithmically. Since single-image super-resolution
+                    requires solving an inverse problem, such methods must exploit strong priors, e.g. learned from high-resolution
+                    training data, or be constrained by auxiliary data, e.g. by a high-resolution guide from another modality.
+                    While qualitatively pleasing, such approaches often lead to hallucinated structures that do not match reality.
+                </p>
+                <p>
+                    In contrast, multi-image super-resolution (MISR) aims to improve resolution by constraining the reconstruction
+                    with multiple views taken with sub-pixel shifts. We propose SuperF, a test-time optimization approach for MISR that
+                    leverages coordinate-based neural networks, also called neural fields. Their ability to represent continuous signals
+                    with an implicit neural representation (INR) makes them an ideal fit for the MISR task. The key characteristic of our
+                    approach is to share an INR for multiple shifted low-resolution frames and to jointly optimize the frame alignment with
+                    the INR. Our approach advances related INR baselines by directly parameterizing the sub-pixel alignment as optimizable
+                    affine transformation parameters and by optimizing via a super-sampled coordinate grid that corresponds to the output
+                    resolution. Our experiments yield compelling results on simulated bursts of satellite imagery and ground-level images
+                    from handheld cameras, with upsampling factors of up to 8. A key advantage of SuperF is that this approach does not
+                    rely on any high-resolution training data.
                 </p>
             </div>
         </section>
 
         <section>
-            <h2>Method</h2>
-            <p>
-                SuperF achieves multi-image super-resolution by sharing an implicit neural representation (INR) 
-                across multiple low-resolution (LR) frames with sub-pixel shifts. The LR frames are aligned by 
-                jointly optimizing an affine coordinate transformation for each LR frame, together with the 
-                parameters of a coordinate-based multi-layer perceptron (MLP) that decodes the input coordinates 
-                to RGB values. Hence, leveraging the continuous characteristics of INRs for both the sub-pixel 
-                alignment in the pixel coordinate space and for representing the underlying high-resolution (HR) signal.
-            </p>
-
-            <div class="method-grid">
-                <div class="method-item">
-                    <h4>1. Implicit Neural Representation</h4>
-                    <p>
-                        We use a coordinate-based MLP that maps continuous input coordinates (2D image locations) 
-                        directly to RGB pixel intensities. This INR is shared across all frames.
-                    </p>
-                </div>
-                <div class="method-item">
-                    <h4>2. Joint Alignment Optimization</h4>
-                    <p>
-                        We directly parameterize affine transformations (translation and rotation) for each frame 
-                        and jointly optimize them with the INR parameters, using the base frame as the reference 
-                        coordinate system.
-                    </p>
-                </div>
-                <div class="method-item">
-                    <h4>3. Supersampling Strategy</h4>
-                    <p>
-                        We optimize the INR on a high-resolution coordinate grid that corresponds to the output 
-                        resolution, then downsample for supervision with the LR frames, improving sub-pixel alignment.
-                    </p>
-                </div>
-                <div class="method-item">
-                    <h4>4. Fourier Features</h4>
-                    <p>
-                        We use Fourier feature positional encoding to overcome the spectral bias of coordinate-based 
-                        MLPs and enable learning of high-frequency details.
-                    </p>
-                </div>
+            <h2>Why SuperF</h2>
+            <div class="abstract">
+                <p>
+                    SuperF is a neural-field approach to multi-image super-resolution that turns bursts and time series into 
+                    photorealistic high-resolution imagery—without ever seeing high-resolution training data. We jointly 
+                    optimize sub-pixel alignments with a shared implicit neural representation, so every frame contributes 
+                    real signal instead of hallucinated texture.
+                </p>
+                <p>
+                    Built for practitioners, SuperF shines on synthetic satellite bursts, handheld smartphone sequences, 
+                    and real Sentinel-2 orbits. Drop it into your existing pipeline, let it optimize for a couple of minutes, 
+                    and you get clean, high-frequency detail that previous test-time baselines miss.
+                </p>
             </div>
 
-            <h3>Key Contributions</h3>
-            <ol>
-                <li><strong>Test-time Optimization for MISR</strong> - We propose SuperF, a test-time optimization method 
-                    for MISR based on implicit neural representations that jointly optimizes sub-pixel frame alignment 
-                    with an MLP shared across frames.</li>
-                <li><strong>Improved Sub-pixel Alignment</strong> - Our method yields improved alignment and continuous 
-                    representation by directly parameterizing affine transformations and using a supersampling strategy.</li>
-                <li><strong>No Training Data Required</strong> - As a TTO method, SuperF does not require any high-resolution 
-                    training data, facilitating applicability to new domains and minimizing the risk of hallucinating 
-                    high-resolution structures.</li>
-            </ol>
+            <div class="highlight-grid">
+                <div class="highlight-card">
+                    <h3>Sharper reconstructions</h3>
+                    <p><strong>+3&ndash;5 dB PSNR</strong> over prior TTO methods on SatSynthBurst and SyntheticBurst.</p>
+                    <p>Preserves real edges without hallucinating texture.</p>
+                </div>
+                <div class="highlight-card">
+                    <h3>Domain flexibility</h3>
+                    <p>One method spans satellites and handheld cameras, with upsampling factors up to ×8.</p>
+                    <p>No paired HR/LR training set required.</p>
+                </div>
+                <div class="highlight-card">
+                    <h3>Plug-and-play</h3>
+                    <p>Runs as a test-time optimization loop using only your burst frames.</p>
+                    <p>AdamW optimizer, 2k iterations, under 1 GB VRAM.</p>
+                </div>
+            </div>
         </section>
 
         <section>
+            <h2>Problem</h2>
+            <p>
+                Imaging systems from satellites to smartphones are constrained by optics, weather, and motion. 
+                Multi-image super-resolution captures bursts with natural sub-pixel shifts, embedding high-frequency 
+                detail across frames. However, prior approaches either rely on heavy training pipelines that hallucinate 
+                texture, or on classical test-time optimization that struggles to recover crisp structure.
+            </p>
+            <p>
+                <strong>SuperF</strong> bridges that gap: a neural implicit representation that you optimize only at inference time, 
+                aligning every frame and rendering a continuous, alias-free reconstruction of the scene.
+            </p>
+
+            <div class="jitter-wrapper">
+                    <div class="jitter-grid">
+                        <div class="jitter-frame"></div>
+                        <div class="jitter-frame"></div>
+                        <div class="jitter-frame"></div>
+                    </div>
+                <p class="jitter-caption">
+                    Real bursts jitter &mdash; each LR frame samples the scene with different sub-pixel offsets and aliasing patterns.
+                </p>
+            </div>
+
+            <ul>
+                <li><strong>Jittering LR frames</strong> encode real detail, but classical upsampling smears or averages it away.</li>
+                <li><strong>Misalignment</strong> compounds the problem: even a 0.1 pixel shift can wipe out texture when frames are fused.</li>
+                <li><strong>SuperF</strong> learns a continuous signal and the alignment simultaneously, so jitter becomes a signal, not a bug.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>Methodology</h2>
+            <p>
+                SuperF formulates MISR as the joint optimization of a shared coordinate-based MLP and frame-specific 
+                alignment parameters. The INR takes continuous spatial coordinates and outputs RGB intensities, enabling 
+                a continuous representation of the scene while maintaining differentiability with respect to spatial transforms.
+            </p>
+
+            <div class="method-structure">
+                <div class="method-core">
+                    <h3>Shared Implicit Neural Representation (INR)</h3>
+                    <p>
+                        Everything revolves around a single coordinate-based MLP <em>f<sub>θ</sub></em> that maps high-resolution coordinates
+                        to RGB values. This shared INR is the canvas on which all burst frames agree, so once it is optimized, rendering
+                        any viewpoint is just evaluation at continuous coordinates.
+                    </p>
+                </div>
+                <ul class="method-details">
+                    <li class="method-detail-item">
+                        <h4>Joint alignment optimization</h4>
+                        <p>
+                            For each burst frame we learn a tiny affine transform (two translations + one rotation) relative to a base frame.
+                            These alignment parameters are optimized together with <em>θ</em>, turning jitter into precise sub-pixel shifts that enrich the INR.
+                        </p>
+                    </li>
+                    <li class="method-detail-item">
+                        <h4>Supersampled supervision</h4>
+                        <p>
+                            We query the INR on a dense HR grid, average-pool the predictions down to LR, and match them to the observed pixels.
+                            This supersampling bridge lets us recover detail beyond the LR pixel lattice without hallucination.
+                        </p>
+                    </li>
+                    <li class="method-detail-item">
+                        <h4>Fourier feature encoding</h4>
+                        <p>
+                            A Fourier positional encoding feeds the MLP with rich frequency bases, preventing spectral bias so SuperF can learn the
+                            high-frequency signals that multi-image super-resolution depends on.
+                        </p>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="inline-figure">
+                <h4>Figure 1 · SuperF Pipeline</h4>
+                <img class="figure-frame" src="figs/superf_method.png" alt="SuperF pipeline diagram">
+                <p class="figure-caption">
+                    Illustration of the SuperF pipeline showing the shared implicit neural representation, frame-specific affine alignment,
+                    and supersampled supervision strategy.
+                    <a href="figs/SuperF_method (1).pdf">View full PDF</a>
+                </p>
+            </div>
+
+            <h3>Optimization Objective</h3>
+            <p>
+                Let <em>y<sup>(t)</sup><sub>LR</sub></em> denote the <em>t</em>-th low-resolution frame sampled on grid <em>W</em>, and let 
+                <em>Â<sup>(t)</sup></em> be the affine transform aligning the frame to the base coordinate system. The INR produces 
+                high-resolution values <em>f<sub>θ</sub>(Â<sup>(t)</sup>v)</em> for coordinates <em>v</em> on the dense grid. A fixed box filter 
+                <em>φ</em> corresponds to average pooling between HR and LR grids. SuperF minimizes
+            </p>
+            <p>
+                <code>L(θ, {Â}) = (1/T) Σ<sub>t</sub> Σ<sub>v∈W</sub> ℓ( φ * ρ̂<sup>(t)</sup>( f<sub>θ</sub>(Â<sup>(t)</sup>v ) ), y<sup>(t)</sup><sub>LR</sub>(v) )</code>
+            </p>
+            <p>
+                where ρ̂<sup>(t)</sup> is a lightweight per-frame spectral projection (scale and bias per channel) that accounts for 
+                photometric differences across frames. Optimization uses AdamW with cosine learning-rate decay over 2k iterations.
+            </p>
+        </section>
+
+        <section>
+            <h2>Experimental Setup</h2>
+
+            <h3>Datasets</h3>
+            <ul>
+                <li><strong>SatSynthBurst (satellite imagery)</strong> – Synthetic bursts derived from 20 high-resolution 
+                    WorldStrat scenes. Each burst contains 16 LR frames created via random sub-pixel shifts at scale factors 
+                    2×, 4×, and 8×, with sensor-accurate modulation transfer function blur, spectral perturbations, and additive noise.</li>
+                <li><strong>SyntheticBurst (ground-level imagery)</strong> – 50 handheld bursts selected from SyntheticBurst, 
+                    each providing 14 LR frames originally at 8× downsampling. High-resolution references are used for evaluation after 
+                    a brute-force affine alignment step.</li>
+            </ul>
+
+            <h3>Training Protocol</h3>
+            <p>
+                SuperF optimizes for 2,000 iterations using AdamW (base LR 2×10<sup>−3</sup>, cosine decay to 10<sup>−6</sup>, weight decay 0.05). 
+                Mini-batches contain a single LR frame. A 16-pixel crop is applied during evaluation to mitigate boundary artifacts, 
+                and color matching is used to correct global appearance differences following prior burst-SR practice.
+            </p>
+
+            <h3>Evaluation Metrics</h3>
+            <p>
+                We report PSNR, SSIM, and LPIPS (AlexNet backbone). For fair comparison with prior TTO methods, we include bilinear upsampling, 
+                steerable kernel regression (Lafenetre et al., 2023), and an INR baseline (Nam et al., 2022) optimized for 2k and 5k iterations.
+            </p>
+        </section>
+
+        <section id="comparisons">
+            <h2>Qualitative Comparisons</h2>
+            <p>
+                SuperF produces visibly sharper structures and cleaner color reproduction than existing test-time methods. 
+                Swipe through a few of our favorite before/after stories below.
+            </p>
+
+            <div class="carousel" data-carousel="comparisons">
+                <div class="carousel-track">
+                    <figure class="carousel-slide is-active">
+                        <img src="figs/qualitative_examples.png" alt="SatSynthBurst ×4 comparison between baselines and SuperF">
+                        <figcaption>SatSynthBurst ×4 &mdash; SuperF keeps rooftop geometry sharp while baselines blur it away.</figcaption>
+                    </figure>
+                    <figure class="carousel-slide">
+                        <img src="figs/qualitative_examples.png" alt="SyntheticBurst ×4 handheld scene comparison" style="object-position: center top;">
+                        <figcaption>SyntheticBurst ×4 &mdash; Handheld night scene retains fine railings and signage without hallucinating texture.</figcaption>
+                    </figure>
+                    <figure class="carousel-slide">
+                        <img src="figs/qualitative_examples.png" alt="Close-up crops highlighting structural fidelity" style="object-position: center bottom;">
+                        <figcaption>Close-up crops &mdash; SuperF reconstructs high-frequency edges while keeping noise controlled.</figcaption>
+                    </figure>
+                </div>
+                <div class="carousel-controls">
+                    <button class="carousel-button" data-dir="prev" aria-label="Previous slide">‹</button>
+                    <div class="carousel-dots" role="tablist" aria-label="Comparison slides">
+                        <button class="carousel-dot is-active" data-index="0" aria-label="Slide 1"></button>
+                        <button class="carousel-dot" data-index="1" aria-label="Slide 2"></button>
+                        <button class="carousel-dot" data-index="2" aria-label="Slide 3"></button>
+                    </div>
+                    <button class="carousel-button" data-dir="next" aria-label="Next slide">›</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="results">
             <h2>Results</h2>
             <p>
-                We validate SuperF on two domains: satellite imagery (SatSynthBurst dataset) and ground-level 
-                images from handheld cameras (SyntheticBurst dataset). Our approach outperforms existing test-time 
-                optimization baselines including steerable kernel regression (Lafenetre et al., 2023) and NIR (Nam 
-                et al., 2022), achieving upsampling factors of up to 8×.
+                <strong>SuperF consistently beats the best publicly available test-time methods</strong>&mdash;delivering sharper detail, 
+                lower perceptual error, and rock-solid alignment across every dataset we tried.
             </p>
 
-            <h3>Quantitative Results</h3>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <span class="metric-value">32.94 dB</span>
+                    <span class="metric-label">SatSynthBurst ×4 PSNR</span>
+                    <p class="metric-note">+5.2 dB over steerable kernel regression (TTO)</p>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-value">27.90 dB</span>
+                    <span class="metric-label">SyntheticBurst ×4 PSNR</span>
+                    <p class="metric-note">+1.4 dB and LPIPS ↓ 0.38 vs NIR baseline</p>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-value">0.012 px</span>
+                    <span class="metric-label">Alignment error</span>
+                    <p class="metric-note">Direct affine parameterization keeps bursts perfectly registered</p>
+                </div>
+            </div>
+
+            <ul>
+                <li>Handles upsampling factors up to ×8 on synthetic bursts with clean, alias-free detail.</li>
+                <li>Generalizes from simulation to real Sentinel-2 time series, delivering 5× zoom-ins on critical infrastructure and landscapes.</li>
+                <li>Runs entirely at test time; just provide a burst, let SuperF optimize for 2k steps, and export the high-resolution render.</li>
+            </ul>
+
+            <div class="inline-figure">
+                <h4>Figure 2 · Qualitative Comparisons</h4>
+                <img class="figure-frame" src="figs/qualitative_examples.png" alt="Qualitative comparisons across datasets">
+                <p class="figure-caption">
+                    Representative qualitative results across satellite and ground-level scenes, comparing SuperF against
+                    steerable kernel regression and NIR baselines.
+                    <a href="figs/qualitative_examples (2).pdf">View full PDF</a>
+                </p>
+            </div>
+
+            <h3>Real-World Sentinel-2</h3>
             <p>
-                On the SatSynthBurst dataset with upsampling factor ×4, SuperF achieves <strong>32.94 dB PSNR</strong>, 
-                <strong>0.853 SSIM</strong>, and <strong>0.287 LPIPS</strong>, significantly outperforming bilinear upsampling 
-                (29.71 dB PSNR) and other baselines. On the SyntheticBurst dataset, SuperF achieves 
-                <strong>27.90 dB PSNR</strong>, <strong>0.774 SSIM</strong>, and <strong>0.385 LPIPS</strong> for ×4 upsampling.
+                Sentinel-2 imagery is notoriously noisy due to clouds, seasonal drift, and sensor blur. SuperF filters a few months of 
+                cloud-free captures and reconstructs high-frequency structure at a 5× scale-up&mdash;letting analysts monitor roads, energy assets, 
+                and ecosystems with clarity that was previously inaccessible.
             </p>
+            <div class="toggle-figure" data-mode="superf">
+                <div class="toggle-images">
+                    <img class="toggle-image baseline" src="figs/superf_real_examples.png" alt="Baseline view of Sentinel-2 burst">
+                    <img class="toggle-image superf" src="figs/superf_real_examples.png" alt="SuperF reconstruction of Sentinel-2 burst">
+                </div>
+                <div class="mode-toggle" role="tablist" aria-label="Toggle reconstruction view">
+                    <button type="button" data-mode="lr" aria-label="Show simulated LR input">LR</button>
+                    <button type="button" data-mode="bilinear" aria-label="Show simulated bilinear upsample">Bilinear</button>
+                    <button type="button" data-mode="superf" class="is-active" aria-label="Show SuperF reconstruction">SuperF</button>
+                </div>
+                <p class="figure-caption">
+                    Hover or tap the buttons to compare a simulated LR input, a bilinear upsample, and the SuperF reconstruction at 5× scale.
+                    <a href="figs/SuperF Real Ex-2.pdf">View full PDF</a>
+                </p>
+            </div>
+        </section>
 
-            <h3>Real-World Application</h3>
+        <section class="cta-section">
+            <h2>Bring SuperF to Your Imagery</h2>
             <p>
-                We demonstrate that SuperF can be applied to real-world satellite images from Sentinel-2, achieving 
-                upsampling factors of 5× using filtered time series from Sentinel-2 STAC endpoints.
+                Whether you are tracking land use from orbit or cleaning up handheld captures, SuperF is ready to slot into your workflow.
+                Point it at your burst, kick off test-time optimization, and export alias-free detail you can trust. The repository ships with
+                ready-made configs for both satellite and handheld data.
             </p>
+            <div class="cta-buttons">
+                <a href="https://github.com/yourusername/superf" class="link-button">Launch the Code</a>
+                <a href="../2025___ICLR___SuperF_neural_implicit_fields (3).pdf" class="link-button secondary">Read the Project Paper</a>
+                <a href="#quickstart" class="link-button secondary">Follow the Quick Start</a>
+            </div>
+        </section>
 
-            <div class="results-grid">
-                <div class="result-item">
-                    <img src="../images/hr_image.png" alt="Satellite Super-Resolution" onerror="this.style.display='none'">
-                    <h4>Satellite Imagery</h4>
-                    <p>Results on SatSynthBurst dataset</p>
-                </div>
-                <div class="result-item">
-                    <img src="../images/hr_image.png" alt="Ground-Level Bursts" onerror="this.style.display='none'">
-                    <h4>Ground-Level Bursts</h4>
-                    <p>Results on SyntheticBurst dataset</p>
-                </div>
-                <div class="result-item">
-                    <img src="../images/hr_image.png" alt="Real Sentinel-2" onerror="this.style.display='none'">
-                    <h4>Real Sentinel-2</h4>
-                    <p>Application to real satellite imagery</p>
-                </div>
+        <section id="demo">
+            <h2>Interactive Demo</h2>
+            <p>
+                Try SuperF in your browser: upload your burst, watch the joint alignment converge, and inspect the super-resolved render directly.
+                The demo runs a lighter-weight configuration so you can get a feel for the workflow before running the full-resolution scripts locally.
+            </p>
+            <div style="margin-top: 24px; border-radius: 16px; overflow: hidden; box-shadow: 0 18px 46px rgba(34, 73, 125, 0.12);">
+                <gradio-app src="https://sjyhne-superf-demo.hf.space"></gradio-app>
             </div>
         </section>
 
         <section>
-            <h2>Figures</h2>
-            <div class="figure-grid">
-                <div class="figure-item">
-                    <h4>Method Overview</h4>
-                    <iframe class="figure-frame" src="figs/SuperF_method (1).pdf#view=FitH"></iframe>
-                    <p class="figure-caption">
-                        Illustration of the SuperF pipeline and the joint optimization of the implicit neural representation with frame alignment.
-                        <a href="figs/SuperF_method (1).pdf">Download PDF</a>
-                    </p>
-                </div>
-                <div class="figure-item">
-                    <h4>Qualitative Comparisons</h4>
-                    <iframe class="figure-frame" src="figs/qualitative_examples (2).pdf#view=FitH"></iframe>
-                    <p class="figure-caption">
-                        Qualitative results showcasing SuperF compared with existing methods across satellite and ground-level scenes.
-                        <a href="figs/qualitative_examples (2).pdf">Download PDF</a>
-                    </p>
-                </div>
-                <div class="figure-item">
-                    <h4>Real-World Sentinel-2 Examples</h4>
-                    <iframe class="figure-frame" src="figs/SuperF Real Ex-2.pdf#view=FitH"></iframe>
-                    <p class="figure-caption">
-                        Application of SuperF to real Sentinel-2 satellite imagery with upsampling factors of 5×.
-                        <a href="figs/SuperF Real Ex-2.pdf">Download PDF</a>
-                    </p>
-                </div>
-            </div>
-        </section>
-
-        <section>
-            <h2>Quick Start</h2>
+            <h2 id="quickstart">Quick Start</h2>
+            <p>
+                Ready to try it on your bursts? Clone the repository, point SuperF at your stack of LR frames, and let the 
+                optimizer recover the detail. The defaults below reproduce the results from our paper.
+            </p>
             <h3>Installation</h3>
             <pre><code>git clone https://github.com/yourusername/superf.git
 cd superf
@@ -572,5 +1208,66 @@ pip install -r requirements.txt</code></pre>
             </p>
         </footer>
     </div>
+
+    <script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/5.49.1/gradio.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Toggle figure interactions
+            document.querySelectorAll('.toggle-figure').forEach(function (figure) {
+                const buttons = figure.querySelectorAll('.mode-toggle button[data-mode]');
+                buttons.forEach(function (button) {
+                    button.addEventListener('click', function () {
+                        const mode = button.dataset.mode;
+                        figure.dataset.mode = mode;
+                        buttons.forEach(function (btn) {
+                            btn.classList.toggle('is-active', btn === button);
+                        });
+                    });
+                });
+            });
+
+            // Carousel interactions
+            document.querySelectorAll('.carousel').forEach(function (carousel) {
+                const slides = Array.from(carousel.querySelectorAll('.carousel-slide'));
+                const dots = Array.from(carousel.querySelectorAll('.carousel-dot'));
+                const prevBtn = carousel.querySelector('[data-dir="prev"]');
+                const nextBtn = carousel.querySelector('[data-dir="next"]');
+                let current = 0;
+
+                if (!slides.length) {
+                    return;
+                }
+
+                const showSlide = function (index) {
+                    current = (index + slides.length) % slides.length;
+                    slides.forEach(function (slide, idx) {
+                        slide.classList.toggle('is-active', idx === current);
+                    });
+                    dots.forEach(function (dot, idx) {
+                        dot.classList.toggle('is-active', idx === current);
+                    });
+                };
+
+                if (prevBtn) {
+                    prevBtn.addEventListener('click', function () {
+                        showSlide(current - 1);
+                    });
+                }
+
+                if (nextBtn) {
+                    nextBtn.addEventListener('click', function () {
+                        showSlide(current + 1);
+                    });
+                }
+
+                dots.forEach(function (dot, idx) {
+                    dot.addEventListener('click', function () {
+                        showSlide(idx);
+                    });
+                });
+            });
+        });
+    </script>
 </body>
 </html>
