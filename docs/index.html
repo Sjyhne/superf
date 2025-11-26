@@ -1011,10 +1011,21 @@
                     </div>
                 </div>
                 <div class="hero-media">
-                    <div class="alignment-container">
-                        <div class="jitter-frame jitter-frame-1"></div>
-                        <div class="jitter-frame jitter-frame-2"></div>
-                        <div class="jitter-frame jitter-frame-3"></div>
+                    <div class="stack-container">
+                        <div class="stack-scene">
+                            <div class="layer hr" style="--z-pos: 0px;">
+                                <div class="layer-label hr-label">HR Reconstruction</div>
+                            </div>
+                            <div class="layer lr" style="--z-pos: 60px;">
+                                <div class="layer-label lr-label">LR Frame 1</div>
+                            </div>
+                            <div class="layer lr" style="--z-pos: 120px;">
+                                <div class="layer-label lr-label">LR Frame 2</div>
+                            </div>
+                            <div class="layer lr" style="--z-pos: 180px;">
+                                <div class="layer-label lr-label">LR Frame 3</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1136,30 +1147,7 @@
 
             <div style="text-align: center; margin: 40px 0 20px 0;">
                 <p style="max-width: 700px; margin: 0 auto;">
-                    <strong>Multiple low-resolution frames</strong> are fused into a single <strong>high-resolution reconstruction</strong> through the shared INR. The animation below shows how misaligned burst frames converge and stack to create the final output.
-                </p>
-            </div>
-
-            <div class="stack-container">
-                <div class="stack-scene">
-                    <div class="layer hr" style="--z-pos: 0px;">
-                        <div class="layer-label hr-label">HR Reconstruction</div>
-                    </div>
-                    <div class="layer lr" style="--z-pos: 60px;">
-                        <div class="layer-label lr-label">LR Frame 1</div>
-                    </div>
-                    <div class="layer lr" style="--z-pos: 120px;">
-                        <div class="layer-label lr-label">LR Frame 2</div>
-                    </div>
-                    <div class="layer lr" style="--z-pos: 180px;">
-                        <div class="layer-label lr-label">LR Frame 3</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div style="text-align: center; margin: 20px 0 40px 0;">
-                <p style="font-size: 14px; color: #6b7280; max-width: 600px; margin: 0 auto;">
-                    Watch how the misaligned frames converge and align on top of the HR reconstruction.
+                    <strong>Multiple low-resolution frames</strong> are fused into a single <strong>high-resolution reconstruction</strong> through the shared INR. The animation shows how misaligned burst frames converge and stack to create the final output.
                 </p>
             </div>
 
@@ -1184,19 +1172,6 @@
                 SuperF uses a <strong>Gaussian Negative Log-Likelihood (GNLL) loss</strong> to predict pixel-wise uncertainty. 
             </p>
 
-            <div class="lens-wrapper" id="uncertainty-demo">
-                <div class="lens-hint">Hover to see X-Ray Uncertainty</div>
-                
-                <img src="figs/cloudy_input.png" class="img-base" alt="Cloudy Input" onerror="this.src='figs/kjevik_lr.png'">
-                
-                <div class="lens uncertainty-lens" 
-                     id="u-lens" 
-                     style="background-image: url('figs/uncertainty_map.png');">
-                </div>
-            </div>
-            <p style="text-align: center; font-size: 14px; color: #6b7280; margin-top: 10px;">
-                The lens reveals the predicted uncertainty heatmap. SuperF learns to ignore these high-uncertainty regions.
-            </p>
         </section>
 
         <section id="results">
@@ -1211,24 +1186,6 @@
                 <li>Runs entirely at test time; just provide a burst, let SuperF optimize for 2k steps, and export the high-resolution render.</li>
             </ul>
 
-            <h3>Interactive Inspection</h3>
-            <p style="text-align: center; margin-bottom: 20px;">
-                Move your mouse (or touch) over the image to reveal the SuperF reconstruction.
-            </p>
-
-            <div class="lens-wrapper" id="result-demo">
-                <div class="lens-hint">Hover to super-resolve</div>
-                
-                <img src="figs/kjevik_lr.png" class="img-base" alt="Low Res Input" onerror="this.src='https://placehold.co/800x500/333/666?text=LR+Input+Image';">
-                
-                <div class="lens" 
-                     id="r-lens"
-                     style="background-image: url('figs/kjevik_hr.png');">
-                </div>
-            </div>
-            <p style="text-align: center; font-size: 14px; color: #6b7280; margin-top: 10px;">
-                Comparison: Low-Resolution Input (Background) vs SuperF Reconstruction (Lens).
-            </p>
         </section>
 
         <section id="timelapse">
@@ -1274,70 +1231,6 @@
             </div>
         </section>
 
-        <section id="quickstart">
-            <h2>Quick Start</h2>
-            <p>
-                Ready to try it on your bursts? Clone the repository, point SuperF at your stack of LR frames, and let the optimizer recover the detail. The defaults below reproduce the results from our paper.
-            </p>
-
-            <h3>Installation</h3>
-            <div class="code-block">
-                <code>git clone https://github.com/yourusername/superf.git<br>cd superf<br>pip install -r requirements.txt</code>
-            </div>
-
-            <h3>Generate Training Data</h3>
-            <div class="code-block">
-                <code>python create_data_from_single_image.py --input_image path/to/image.png --output_dir data/sample_1</code>
-            </div>
-
-            <h3>Training</h3>
-            <div class="code-block">
-                <code>python main.py --dataset satburst_synth --sample_id sample_1 --df 4 --lr_shift 1.0 --iters 1000 --d 0</code>
-            </div>
-
-            <h3>Key Parameters</h3>
-            <table class="param-table">
-                <thead>
-                    <tr>
-                        <th>Parameter</th>
-                        <th>Description</th>
-                        <th>Default</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><code>--dataset</code></td>
-                        <td>Dataset type: "satburst_synth", "worldstrat", "burst_synth"</td>
-                        <td>"satburst_synth"</td>
-                    </tr>
-                    <tr>
-                        <td><code>--df</code></td>
-                        <td>Downsampling factor</td>
-                        <td>4</td>
-                    </tr>
-                    <tr>
-                        <td><code>--model</code></td>
-                        <td>Model type: "mlp", "siren", "wire", "linear", "conv", "thera"</td>
-                        <td>"mlp"</td>
-                    </tr>
-                    <tr>
-                        <td><code>--input_projection</code></td>
-                        <td>Input projection: "linear", "fourier_10", "legendre", "none"</td>
-                        <td>"fourier_10"</td>
-                    </tr>
-                    <tr>
-                        <td><code>--iters</code></td>
-                        <td>Number of training iterations</td>
-                        <td>1000</td>
-                    </tr>
-                    <tr>
-                        <td><code>--lr_shift</code></td>
-                        <td>Low-resolution shift amount</td>
-                        <td>1.0</td>
-                    </tr>
-                </tbody>
-            </table>
-        </section>
 
         <section>
             <h2>Citation</h2>
@@ -1674,10 +1567,8 @@
             loadTimelapse('kjevik');
         }
 
-        // Initialize both lenses and timelapse
+        // Initialize timelapse
         document.addEventListener('DOMContentLoaded', () => {
-            initLens('result-demo', 'r-lens');      // For Results
-            initLens('uncertainty-demo', 'u-lens'); // For Uncertainty
             initTimelapse();                        // For Timelapse
         });
     </script>
