@@ -1402,6 +1402,32 @@
             let animationTimeout = null;
             let isPlaying = true;
             let isUserControlling = false;
+            
+            // Preload cache for all timelapses
+            const preloadedImages = {};
+            const preloadStatus = {};
+
+            // Preload all timelapses upfront
+            function preloadAllTimelapses() {
+                Object.keys(timelapses).forEach(timelapseName => {
+                    const timelapse = timelapses[timelapseName];
+                    preloadedImages[timelapseName] = [];
+                    preloadStatus[timelapseName] = { loaded: 0, total: timelapse.frames.length };
+                    
+                    timelapse.frames.forEach((frame) => {
+                        const img = new Image();
+                        img.src = `figs/${timelapse.folder}/frame_${frame}.png`;
+                        img.onload = () => {
+                            preloadStatus[timelapseName].loaded++;
+                        };
+                        img.onerror = () => {
+                            console.warn(`Failed to preload ${timelapseName} frame_${frame}.png`);
+                            preloadStatus[timelapseName].loaded++;
+                        };
+                        preloadedImages[timelapseName].push(img);
+                    });
+                });
+            }
 
             function loadTimelapse(timelapseName) {
                 // Stop current animation
@@ -1414,45 +1440,83 @@
                 if (!timelapse) return;
                 
                 currentTimelapse = timelapseName;
-                images = [];
-                loadedCount = 0;
-                totalFrames = timelapse.frames.length;
-                totalFramesCount = totalFrames;
-                currentFrame = 0;
-                isPlaying = true;
-                isUserControlling = false;
-                timelapseImg.classList.remove('loaded');
                 
-                // Update active option
-                timelapseOptions.forEach(opt => {
-                    opt.classList.toggle('active', opt.dataset.timelapse === timelapseName);
-                });
-                
-                // Preload all images
-                timelapse.frames.forEach((frame) => {
-                    const img = new Image();
-                    img.src = `figs/${timelapse.folder}/frame_${frame}.png`;
-                    img.onload = () => {
-                        loadedCount++;
-                        if (loadedCount === totalFrames) {
-                            timelapseImg.classList.add('loaded');
-                            timelapseSlider.max = totalFrames - 1;
-                            updateFrameInfo();
-                            startTimelapse();
-                        }
-                    };
-                    img.onerror = () => {
-                        console.warn(`Failed to load frame_${frame}.png`);
-                        loadedCount++;
-                        if (loadedCount === totalFrames) {
-                            timelapseImg.classList.add('loaded');
-                            timelapseSlider.max = totalFrames - 1;
-                            updateFrameInfo();
-                            startTimelapse();
-                        }
-                    };
-                    images.push(img);
-                });
+                // Use preloaded images if available
+                if (preloadedImages[timelapseName] && preloadedImages[timelapseName].length > 0) {
+                    images = preloadedImages[timelapseName];
+                    totalFrames = timelapse.frames.length;
+                    totalFramesCount = totalFrames;
+                    currentFrame = 0;
+                    isPlaying = true;
+                    isUserControlling = false;
+                    
+                    // Update active option
+                    timelapseOptions.forEach(opt => {
+                        opt.classList.toggle('active', opt.dataset.timelapse === timelapseName);
+                    });
+                    
+                    // Check if images are already loaded
+                    const status = preloadStatus[timelapseName];
+                    if (status && status.loaded === status.total) {
+                        timelapseImg.classList.add('loaded');
+                        timelapseSlider.max = totalFrames - 1;
+                        updateFrameInfo();
+                        startTimelapse();
+                    } else {
+                        // Wait for preload to complete
+                        timelapseImg.classList.remove('loaded');
+                        const checkInterval = setInterval(() => {
+                            if (preloadStatus[timelapseName].loaded === preloadStatus[timelapseName].total) {
+                                clearInterval(checkInterval);
+                                timelapseImg.classList.add('loaded');
+                                timelapseSlider.max = totalFrames - 1;
+                                updateFrameInfo();
+                                startTimelapse();
+                            }
+                        }, 50);
+                    }
+                } else {
+                    // Fallback: load on demand if preload hasn't started
+                    images = [];
+                    loadedCount = 0;
+                    totalFrames = timelapse.frames.length;
+                    totalFramesCount = totalFrames;
+                    currentFrame = 0;
+                    isPlaying = true;
+                    isUserControlling = false;
+                    timelapseImg.classList.remove('loaded');
+                    
+                    // Update active option
+                    timelapseOptions.forEach(opt => {
+                        opt.classList.toggle('active', opt.dataset.timelapse === timelapseName);
+                    });
+                    
+                    // Preload images
+                    timelapse.frames.forEach((frame) => {
+                        const img = new Image();
+                        img.src = `figs/${timelapse.folder}/frame_${frame}.png`;
+                        img.onload = () => {
+                            loadedCount++;
+                            if (loadedCount === totalFrames) {
+                                timelapseImg.classList.add('loaded');
+                                timelapseSlider.max = totalFrames - 1;
+                                updateFrameInfo();
+                                startTimelapse();
+                            }
+                        };
+                        img.onerror = () => {
+                            console.warn(`Failed to load frame_${frame}.png`);
+                            loadedCount++;
+                            if (loadedCount === totalFrames) {
+                                timelapseImg.classList.add('loaded');
+                                timelapseSlider.max = totalFrames - 1;
+                                updateFrameInfo();
+                                startTimelapse();
+                            }
+                        };
+                        images.push(img);
+                    });
+                }
             }
 
             function updateFrameInfo() {
@@ -1563,6 +1627,9 @@
                 });
             });
 
+            // Preload all timelapses upfront
+            preloadAllTimelapses();
+            
             // Load initial timelapse
             loadTimelapse('kjevik');
         }
