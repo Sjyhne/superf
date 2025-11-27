@@ -1010,6 +1010,7 @@
             user-select: none;
             overflow: hidden;
             margin: 0 auto;
+            touch-action: none;
         }
         .main-context.dragging {
             cursor: grabbing;
@@ -1019,6 +1020,9 @@
             height: 100%;
             object-fit: cover;
             display: block;
+            pointer-events: none;
+            -webkit-user-drag: none;
+            user-select: none;
         }
         /* The Red Box indicating the crop area */
         .zoom-indicator-box {
@@ -1379,7 +1383,7 @@
 
             <div class="zoomed-comparison">
                 <div class="main-context">
-                    <img src="figs/kjevik_hr.png" alt="Main context" id="main-context-img">
+                    <img src="figs/kjevik_hr.png" alt="Main context" id="main-context-img" draggable="false">
                     <div class="zoom-indicator-box">
                         <span class="zoom-indicator-label">ZOOM AREA</span>
                     </div>
