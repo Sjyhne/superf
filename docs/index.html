@@ -1205,6 +1205,84 @@
             color: #6b7280;
             margin-bottom: 0;
         }
+
+        /* --- BURST INPUT SEQUENCE CARD --- */
+        .burst-sequence {
+            max-width: 1100px;
+            margin: 60px auto 10px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 32px;
+            align-items: start;
+        }
+        .sequence-card {
+            background: #fff;
+            border-radius: 20px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .sequence-display {
+            position: relative;
+            width: 100%;
+            padding-top: 100%;
+            border-radius: 16px;
+            overflow: hidden;
+            background-color: #000;
+            cursor: pointer;
+            transition: box-shadow 0.3s ease, transform 0.3s ease;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.25);
+        }
+        .sequence-display:hover,
+        .sequence-display:focus-visible {
+            box-shadow: inset 0 0 25px rgba(0,0,0,0.35);
+        }
+        .sequence-display:focus-visible {
+            outline: 3px solid rgba(59,130,246,0.6);
+            outline-offset: 6px;
+        }
+        .sequence-display.is-pressed {
+            box-shadow: 0 15px 35px rgba(59,130,246,0.35);
+            transform: translateY(-2px) scale(1.01);
+        }
+        .sequence-display img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            image-rendering: pixelated;
+            pointer-events: none;
+            -webkit-user-drag: none;
+            user-select: none;
+        }
+        .sequence-label {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            background: rgba(0,0,0,0.65);
+            color: white;
+            font-size: 12px;
+            letter-spacing: 0.06em;
+            padding: 4px 10px;
+            border-radius: 999px;
+            text-transform: uppercase;
+            pointer-events: none;
+        }
+        .sequence-instructions {
+            font-size: 16px;
+            color: #4b5563;
+            margin-top: 18px;
+            line-height: 1.6;
+        }
+        .sequence-details {
+            font-size: 14px;
+            color: #9ca3af;
+            margin-top: 8px;
+        }
     </style>
 </head>
 <body>
@@ -1437,6 +1515,31 @@
                     <p class="comparison-caption">Satellite burst (Island)</p>
                 </div>
             </div>
+
+            <div class="burst-sequence">
+                <div class="sequence-card">
+                    <div class="sequence-display" data-sequence="cph" role="button" tabindex="0" aria-pressed="false" aria-label="CPH burst: hover for base LR frame, press to show SR output">
+                        <img class="sequence-img" src="figs/cph/2025-04-03_S2B_33UUB_20250403_0_L2A.png" alt="Animated Copenhagen LR burst frames" draggable="false" loading="lazy">
+                        <span class="sequence-label">LR Sequence</span>
+                    </div>
+                </div>
+                <div class="sequence-card">
+                    <div class="sequence-display" data-sequence="circle" role="button" tabindex="0" aria-pressed="false" aria-label="Circle burst: hover for base LR frame, press to show SR output">
+                        <img class="sequence-img" src="figs/circle/2025-04-02_S2A_30STG_20250402_1_L2A.png" alt="Animated circle LR burst frames" draggable="false" loading="lazy">
+                        <span class="sequence-label">LR Sequence</span>
+                    </div>
+                </div>
+                <div class="sequence-card">
+                    <div class="sequence-display" data-sequence="roundabout" role="button" tabindex="0" aria-pressed="false" aria-label="Roundabout burst: hover for base LR frame, press to show SR output">
+                        <img class="sequence-img" src="figs/roundabout/2025-04-17_S2C_17RMP_20250417_0_L2A.png" alt="Animated roundabout LR burst frames" draggable="false" loading="lazy">
+                        <span class="sequence-label">LR Sequence</span>
+                    </div>
+                </div>
+            </div>
+
+            <p class="sequence-instructions" style="text-align:center; max-width: 780px; margin: 24px auto 0;">
+                Each tile loops through the LR burst automatically. <strong>Hover</strong> (or focus) to freeze on our base LR frame, then <strong>press / long-press</strong> to show the SuperF SR output. Let go to resume the LR sequence.
+            </p>
 
         </section>
 
@@ -2109,11 +2212,194 @@
             });
         }
 
+        // Burst sequence interaction (hover to base frame, press to reveal HR)
+        function initBurstSequence() {
+            const sequences = {
+                cph: {
+                    frames: [
+                        'figs/cph/2025-04-03_S2B_33UUB_20250403_0_L2A.png',
+                        'figs/cph/2025-04-07_S2A_33UUB_20250407_0_L2A.png',
+                        'figs/cph/2025-04-10_S2B_33UUB_20250410_0_L2A.png',
+                        'figs/cph/2025-04-27_S2A_33UUB_20250427_0_L2A.png',
+                        'figs/cph/2025-05-08_S2C_33UUB_20250508_0_L2A.png',
+                        'figs/cph/2025-05-15_S2C_33UUB_20250515_0_L2A.png',
+                        'figs/cph/2025-05-25_S2C_33UUB_20250525_0_L2A.png',
+                        'figs/cph/2025-06-19_S2B_33UUB_20250619_0_L2A.png'
+                    ],
+                    base: 'figs/cph/2025-05-08_S2C_33UUB_20250508_0_L2A.png',
+                    sr: 'figs/cph/sr_sample_000.png',
+                    interval: 420
+                },
+                circle: {
+                    frames: [
+                        'figs/circle/2025-04-02_S2A_30STG_20250402_1_L2A.png',
+                        'figs/circle/2025-04-25_S2B_30STG_20250425_0_L2A.png',
+                        'figs/circle/2025-05-10_S2C_30STG_20250510_0_L2A.png',
+                        'figs/circle/2025-05-20_S2C_30STG_20250520_0_L2A.png',
+                        'figs/circle/2025-05-25_S2B_30STG_20250525_0_L2A.png',
+                        'figs/circle/2025-06-04_S2B_30STG_20250604_0_L2A.png',
+                        'figs/circle/2025-06-11_S2A_30STG_20250611_1_L2A.png',
+                        'figs/circle/2025-06-29_S2C_30STG_20250629_0_L2A.png'
+                    ],
+                    base: 'figs/circle/2025-05-10_S2C_30STG_20250510_0_L2A.png',
+                    sr: 'figs/circle/sr_sample_000.png',
+                    interval: 420
+                },
+                roundabout: {
+                    frames: [
+                        'figs/roundabout/2025-04-17_S2C_17RMP_20250417_0_L2A.png',
+                        'figs/roundabout/2025-05-09_S2A_17RMP_20250509_0_L2A.png',
+                        'figs/roundabout/2025-05-17_S2C_17RMP_20250517_0_L2A.png',
+                        'figs/roundabout/2025-05-22_S2B_17RMP_20250522_0_L2A.png',
+                        'figs/roundabout/2025-05-27_S2C_17RMP_20250527_0_L2A.png',
+                        'figs/roundabout/2025-06-01_S2B_17RMP_20250601_0_L2A.png'
+                    ],
+                    base: 'figs/roundabout/2025-05-17_S2C_17RMP_20250517_0_L2A.png',
+                    sr: 'figs/roundabout/sr_sample_000.png',
+                    interval: 420
+                }
+            };
+
+            const displays = document.querySelectorAll('.sequence-display');
+            if (!displays.length) return;
+
+            displays.forEach((display) => {
+                const key = display.dataset.sequence;
+                const sequence = sequences[key];
+                if (!sequence) return;
+
+                const imgEl = display.querySelector('.sequence-img');
+                const labelEl = display.querySelector('.sequence-label');
+
+                let loopTimer = null;
+                let hoverActive = false;
+                let isPressed = false;
+                let frameIndex = 0;
+
+                const setLabel = (text) => {
+                    if (labelEl) labelEl.textContent = text;
+                };
+
+                const showImage = (src) => {
+                    if (!imgEl) return;
+                    if (imgEl.dataset.currentSrc === src) return;
+                    imgEl.dataset.currentSrc = src;
+                    imgEl.src = src;
+                };
+
+                const stopLoop = () => {
+                    if (loopTimer) {
+                        clearInterval(loopTimer);
+                        loopTimer = null;
+                    }
+                };
+
+                const startLoop = () => {
+                    stopLoop();
+                    setLabel('LR Sequence');
+                    frameIndex = 0;
+                    showImage(sequence.frames[frameIndex]);
+
+                    if (sequence.frames.length <= 1) return;
+
+                    loopTimer = setInterval(() => {
+                        frameIndex = (frameIndex + 1) % sequence.frames.length;
+                        showImage(sequence.frames[frameIndex]);
+                    }, sequence.interval || 350);
+                };
+
+                const showBaseFrame = () => {
+                    stopLoop();
+                    setLabel('Base Frame');
+                    showImage(sequence.base);
+                };
+
+                const showSR = () => {
+                    stopLoop();
+                    setLabel('SR Output');
+                    showImage(sequence.sr);
+                };
+
+                const resumeAppropriateState = () => {
+                    if (hoverActive) {
+                        showBaseFrame();
+                    } else {
+                        startLoop();
+                    }
+                };
+
+                startLoop();
+
+                display.addEventListener('mouseenter', () => {
+                    hoverActive = true;
+                    if (!isPressed) showBaseFrame();
+                });
+
+                display.addEventListener('mouseleave', () => {
+                    hoverActive = false;
+                    if (!isPressed) startLoop();
+                });
+
+                display.addEventListener('focus', () => {
+                    hoverActive = true;
+                    if (!isPressed) showBaseFrame();
+                });
+
+                display.addEventListener('blur', () => {
+                    hoverActive = false;
+                    if (!isPressed) startLoop();
+                });
+
+                const handlePressStart = (event) => {
+                    if (event) {
+                        event.preventDefault();
+                        if (typeof event.pointerId !== 'undefined') {
+                            display.setPointerCapture(event.pointerId);
+                        }
+                    }
+                    if (isPressed) return;
+                    isPressed = true;
+                    display.classList.add('is-pressed');
+                    display.setAttribute('aria-pressed', 'true');
+                    showSR();
+                };
+
+                const handlePressEnd = (event) => {
+                    if (!isPressed) return;
+                    if (event && typeof event.pointerId !== 'undefined' && display.hasPointerCapture(event.pointerId)) {
+                        display.releasePointerCapture(event.pointerId);
+                    }
+                    isPressed = false;
+                    display.classList.remove('is-pressed');
+                    display.setAttribute('aria-pressed', 'false');
+                    resumeAppropriateState();
+                };
+
+                display.addEventListener('pointerdown', handlePressStart);
+                display.addEventListener('pointerup', handlePressEnd);
+                display.addEventListener('pointercancel', handlePressEnd);
+                display.addEventListener('contextmenu', (e) => e.preventDefault());
+
+                display.addEventListener('keydown', (e) => {
+                    if (e.code === 'Space' || e.code === 'Enter') {
+                        handlePressStart(e);
+                    }
+                });
+
+                display.addEventListener('keyup', (e) => {
+                    if (e.code === 'Space' || e.code === 'Enter') {
+                        handlePressEnd(e);
+                    }
+                });
+            });
+        }
+
         // Initialize timelapse
         document.addEventListener('DOMContentLoaded', () => {
             initTimelapse();                        // For Timelapse
             initZoomedComparison();                 // For Zoomed Comparison
             initComparisonSliders();                // For Input vs Output sliders
+            initBurstSequence();                    // For LR sequence interaction
         });
     </script>
 </body>
