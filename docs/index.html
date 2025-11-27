@@ -989,6 +989,218 @@
                 padding: 12px 8px;
             }
         }
+
+        /* --- ZOOMED INSET VISUALIZATION --- */
+        .zoomed-comparison {
+            max-width: 900px;
+            margin: 40px auto;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            border: 1px solid #e5e7eb;
+            overflow: hidden;
+        }
+        .main-context {
+            position: relative;
+            width: 100%;
+            max-width: 520px;
+            aspect-ratio: 1 / 1;
+            border-bottom: 1px solid #e5e7eb;
+            cursor: grab;
+            user-select: none;
+            overflow: hidden;
+            margin: 0 auto;
+        }
+        .main-context.dragging {
+            cursor: grabbing;
+        }
+        .main-context img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        /* The Red Box indicating the crop area */
+        .zoom-indicator-box {
+            position: absolute;
+            border: 2px solid var(--danger);
+            box-shadow: 0 0 0 1000px rgba(0,0,0,0.3); /* Dim the outside area */
+            z-index: 10;
+            pointer-events: none;
+            transition: transform 0.1s ease-out;
+        }
+        .zoom-indicator-label {
+            position: absolute;
+            top: -25px;
+            left: 0;
+            background: var(--danger);
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        .crops-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2px; /* Small gap for border separator */
+            background: #e5e7eb;
+        }
+        .crop-container {
+            background: #fff;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .crop-view {
+            width: 200px;
+            height: 200px;
+            border-radius: 8px;
+            border: 1px solid #eee;
+            margin-bottom: 12px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+        .crop-view {
+            position: relative;
+        }
+        .crop-view canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            image-rendering: pixelated;
+        }
+        .crop-label {
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 14px;
+        }
+        .crop-sub {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        /* --- INPUT VS OUTPUT SLIDER COMPARISON --- */
+        .comparison-gallery {
+            margin: 60px auto 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 32px;
+            max-width: 1000px;
+        }
+        .comparison-card {
+            --percent: 50;
+            background: #fff;
+            border-radius: 20px;
+            border: 1px solid #e5e7eb;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+        .comparison-stage {
+            position: relative;
+            width: 100%;
+            border-radius: 16px;
+            overflow: hidden;
+            background: #000;
+            cursor: ew-resize;
+            user-select: none;
+            touch-action: none;
+            line-height: 0;
+        }
+        .comparison-image {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+            display: block;
+            pointer-events: none;
+            -webkit-user-drag: none;
+            user-select: none;
+        }
+        .comparison-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            clip-path: inset(0 calc(100% - (var(--percent) * 1%)) 0 0);
+        }
+        .comparison-overlay img {
+            width: 100%;
+            height: auto;
+            display: block;
+            object-fit: cover;
+            image-rendering: pixelated;
+        }
+        .comparison-handle {
+            position: absolute;
+            top: 50%;
+            left: calc(var(--percent) * 1%);
+            transform: translate(-50%, -50%);
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: 3px solid rgba(255,255,255,0.9);
+            background: rgba(0,0,0,0.45);
+            display: grid;
+            place-items: center;
+            color: white;
+            font-size: 16px;
+            cursor: grab;
+            pointer-events: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .comparison-divider {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: rgba(255,255,255,0.9);
+            left: calc(var(--percent) * 1%);
+            transform: translateX(-1px);
+            pointer-events: none;
+        }
+        .comparison-handle::before,
+        .comparison-handle::after {
+            content: '';
+            width: 0;
+            height: 0;
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+        }
+        .comparison-handle::before {
+            border-right: 8px solid white;
+            margin-right: 4px;
+        }
+        .comparison-handle::after {
+            border-left: 8px solid white;
+            margin-left: 4px;
+        }
+        .comparison-label {
+            position: absolute;
+            top: 16px;
+            padding: 4px 10px;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 999px;
+            color: white;
+            background: rgba(0,0,0,0.55);
+            pointer-events: none;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .comparison-label-left { left: 16px; }
+        .comparison-label-right { right: 16px; }
+        .comparison-caption {
+            font-size: 14px;
+            text-align: center;
+            color: #6b7280;
+            margin-bottom: 0;
+        }
     </style>
 </head>
 <body>
@@ -1164,6 +1376,63 @@
                 <li>Generalizes from simulation to real Sentinel-2 time series, delivering 5× zoom-ins on critical infrastructure and landscapes.</li>
                 <li>Runs entirely at test time; just provide a burst, let SuperF optimize for 2k steps, and export the high-resolution render.</li>
             </ul>
+
+            <div class="zoomed-comparison">
+                <div class="main-context">
+                    <img src="figs/kjevik_hr.png" alt="Main context" id="main-context-img">
+                    <div class="zoom-indicator-box">
+                        <span class="zoom-indicator-label">ZOOM AREA</span>
+                    </div>
+                </div>
+
+                <div class="crops-row">
+                    <div class="crop-container">
+                        <div class="crop-view lr-view">
+                            <canvas id="lr-crop-canvas" width="200" height="200" data-src="figs/kjevik_lr.png"></canvas>
+                        </div>
+                        <div class="crop-label">Low-Res Input</div>
+                        <div class="crop-sub">(Nearest Neighbor)</div>
+                    </div>
+
+                    <div class="crop-container">
+                        <div class="crop-view hr-view">
+                            <canvas id="hr-crop-canvas" width="200" height="200"></canvas>
+                        </div>
+                        <div class="crop-label">SuperF Output</div>
+                        <div class="crop-sub">(Ours)</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="comparison-gallery">
+                <div class="comparison-card">
+                    <div class="comparison-stage">
+                        <img src="figs/kjevik_hr.png" alt="SuperF reconstruction" class="comparison-image base">
+                        <div class="comparison-overlay">
+                            <img src="figs/kjevik_lr.png" alt="Low-resolution burst input" class="comparison-image overlay">
+                        </div>
+                        <div class="comparison-divider" aria-hidden="true"></div>
+                        <div class="comparison-label comparison-label-left">Input</div>
+                        <div class="comparison-label comparison-label-right">Ours</div>
+                        <div class="comparison-handle" aria-hidden="true"></div>
+                    </div>
+                    <p class="comparison-caption">Handheld burst (Kjevik)</p>
+                </div>
+
+                <div class="comparison-card">
+                    <div class="comparison-stage">
+                        <img src="figs/island/HR.png" alt="SuperF reconstruction (island)" class="comparison-image base">
+                        <div class="comparison-overlay">
+                            <img src="figs/island/LR_1.png" alt="Low-resolution island input" class="comparison-image overlay">
+                        </div>
+                        <div class="comparison-divider" aria-hidden="true"></div>
+                        <div class="comparison-label comparison-label-left">Input</div>
+                        <div class="comparison-label comparison-label-right">Ours</div>
+                        <div class="comparison-handle" aria-hidden="true"></div>
+                    </div>
+                    <p class="comparison-caption">Satellite burst (Island)</p>
+                </div>
+            </div>
 
         </section>
 
@@ -1613,9 +1882,234 @@
             loadTimelapse('kjevik');
         }
 
+        // Initialize zoomed comparison interaction
+        function initZoomedComparison() {
+            const mainContext = document.querySelector('.main-context');
+            const mainImg = document.getElementById('main-context-img');
+            const zoomBox = document.querySelector('.zoom-indicator-box');
+            const lrCanvas = document.getElementById('lr-crop-canvas');
+            const hrCanvas = document.getElementById('hr-crop-canvas');
+            
+            if (!mainContext || !mainImg || !zoomBox || !lrCanvas || !hrCanvas) return;
+            
+            const lrCtx = lrCanvas.getContext('2d');
+            const hrCtx = hrCanvas.getContext('2d');
+            if (!lrCtx || !hrCtx) return;
+            lrCtx.imageSmoothingEnabled = false;
+            
+            const lrImage = new Image();
+            lrImage.src = lrCanvas.dataset.src;
+            
+            const zoomFactor = 4;
+            let boxSize = 0;
+            let isPointerDown = false;
+            let currentRelX = 0.5;
+            let currentRelY = 0.5;
+            
+            function waitForImage(img) {
+                return new Promise((resolve) => {
+                    if (img.complete && img.naturalWidth) {
+                        resolve();
+                    } else {
+                        img.addEventListener('load', resolve, { once: true });
+                    }
+                });
+            }
+            
+            function clamp(value, min, max) {
+                return Math.max(min, Math.min(max, value));
+            }
+            
+            function getMetrics() {
+                const containerRect = mainContext.getBoundingClientRect();
+                const naturalWidth = mainImg.naturalWidth;
+                const naturalHeight = mainImg.naturalHeight;
+                const scale = Math.max(
+                    containerRect.width / naturalWidth,
+                    containerRect.height / naturalHeight
+                );
+                const drawWidth = naturalWidth * scale;
+                const drawHeight = naturalHeight * scale;
+                const offsetX = (containerRect.width - drawWidth) / 2;
+                const offsetY = (containerRect.height - drawHeight) / 2;
+                return { containerRect, naturalWidth, naturalHeight, scale, drawWidth, drawHeight, offsetX, offsetY };
+            }
+            
+            function setBoxSize() {
+                const { containerRect } = getMetrics();
+                boxSize = containerRect.width / zoomFactor;
+                zoomBox.style.width = `${boxSize}px`;
+                zoomBox.style.height = `${boxSize}px`;
+            }
+            
+            function placeBoxAtRel(relX, relY) {
+                const metrics = getMetrics();
+                const { offsetX, offsetY, drawWidth, drawHeight } = metrics;
+                const centerX = offsetX + relX * drawWidth;
+                const centerY = offsetY + relY * drawHeight;
+                moveBox(centerX, centerY, metrics);
+            }
+            
+            function moveBox(centerX, centerY, metrics = getMetrics()) {
+                const { containerRect } = metrics;
+                const half = boxSize / 2;
+                const clampedX = clamp(centerX, half, containerRect.width - half);
+                const clampedY = clamp(centerY, half, containerRect.height - half);
+                zoomBox.style.left = `${clampedX - half}px`;
+                zoomBox.style.top = `${clampedY - half}px`;
+                drawCrops(clampedX, clampedY, metrics);
+            }
+            
+            function drawCrops(centerX, centerY, metrics = getMetrics()) {
+                const { naturalWidth, naturalHeight, scale, offsetX, offsetY, drawWidth, drawHeight } = metrics;
+                const relX = (centerX - offsetX) / drawWidth;
+                const relY = (centerY - offsetY) / drawHeight;
+                const clampedRelX = clamp(relX, 0, 1);
+                const clampedRelY = clamp(relY, 0, 1);
+                
+                const cropSize = boxSize / scale;
+                const halfCrop = cropSize / 2;
+                const imgCenterX = clamp(clampedRelX * naturalWidth, halfCrop, naturalWidth - halfCrop);
+                const imgCenterY = clamp(clampedRelY * naturalHeight, halfCrop, naturalHeight - halfCrop);
+                
+                currentRelX = imgCenterX / naturalWidth;
+                currentRelY = imgCenterY / naturalHeight;
+                
+                const sx = imgCenterX - halfCrop;
+                const sy = imgCenterY - halfCrop;
+                
+                hrCtx.clearRect(0, 0, hrCanvas.width, hrCanvas.height);
+                hrCtx.drawImage(
+                    mainImg,
+                    sx,
+                    sy,
+                    cropSize,
+                    cropSize,
+                    0,
+                    0,
+                    hrCanvas.width,
+                    hrCanvas.height
+                );
+                
+                const lrScaleX = lrImage.naturalWidth / naturalWidth;
+                const lrScaleY = lrImage.naturalHeight / naturalHeight;
+                const lrCropWidth = cropSize * lrScaleX;
+                const lrCropHeight = cropSize * lrScaleY;
+                const lrSx = sx * lrScaleX;
+                const lrSy = sy * lrScaleY;
+                
+                lrCtx.clearRect(0, 0, lrCanvas.width, lrCanvas.height);
+                lrCtx.drawImage(
+                    lrImage,
+                    lrSx,
+                    lrSy,
+                    lrCropWidth,
+                    lrCropHeight,
+                    0,
+                    0,
+                    lrCanvas.width,
+                    lrCanvas.height
+                );
+            }
+            
+            function handlePointerEvent(e) {
+                const metrics = getMetrics();
+                const { containerRect } = metrics;
+                const x = e.clientX - containerRect.left;
+                const y = e.clientY - containerRect.top;
+                moveBox(x, y, metrics);
+            }
+            
+            function handleResize() {
+                setBoxSize();
+                placeBoxAtRel(currentRelX, currentRelY);
+            }
+            
+            function attachPointerEvents() {
+                mainContext.addEventListener('pointerdown', (e) => {
+                    isPointerDown = true;
+                    mainContext.classList.add('dragging');
+                    mainContext.setPointerCapture(e.pointerId);
+                    handlePointerEvent(e);
+                });
+                
+                mainContext.addEventListener('pointermove', (e) => {
+                    if (!isPointerDown) return;
+                    handlePointerEvent(e);
+                });
+                
+                mainContext.addEventListener('pointerup', (e) => {
+                    isPointerDown = false;
+                    mainContext.classList.remove('dragging');
+                    mainContext.releasePointerCapture(e.pointerId);
+                });
+                
+                mainContext.addEventListener('pointerleave', () => {
+                    isPointerDown = false;
+                    mainContext.classList.remove('dragging');
+                });
+            }
+            
+            Promise.all([waitForImage(mainImg), waitForImage(lrImage)]).then(() => {
+                setBoxSize();
+                placeBoxAtRel(currentRelX, currentRelY);
+                attachPointerEvents();
+                window.addEventListener('resize', handleResize);
+            });
+        }
+
+        // Before/after comparison sliders
+        function initComparisonSliders() {
+            const cards = document.querySelectorAll('.comparison-card');
+            if (!cards.length) return;
+
+            cards.forEach((card) => {
+                const stage = card.querySelector('.comparison-stage');
+                const overlay = card.querySelector('.comparison-overlay');
+                const handle = card.querySelector('.comparison-handle');
+
+                if (!stage || !overlay || !handle) return;
+
+                let isPointerDown = false;
+
+                const setPercent = (value) => {
+                    const clamped = Math.min(100, Math.max(0, value));
+                    card.style.setProperty('--percent', clamped);
+                };
+
+                const pointerMove = (clientX) => {
+                    const rect = stage.getBoundingClientRect();
+                    const percent = ((clientX - rect.left) / rect.width) * 100;
+                    setPercent(percent);
+                };
+
+                stage.addEventListener('pointerdown', (e) => {
+                    isPointerDown = true;
+                    stage.setPointerCapture(e.pointerId);
+                    pointerMove(e.clientX);
+                });
+
+                stage.addEventListener('pointermove', (e) => {
+                    if (!isPointerDown) return;
+                    pointerMove(e.clientX);
+                });
+
+                stage.addEventListener('pointerup', (e) => {
+                    isPointerDown = false;
+                    stage.releasePointerCapture(e.pointerId);
+                });
+
+                stage.addEventListener('pointerleave', () => {
+                    isPointerDown = false;
+                });
+            });
+        }
+
         // Initialize timelapse
         document.addEventListener('DOMContentLoaded', () => {
             initTimelapse();                        // For Timelapse
+            initZoomedComparison();                 // For Zoomed Comparison
+            initComparisonSliders();                // For Input vs Output sliders
         });
     </script>
 </body>
