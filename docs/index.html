@@ -1162,6 +1162,7 @@
             <div class="hero-inner">
                 <div class="hero-text">
                     <h1>SuperF</h1>
+                    <p class="tagline">Neural Implicit Fields for Multi-Image Super-Resolution</p>
                     <p class="authors">
                         Sander Riisøen Jyhne<sup>1,*</sup>, Christian Igel<sup>2</sup>, Morten Goodwin<sup>1</sup>, Per-Arne Andersen<sup>1</sup>, Serge Belongie<sup>2</sup>, Nico Lang<sup>2,*</sup>
                     </p>
@@ -1223,13 +1224,13 @@
                 Real-world imagery is rarely perfect. Satellite observations are frequently obstructed by clouds or shadows, while handheld bursts often contain moving objects or lighting shifts. Standard super-resolution methods can be easily confused by these inconsistencies, resulting in glitchy artifacts in the final image. <strong>SuperF does not just reconstruct the image; it also learns to estimate its own confidence</strong> via <strong>pixel-wise uncertainty maps</strong> that identify which parts of an image are reliable and which are noisy. During optimization, the model assigns <strong>high uncertainty to outliers</strong>—such as a cloud that appears in only one satellite frame—and effectively ignores or strongly down-weights these corrupted pixels. This allows SuperF to extract the <strong>consistent, high-quality underlying structure</strong> of the scene, even when individual input frames are messy or partially occluded.
             </p>
             <div style="max-width: 1100px; margin: 32px auto 12px auto; display: flex; flex-direction: column; gap: 16px;">
-                <img src="figs/uncertainty_map_1.png" alt="Uncertainty example 1 from WorldStrat-bitter" style="width: 100%; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
-                <img src="figs/uncertainty_map_2.png" alt="Uncertainty example 2 from WorldStrat-bitter" style="width: 100%; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
-                <img src="figs/uncertainty_map_3.png" alt="Uncertainty example 3 from WorldStrat-bitter" style="width: 100%; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
-                <img src="figs/uncertainty_map_4.png" alt="Uncertainty example 4 from WorldStrat-bitter" style="width: 100%; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
+                <img src="figs/uncertainty_map_1.png" alt="Uncertainty example 1" style="width: 100%; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
+                <img src="figs/uncertainty_map_2.png" alt="Uncertainty example 2" style="width: 100%; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
+                <img src="figs/uncertainty_map_3.png" alt="Uncertainty example 3" style="width: 100%; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
+                <img src="figs/uncertainty_map_4.png" alt="Uncertainty example 4" style="width: 100%; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
             </div>
             <p style="max-width: 800px; margin: 0 auto; font-size: 14px; color: #6b7280; text-align: center;">
-                Four examples from the <em>WorldStrat-bitter</em> dataset, each showing LR frames (top row) and the corresponding estimated uncertainty maps (bottom row). The uncertainty maps highlight cloudy or inconsistent pixels, enabling the GNLL loss to downweight these during optimization.
+                Four examples showing LR frames (top row) and the corresponding estimated uncertainty maps (bottom row) for images with occlusions and inconsistencies. The uncertainty maps highlight cloudy or inconsistent pixels, enabling the GNLL loss to downweight these during optimization.
             </p>
         </section>
 
