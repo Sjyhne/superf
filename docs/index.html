@@ -791,11 +791,65 @@
 
         .abstract {
             background: var(--bg-light);
-            padding: 48px;
+            padding: 28px 32px;
             border-radius: 24px;
             margin: 0 auto;
-            max-width: 960px;
+            max-width: 820px;
             border-left: 6px solid var(--primary);
+        }
+        .abstract p {
+            font-size: 16px;
+            margin-bottom: 18px;
+        }
+        /* --- COLLAPSIBLE ABSTRACT --- */
+        .abstract-toggle {
+            max-width: 820px;
+            margin: 0 auto 24px auto;
+        }
+        .abstract-toggle details {
+            border-radius: 16px;
+            border: 1px solid #e5e7eb;
+            background: #fff;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.04);
+            overflow: hidden;
+        }
+        .abstract-toggle summary {
+            cursor: pointer;
+            list-style: none;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--primary);
+            background: #f9fafb;
+        }
+        .abstract-toggle summary::-webkit-details-marker {
+            display: none;
+        }
+        .abstract-toggle .summary-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .abstract-toggle .summary-label span {
+            font-size: 13px;
+            font-weight: 500;
+            color: #6b7280;
+        }
+        .abstract-toggle .summary-icon {
+            font-size: 18px;
+            color: #9ca3af;
+            transition: transform 0.2s ease;
+        }
+        .abstract-toggle details[open] .summary-icon {
+            transform: rotate(90deg);
+        }
+        .abstract-toggle .abstract {
+            border-left: none;
+            border-radius: 0 0 16px 16px;
+            box-shadow: none;
         }
 
         /* --- WHY SUPERF SECTION --- */
@@ -990,222 +1044,6 @@
             }
         }
 
-        /* --- ZOOMED INSET VISUALIZATION --- */
-        .zoomed-comparison {
-            max-width: 900px;
-            margin: 40px auto;
-            background: #fff;
-            border-radius: 16px;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-            border: 1px solid #e5e7eb;
-            overflow: hidden;
-        }
-        .main-context {
-            position: relative;
-            width: 100%;
-            max-width: 520px;
-            aspect-ratio: 1 / 1;
-            border-bottom: 1px solid #e5e7eb;
-            cursor: grab;
-            user-select: none;
-            overflow: hidden;
-            margin: 0 auto;
-            touch-action: none;
-        }
-        .main-context.dragging {
-            cursor: grabbing;
-        }
-        .main-context img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-            pointer-events: none;
-            -webkit-user-drag: none;
-            user-select: none;
-        }
-        /* The Red Box indicating the crop area */
-        .zoom-indicator-box {
-            position: absolute;
-            border: 2px solid var(--danger);
-            box-shadow: 0 0 0 1000px rgba(0,0,0,0.3); /* Dim the outside area */
-            z-index: 10;
-            pointer-events: none;
-            transition: transform 0.1s ease-out;
-        }
-        .zoom-indicator-label {
-            position: absolute;
-            top: -25px;
-            left: 0;
-            background: var(--danger);
-            color: white;
-            font-size: 10px;
-            font-weight: bold;
-            padding: 2px 6px;
-            border-radius: 4px;
-        }
-        .crops-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2px; /* Small gap for border separator */
-            background: #e5e7eb;
-        }
-        .crop-container {
-            background: #fff;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .crop-view {
-            width: 200px;
-            height: 200px;
-            border-radius: 8px;
-            border: 1px solid #eee;
-            margin-bottom: 12px;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.05);
-            overflow: hidden;
-        }
-        .crop-view {
-            position: relative;
-        }
-        .crop-view canvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-            image-rendering: pixelated;
-        }
-        .crop-label {
-            font-weight: 600;
-            color: var(--primary);
-            font-size: 14px;
-        }
-        .crop-sub {
-            font-size: 12px;
-            color: #9ca3af;
-        }
-
-        /* --- INPUT VS OUTPUT SLIDER COMPARISON --- */
-        .comparison-gallery {
-            margin: 60px auto 0;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 32px;
-            max-width: 1000px;
-        }
-        .comparison-card {
-            --percent: 50;
-            background: #fff;
-            border-radius: 20px;
-            border: 1px solid #e5e7eb;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-            display: flex;
-            flex-direction: column;
-            gap: 18px;
-        }
-        .comparison-stage {
-            position: relative;
-            width: 100%;
-            border-radius: 16px;
-            overflow: hidden;
-            background: #000;
-            cursor: ew-resize;
-            user-select: none;
-            touch-action: none;
-            line-height: 0;
-        }
-        .comparison-image {
-            width: 100%;
-            height: auto;
-            object-fit: cover;
-            display: block;
-            pointer-events: none;
-            -webkit-user-drag: none;
-            user-select: none;
-        }
-        .comparison-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            clip-path: inset(0 calc(100% - (var(--percent) * 1%)) 0 0);
-        }
-        .comparison-overlay img {
-            width: 100%;
-            height: auto;
-            display: block;
-            object-fit: cover;
-            image-rendering: pixelated;
-        }
-        .comparison-handle {
-            position: absolute;
-            top: 50%;
-            left: calc(var(--percent) * 1%);
-            transform: translate(-50%, -50%);
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            border: 3px solid rgba(255,255,255,0.9);
-            background: rgba(0,0,0,0.45);
-            display: grid;
-            place-items: center;
-            color: white;
-            font-size: 16px;
-            cursor: grab;
-            pointer-events: none;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        }
-        .comparison-divider {
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            width: 2px;
-            background: rgba(255,255,255,0.9);
-            left: calc(var(--percent) * 1%);
-            transform: translateX(-1px);
-            pointer-events: none;
-        }
-        .comparison-handle::before,
-        .comparison-handle::after {
-            content: '';
-            width: 0;
-            height: 0;
-            border-top: 6px solid transparent;
-            border-bottom: 6px solid transparent;
-        }
-        .comparison-handle::before {
-            border-right: 8px solid white;
-            margin-right: 4px;
-        }
-        .comparison-handle::after {
-            border-left: 8px solid white;
-            margin-left: 4px;
-        }
-        .comparison-label {
-            position: absolute;
-            top: 16px;
-            padding: 4px 10px;
-            font-size: 12px;
-            font-weight: 600;
-            border-radius: 999px;
-            color: white;
-            background: rgba(0,0,0,0.55);
-            pointer-events: none;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        .comparison-label-left { left: 16px; }
-        .comparison-label-right { right: 16px; }
-        .comparison-caption {
-            font-size: 14px;
-            text-align: center;
-            color: #6b7280;
-            margin-bottom: 0;
-        }
-
         /* --- BURST INPUT SEQUENCE CARD --- */
         .burst-sequence {
             max-width: 1100px;
@@ -1300,8 +1138,7 @@
                     <div class="links">
                         <a href="https://github.com/yourusername/superf" class="btn">Code</a>
                         <a href="SuperF.pdf" class="btn secondary">Paper</a>
-                        <a href="#demo" class="btn secondary">Demo</a>
-                        <a href="#results" class="btn secondary">Results</a>
+                        <a href="https://sjyhne-superf-demo.hf.space" class="btn secondary" target="_blank" rel="noopener noreferrer">Demo</a>
                     </div>
                 </div>
                 <div class="hero-media">
@@ -1325,61 +1162,45 @@
             </div>
         </header>
 
+
         <section id="abstract">
             <h2>Abstract</h2>
-            <div class="abstract">
-                <p>
-                    High-resolution imagery is often hindered by limitations in sensor technology, atmospheric conditions, and costs. Such challenges occur in satellite remote sensing, but also with handheld cameras, such as our smartphones. Hence, super-resolution aims to enhance image resolution algorithmically. Since single-image super-resolution requires solving an inverse problem, such methods must exploit strong priors, e.g. learned from high-resolution training data, or be constrained by auxiliary data, e.g. by a high-resolution guide from another modality. While qualitatively pleasing, such approaches often lead to hallucinated structures that do not match reality.
-                </p>
-                <p>
-                    In contrast, multi-image super-resolution (MISR) aims to improve resolution by constraining the reconstruction with multiple views taken with sub-pixel shifts. We propose SuperF, a test-time optimization approach for MISR that leverages coordinate-based neural networks, also called neural fields. Their ability to represent continuous signals with an implicit neural representation (INR) makes them an ideal fit for the MISR task. The key characteristic of our approach is to share an INR for multiple shifted low-resolution frames and to jointly optimize the frame alignment with the INR. Our approach advances related INR baselines by directly parameterizing the sub-pixel alignment as optimizable affine transformation parameters and by optimizing via a super-sampled coordinate grid that corresponds to the output resolution. Our experiments yield compelling results on simulated bursts of satellite imagery and ground-level images from handheld cameras, with upsampling factors of up to 8. A key advantage of SuperF is that this approach does not rely on any high-resolution training data.
-                </p>
+            <div class="abstract-toggle">
+                <details>
+                    <summary>
+                        <div class="summary-label">
+                            <span style="font-weight:600; color:var(--primary);">Show / hide abstract</span>
+                        </div>
+                        <span class="summary-icon">&#8250;</span>
+                    </summary>
+                    <div class="abstract">
+                        <p>
+                            High-resolution imagery is often hindered by limitations in sensor technology, atmospheric conditions, and costs. Such challenges occur in satellite remote sensing, but also with handheld cameras, such as our smartphones. Hence, super-resolution aims to enhance image resolution algorithmically. Since single-image super-resolution requires solving an inverse problem, such methods must exploit strong priors, e.g. learned from high-resolution training data, or be constrained by auxiliary data, e.g. by a high-resolution guide from another modality. While qualitatively pleasing, such approaches often lead to hallucinated structures that do not match reality.
+                        </p>
+                        <p>
+                            In contrast, multi-image super-resolution (MISR) aims to improve resolution by constraining the reconstruction with multiple views taken with sub-pixel shifts. We propose SuperF, a test-time optimization approach for MISR that leverages coordinate-based neural networks, also called neural fields. Their ability to represent continuous signals with an implicit neural representation (INR) makes them an ideal fit for the MISR task. The key characteristic of our approach is to share an INR for multiple shifted low-resolution frames and to jointly optimize the frame alignment with the INR. Our approach advances related INR baselines by directly parameterizing the sub-pixel alignment as optimizable affine transformation parameters and by optimizing via a super-sampled coordinate grid that corresponds to the output resolution. Our experiments yield compelling results on simulated bursts of satellite imagery and ground-level images from handheld cameras, with upsampling factors of up to 8. A key advantage of SuperF is that this approach does not rely on any high-resolution training data.
+                        </p>
+                    </div>
+                </details>
             </div>
-        </section>
-
-        <section id="why">
-            <h2>Why SuperF</h2>
-            <p style="text-align: center; max-width: 800px;">
-                SuperF is a neural-field approach to multi-image super-resolution that turns bursts and time series into photorealistic high-resolution imagery—without ever seeing high-resolution training data. We jointly optimize sub-pixel alignments with a shared implicit neural representation, so every frame contributes real signal instead of hallucinated texture.
-            </p>
-            <p style="text-align: center; max-width: 800px; margin-bottom: 40px;">
-                Built for practitioners, SuperF shines on synthetic satellite bursts, handheld smartphone sequences, and real Sentinel-2 orbits. Drop it into your existing pipeline, let it optimize for a couple of minutes, and you get clean, high-frequency detail that previous test-time baselines miss.
-            </p>
         </section>
 
         <section id="problem">
             <h2>Problem</h2>
             <div class="problem-content">
                 <p>
-                    Imaging systems from satellites to smartphones are constrained by optics, weather, and motion. Multi-image super-resolution captures bursts with natural sub-pixel shifts, embedding high-frequency detail across frames. However, prior approaches either rely on heavy training pipelines that hallucinate texture, or on classical test-time optimization that struggles to recover crisp structure.
+                    High-quality imagery is frequently limited by sensor capabilities, atmospheric interference, and hardware costs, impacting applications ranging from satellite remote sensing to smartphone photography. While Single-Image Super-Resolution (SISR) attempts to overcome these limits, it relies on learned priors that often lead to "hallucinated" details which do not match reality. Although Multi-Image Super-Resolution (MISR) can improve resolution by utilizing sub-pixel shifts between repeated frames, existing supervised approaches struggle because acquiring large datasets of paired low- and high-resolution images is expensive and non-trivial.
                 </p>
+                <div style="text-align: center; margin: 32px 0;">
+                    <video src="figs/SuperF-problem-animation-v2-1080p.mp4" controls playsinline style="max-width: 100%; border-radius: 16px; box-shadow: 0 12px 32px rgba(0,0,0,0.25);">
+                        Your browser does not support the video tag.
+                    </video>
+                    <p style="font-size: 14px; color: #6b7280; margin-top: 8px; max-width: 700px; margin-left: auto; margin-right: auto;">
+                        Animated illustration of the SuperF multi-image super-resolution problem setup.
+                    </p>
+                </div>
                 <p style="text-align: center; font-weight: 600; color: var(--primary); margin: 32px 0;">
                     <strong>SuperF</strong> bridges that gap: a neural implicit representation that you optimize only at inference time, aligning every frame and rendering a continuous, alias-free reconstruction of the scene.
-                </p>
-                <p>
-                    Real bursts jitter — each LR frame samples the scene with different sub-pixel offsets and aliasing patterns.
-                </p>
-
-                <div class="examples-container">
-                    <div class="example-item">
-                        <div class="alignment-container">
-                            <div class="jitter-frame jitter-frame-1"></div>
-                            <div class="jitter-frame jitter-frame-2"></div>
-                            <div class="jitter-frame jitter-frame-3"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="example-item">
-                        <div class="alignment-container">
-                            <div class="jitter-frame island-frame-1"></div>
-                            <div class="jitter-frame island-frame-2"></div>
-                            <div class="jitter-frame island-frame-3"></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <p style="text-align: center; font-size: 14px; color: #6b7280; margin-top: 20px;">
-                    Three transparent low-resolution frames jitter with sub-pixel shifts. When they overlap perfectly, they combine to create a clear, sharp image. Each frame uses a different low-resolution capture.
                 </p>
             </div>
         </section>
@@ -1387,135 +1208,8 @@
         <section id="method">
             <h2>Methodology</h2>
             <p>
-                SuperF formulates MISR as the joint optimization of a shared coordinate-based MLP and frame-specific alignment parameters. The INR takes continuous spatial coordinates and outputs RGB intensities, enabling a continuous representation of the scene while maintaining differentiability with respect to spatial transforms.
+                We introduce SuperF, a test-time optimization approach that leverages Implicit Neural Representations (INRs) to achieve super-resolution without the need for high-resolution training data. SuperF shares a single INR across multiple low-resolution frames, jointly optimizing the neural network alongside the sub-pixel alignment of each frame. By parameterizing these alignments as affine transformations and optimizing on a super-sampled coordinate grid, our method effectively reconstructs the underlying high-resolution signal. Furthermore, SuperF can estimate uncertainty maps to robustly handle noise, such as ignoring pixels obscured by clouds in satellite imagery.
             </p>
-
-            <div style="text-align: center; margin: 40px 0 20px 0;">
-                <h3 style="text-align: center; margin-bottom: 16px;">Shared Implicit Neural Representation (INR)</h3>
-                <p style="max-width: 800px; margin: 0 auto;">
-                    Everything revolves around a single coordinate-based MLP \(f_\theta\) that maps high-resolution coordinates to RGB values. This shared INR is the canvas on which all burst frames agree, so once it is optimized, rendering any viewpoint is just evaluation at continuous coordinates.
-                </p>
-            </div>
-
-            <div class="method-steps">
-                <div class="method-step">
-                    <h4>Joint alignment optimization</h4>
-                    <p>
-                        For each burst frame we learn a tiny affine transform (two translations + one rotation) relative to a base frame. These alignment parameters are optimized together with \(\theta\), turning jitter into precise sub-pixel shifts that enrich the INR.
-                    </p>
-                </div>
-                <div class="method-step">
-                    <h4>Supersampled supervision</h4>
-                    <p>
-                        We query the INR on a dense HR grid, average-pool the predictions down to LR, and match them to the observed pixels. This supersampling bridge lets us recover detail beyond the LR pixel lattice without hallucination.
-                    </p>
-                </div>
-                <div class="method-step">
-                    <h4>Fourier feature encoding</h4>
-                    <p>
-                        A Fourier positional encoding feeds the MLP with rich frequency bases, preventing spectral bias so SuperF can learn the high-frequency signals that multi-image super-resolution depends on.
-                    </p>
-                </div>
-            </div>
-
-            <div style="text-align: center; margin: 40px 0 20px 0;">
-                <p style="max-width: 700px; margin: 0 auto;">
-                    <strong>Multiple low-resolution frames</strong> are fused into a single <strong>high-resolution reconstruction</strong> through the shared INR. The animation shows how misaligned burst frames converge and stack to create the final output.
-                </p>
-            </div>
-
-            <h3>Optimization Objective</h3>
-            <p>
-                Let \(y_{LR}^{(t)}\) denote the \(t\)-th low-resolution frame sampled on grid \(\mathcal{W}\), and let \(\hat{A}^{(t)}\) be the affine transform aligning the frame to the base coordinate system. The INR produces high-resolution values \(f_\theta(\hat{A}^{(t)}v)\) for coordinates \(v\) on the dense grid. A fixed box filter \(\varphi\) corresponds to average pooling between HR and LR grids. SuperF minimizes:
-            </p>
-
-            <div class="math-block">
-                $$ \mathcal{L}(\theta, \{\hat{A}\}) = \frac{1}{T} \sum_{t=1}^{T} \sum_{v \in \mathcal{W}} \ell \left( \varphi * \hat{\rho}^{(t)} \left( f_{\theta}(\hat{A}^{(t)}v) \right), y_{LR}^{(t)}(v) \right) $$
-            </div>
-
-            <p>
-                where \(\hat{\rho}^{(t)}\) is a lightweight per-frame spectral projection (scale and bias per channel) that accounts for photometric differences across frames. Optimization uses AdamW with cosine learning-rate decay over 2k iterations.
-            </p>
-        </section>
-
-        <section id="uncertainty">
-            <h2>Robustness & Uncertainty</h2>
-            <p>
-                Real-world data is messy. Clouds, shadows, and seasonal drift violate standard MISR assumptions. 
-                SuperF uses a <strong>Gaussian Negative Log-Likelihood (GNLL) loss</strong> to predict pixel-wise uncertainty. 
-            </p>
-
-        </section>
-
-        <section id="results">
-            <h2>Results</h2>
-            <p style="text-align: center; font-weight: 600; color: var(--primary); margin-bottom: 40px;">
-                <strong>SuperF consistently beats the best publicly available test-time methods</strong>—delivering sharper detail, lower perceptual error, and rock-solid alignment across every dataset we tried.
-            </p>
-
-            <ul style="max-width: 800px; margin: 40px auto; padding-left: 24px; color: #4b5563; line-height: 1.8;">
-                <li>Handles upsampling factors up to ×8 on synthetic bursts with clean, alias-free detail.</li>
-                <li>Generalizes from simulation to real Sentinel-2 time series, delivering 5× zoom-ins on critical infrastructure and landscapes.</li>
-                <li>Runs entirely at test time; just provide a burst, let SuperF optimize for 2k steps, and export the high-resolution render.</li>
-            </ul>
-
-            <div class="zoomed-comparison">
-                <div class="main-context">
-                    <img src="figs/kjevik_hr.png" alt="Main context" id="main-context-img" draggable="false">
-                    <div class="zoom-indicator-box">
-                        <span class="zoom-indicator-label">ZOOM AREA</span>
-                    </div>
-                </div>
-
-                <div class="crops-row">
-                    <div class="crop-container">
-                        <div class="crop-view lr-view">
-                            <canvas id="lr-crop-canvas" width="200" height="200" data-src="figs/kjevik_lr.png"></canvas>
-                        </div>
-                        <div class="crop-label">Low-Res Input</div>
-                        <div class="crop-sub">(Nearest Neighbor)</div>
-                    </div>
-
-                    <div class="crop-container">
-                        <div class="crop-view hr-view">
-                            <canvas id="hr-crop-canvas" width="200" height="200"></canvas>
-                        </div>
-                        <div class="crop-label">SuperF Output</div>
-                        <div class="crop-sub">(Ours)</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="comparison-gallery">
-                <div class="comparison-card">
-                    <div class="comparison-stage">
-                        <img src="figs/kjevik_hr.png" alt="SuperF reconstruction" class="comparison-image base">
-                        <div class="comparison-overlay">
-                            <img src="figs/kjevik_lr.png" alt="Low-resolution burst input" class="comparison-image overlay">
-                        </div>
-                        <div class="comparison-divider" aria-hidden="true"></div>
-                        <div class="comparison-label comparison-label-left">Input</div>
-                        <div class="comparison-label comparison-label-right">Ours</div>
-                        <div class="comparison-handle" aria-hidden="true"></div>
-                    </div>
-                    <p class="comparison-caption">Handheld burst (Kjevik)</p>
-                </div>
-
-                <div class="comparison-card">
-                    <div class="comparison-stage">
-                        <img src="figs/island/HR.png" alt="SuperF reconstruction (island)" class="comparison-image base">
-                        <div class="comparison-overlay">
-                            <img src="figs/island/LR_1.png" alt="Low-resolution island input" class="comparison-image overlay">
-                        </div>
-                        <div class="comparison-divider" aria-hidden="true"></div>
-                        <div class="comparison-label comparison-label-left">Input</div>
-                        <div class="comparison-label comparison-label-right">Ours</div>
-                        <div class="comparison-handle" aria-hidden="true"></div>
-                    </div>
-                    <p class="comparison-caption">Satellite burst (Island)</p>
-                </div>
-            </div>
-
             <div class="burst-sequence">
                 <div class="sequence-card">
                     <div class="sequence-display" data-sequence="cph" role="button" tabindex="0" aria-pressed="false" aria-label="CPH burst: hover for base LR frame, press to show SR output">
@@ -1536,11 +1230,9 @@
                     </div>
                 </div>
             </div>
-
             <p class="sequence-instructions" style="text-align:center; max-width: 780px; margin: 24px auto 0;">
                 Each tile loops through the LR burst automatically. <strong>Hover</strong> (or focus) to freeze on our base LR frame, then <strong>press / long-press</strong> to show the SuperF SR output. Let go to resume the LR sequence.
             </p>
-
         </section>
 
         <section id="timelapse">
@@ -1575,17 +1267,6 @@
                 The timelapse shows the progressive refinement of the high-resolution reconstruction throughout the optimization process.
             </p>
         </section>
-
-        <section id="demo">
-            <h2>Interactive Demo</h2>
-            <p>
-                Try SuperF in your browser: upload your burst, watch the joint alignment converge, and inspect the super-resolved render directly. The demo runs a lighter-weight configuration so you can get a feel for the workflow before running the full-resolution scripts locally.
-            </p>
-            <div style="margin-top: 24px; border-radius: 12px; overflow: hidden; border: 1px solid #e5e7eb; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
-                <gradio-app src="https://sjyhne-superf-demo.hf.space" style="width: 100%; min-height: 600px;"></gradio-app>
-            </div>
-        </section>
-
 
         <section>
             <h2>Citation</h2>
@@ -1989,229 +1670,6 @@
             loadTimelapse('kjevik');
         }
 
-        // Initialize zoomed comparison interaction
-        function initZoomedComparison() {
-            const mainContext = document.querySelector('.main-context');
-            const mainImg = document.getElementById('main-context-img');
-            const zoomBox = document.querySelector('.zoom-indicator-box');
-            const lrCanvas = document.getElementById('lr-crop-canvas');
-            const hrCanvas = document.getElementById('hr-crop-canvas');
-            
-            if (!mainContext || !mainImg || !zoomBox || !lrCanvas || !hrCanvas) return;
-            
-            const lrCtx = lrCanvas.getContext('2d');
-            const hrCtx = hrCanvas.getContext('2d');
-            if (!lrCtx || !hrCtx) return;
-            lrCtx.imageSmoothingEnabled = false;
-            
-            const lrImage = new Image();
-            lrImage.src = lrCanvas.dataset.src;
-            
-            const zoomFactor = 4;
-            let boxSize = 0;
-            let isPointerDown = false;
-            let currentRelX = 0.5;
-            let currentRelY = 0.5;
-            
-            function waitForImage(img) {
-                return new Promise((resolve) => {
-                    if (img.complete && img.naturalWidth) {
-                        resolve();
-                    } else {
-                        img.addEventListener('load', resolve, { once: true });
-                    }
-                });
-            }
-            
-            function clamp(value, min, max) {
-                return Math.max(min, Math.min(max, value));
-            }
-            
-            function getMetrics() {
-                const containerRect = mainContext.getBoundingClientRect();
-                const naturalWidth = mainImg.naturalWidth;
-                const naturalHeight = mainImg.naturalHeight;
-                const scale = Math.max(
-                    containerRect.width / naturalWidth,
-                    containerRect.height / naturalHeight
-                );
-                const drawWidth = naturalWidth * scale;
-                const drawHeight = naturalHeight * scale;
-                const offsetX = (containerRect.width - drawWidth) / 2;
-                const offsetY = (containerRect.height - drawHeight) / 2;
-                return { containerRect, naturalWidth, naturalHeight, scale, drawWidth, drawHeight, offsetX, offsetY };
-            }
-            
-            function setBoxSize() {
-                const { containerRect } = getMetrics();
-                boxSize = containerRect.width / zoomFactor;
-                zoomBox.style.width = `${boxSize}px`;
-                zoomBox.style.height = `${boxSize}px`;
-            }
-            
-            function placeBoxAtRel(relX, relY) {
-                const metrics = getMetrics();
-                const { offsetX, offsetY, drawWidth, drawHeight } = metrics;
-                const centerX = offsetX + relX * drawWidth;
-                const centerY = offsetY + relY * drawHeight;
-                moveBox(centerX, centerY, metrics);
-            }
-            
-            function moveBox(centerX, centerY, metrics = getMetrics()) {
-                const { containerRect } = metrics;
-                const half = boxSize / 2;
-                const clampedX = clamp(centerX, half, containerRect.width - half);
-                const clampedY = clamp(centerY, half, containerRect.height - half);
-                zoomBox.style.left = `${clampedX - half}px`;
-                zoomBox.style.top = `${clampedY - half}px`;
-                drawCrops(clampedX, clampedY, metrics);
-            }
-            
-            function drawCrops(centerX, centerY, metrics = getMetrics()) {
-                const { naturalWidth, naturalHeight, scale, offsetX, offsetY, drawWidth, drawHeight } = metrics;
-                const relX = (centerX - offsetX) / drawWidth;
-                const relY = (centerY - offsetY) / drawHeight;
-                const clampedRelX = clamp(relX, 0, 1);
-                const clampedRelY = clamp(relY, 0, 1);
-                
-                const cropSize = boxSize / scale;
-                const halfCrop = cropSize / 2;
-                const imgCenterX = clamp(clampedRelX * naturalWidth, halfCrop, naturalWidth - halfCrop);
-                const imgCenterY = clamp(clampedRelY * naturalHeight, halfCrop, naturalHeight - halfCrop);
-                
-                currentRelX = imgCenterX / naturalWidth;
-                currentRelY = imgCenterY / naturalHeight;
-                
-                const sx = imgCenterX - halfCrop;
-                const sy = imgCenterY - halfCrop;
-                
-                hrCtx.clearRect(0, 0, hrCanvas.width, hrCanvas.height);
-                hrCtx.drawImage(
-                    mainImg,
-                    sx,
-                    sy,
-                    cropSize,
-                    cropSize,
-                    0,
-                    0,
-                    hrCanvas.width,
-                    hrCanvas.height
-                );
-                
-                const lrScaleX = lrImage.naturalWidth / naturalWidth;
-                const lrScaleY = lrImage.naturalHeight / naturalHeight;
-                const lrCropWidth = cropSize * lrScaleX;
-                const lrCropHeight = cropSize * lrScaleY;
-                const lrSx = sx * lrScaleX;
-                const lrSy = sy * lrScaleY;
-                
-                lrCtx.clearRect(0, 0, lrCanvas.width, lrCanvas.height);
-                lrCtx.drawImage(
-                    lrImage,
-                    lrSx,
-                    lrSy,
-                    lrCropWidth,
-                    lrCropHeight,
-                    0,
-                    0,
-                    lrCanvas.width,
-                    lrCanvas.height
-                );
-            }
-            
-            function handlePointerEvent(e) {
-                const metrics = getMetrics();
-                const { containerRect } = metrics;
-                const x = e.clientX - containerRect.left;
-                const y = e.clientY - containerRect.top;
-                moveBox(x, y, metrics);
-            }
-            
-            function handleResize() {
-                setBoxSize();
-                placeBoxAtRel(currentRelX, currentRelY);
-            }
-            
-            function attachPointerEvents() {
-                mainContext.addEventListener('pointerdown', (e) => {
-                    isPointerDown = true;
-                    mainContext.classList.add('dragging');
-                    mainContext.setPointerCapture(e.pointerId);
-                    handlePointerEvent(e);
-                });
-                
-                mainContext.addEventListener('pointermove', (e) => {
-                    if (!isPointerDown) return;
-                    handlePointerEvent(e);
-                });
-                
-                mainContext.addEventListener('pointerup', (e) => {
-                    isPointerDown = false;
-                    mainContext.classList.remove('dragging');
-                    mainContext.releasePointerCapture(e.pointerId);
-                });
-                
-                mainContext.addEventListener('pointerleave', () => {
-                    isPointerDown = false;
-                    mainContext.classList.remove('dragging');
-                });
-            }
-            
-            Promise.all([waitForImage(mainImg), waitForImage(lrImage)]).then(() => {
-                setBoxSize();
-                placeBoxAtRel(currentRelX, currentRelY);
-                attachPointerEvents();
-                window.addEventListener('resize', handleResize);
-            });
-        }
-
-        // Before/after comparison sliders
-        function initComparisonSliders() {
-            const cards = document.querySelectorAll('.comparison-card');
-            if (!cards.length) return;
-
-            cards.forEach((card) => {
-                const stage = card.querySelector('.comparison-stage');
-                const overlay = card.querySelector('.comparison-overlay');
-                const handle = card.querySelector('.comparison-handle');
-
-                if (!stage || !overlay || !handle) return;
-
-                let isPointerDown = false;
-
-                const setPercent = (value) => {
-                    const clamped = Math.min(100, Math.max(0, value));
-                    card.style.setProperty('--percent', clamped);
-                };
-
-                const pointerMove = (clientX) => {
-                    const rect = stage.getBoundingClientRect();
-                    const percent = ((clientX - rect.left) / rect.width) * 100;
-                    setPercent(percent);
-                };
-
-                stage.addEventListener('pointerdown', (e) => {
-                    isPointerDown = true;
-                    stage.setPointerCapture(e.pointerId);
-                    pointerMove(e.clientX);
-                });
-
-                stage.addEventListener('pointermove', (e) => {
-                    if (!isPointerDown) return;
-                    pointerMove(e.clientX);
-                });
-
-                stage.addEventListener('pointerup', (e) => {
-                    isPointerDown = false;
-                    stage.releasePointerCapture(e.pointerId);
-                });
-
-                stage.addEventListener('pointerleave', () => {
-                    isPointerDown = false;
-                });
-            });
-        }
-
         // Burst sequence interaction (hover to base frame, press to reveal HR)
         function initBurstSequence() {
             const sequences = {
@@ -2397,8 +1855,6 @@
         // Initialize timelapse
         document.addEventListener('DOMContentLoaded', () => {
             initTimelapse();                        // For Timelapse
-            initZoomedComparison();                 // For Zoomed Comparison
-            initComparisonSliders();                // For Input vs Output sliders
             initBurstSequence();                    // For LR sequence interaction
         });
     </script>
