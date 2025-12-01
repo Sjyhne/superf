@@ -88,23 +88,44 @@
             background: radial-gradient(circle at 0% 0%, rgba(59, 130, 246, 0.1), transparent 40%),
                         radial-gradient(circle at 100% 100%, rgba(246, 114, 128, 0.1), transparent 40%),
                         linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
-            padding: 50px 40px;
+            padding: 60px 50px;
             margin-top: 40px;
             border: 1px solid rgba(0,0,0,0.03);
+            text-align: center;
         }
 
         .hero-inner {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            align-items: center;
-            gap: 60px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero-text {
+            width: 100%;
+        }
+
+        .hero h1 {
+            margin-bottom: 16px;
         }
 
         .tagline {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: 500;
             color: var(--accent);
-            margin-bottom: 24px;
+            margin-bottom: 20px;
+        }
+
+        .authors {
+            font-size: 16px;
+            color: #4b5563;
+            margin-bottom: 6px;
+            line-height: 1.5;
+        }
+
+        .affiliations {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 20px;
+            line-height: 1.5;
         }
 
         .links {
@@ -112,6 +133,7 @@
             gap: 16px;
             flex-wrap: wrap;
             margin-top: 32px;
+            justify-content: center;
         }
 
         .btn {
@@ -136,6 +158,15 @@
         }
         
         .btn.secondary:hover { background-color: #f9fafb; border-color: #d1d5db; }
+
+        .btn.disabled {
+            background-color: #e5e7eb;
+            color: #9ca3af;
+            border-color: #e5e7eb;
+            cursor: default;
+            box-shadow: none;
+            pointer-events: none;
+        }
 
         .hero-media {
             border-radius: 16px;
@@ -1131,76 +1162,34 @@
             <div class="hero-inner">
                 <div class="hero-text">
                     <h1>SuperF</h1>
-                    <p class="tagline">Neural Implicit Fields for Multi-Image Super-Resolution</p>
-                    <p style="font-size: 16px; color: var(--secondary);">
-                        Reconstructing real detail from handheld bursts and satellite time series &mdash; <span style="color: var(--primary); font-weight: 600;">no HR training data required.</span>
+                    <p class="authors">
+                        Sander Riisøen Jyhne<sup>1,*</sup>, Christian Igel<sup>2</sup>, Morten Goodwin<sup>1</sup>, Per-Arne Andersen<sup>1</sup>, Serge Belongie<sup>2</sup>, Nico Lang<sup>2,*</sup>
+                    </p>
+                    <p class="affiliations">
+                        <sup>1</sup>University of Agder &nbsp;&middot;&nbsp; <sup>2</sup>University of Copenhagen<br>
+                        <span style="font-size: 13px; color: #9ca3af;">*Corresponding authors</span>
                     </p>
                     <div class="links">
-                        <a href="https://github.com/yourusername/superf" class="btn">Code</a>
+                        <a class="btn disabled">Code</a>
+                        <a class="btn disabled">Dataset</a>
                         <a href="SuperF.pdf" class="btn secondary">Paper</a>
-                        <a href="https://sjyhne-superf-demo.hf.space" class="btn secondary" target="_blank" rel="noopener noreferrer">Demo</a>
+                        <a href="https://huggingface.co/spaces/sjyhne/superf_demo" class="btn secondary" target="_blank" rel="noopener noreferrer">Demo</a>
                     </div>
-                </div>
-                <div class="hero-media">
-                    <div class="stack-container">
-                        <div class="stack-scene">
-                            <div class="layer hr" style="--z-pos: 0px;">
-                                <div class="layer-label hr-label">HR Reconstruction</div>
-                            </div>
-                            <div class="layer lr" style="--z-pos: 60px;">
-                                <div class="layer-label lr-label">LR Frame 1</div>
-                            </div>
-                            <div class="layer lr" style="--z-pos: 120px;">
-                                <div class="layer-label lr-label">LR Frame 2</div>
-                            </div>
-                            <div class="layer lr" style="--z-pos: 180px;">
-                                <div class="layer-label lr-label">LR Frame 3</div>
-                            </div>
-                        </div>
-                    </div>
+                    <p style="font-size: 13px; color: #9ca3af; margin-top: 12px; margin-bottom: 0;">
+                        *Code and datasets are coming soon.
+                    </p>
                 </div>
             </div>
         </header>
 
 
-        <section id="abstract">
-            <h2>Abstract</h2>
-            <div class="abstract-toggle">
-                <details>
-                    <summary>
-                        <div class="summary-label">
-                            <span style="font-weight:600; color:var(--primary);">Show / hide abstract</span>
-                        </div>
-                        <span class="summary-icon">&#8250;</span>
-                    </summary>
-                    <div class="abstract">
-                        <p>
-                            High-resolution imagery is often hindered by limitations in sensor technology, atmospheric conditions, and costs. Such challenges occur in satellite remote sensing, but also with handheld cameras, such as our smartphones. Hence, super-resolution aims to enhance image resolution algorithmically. Since single-image super-resolution requires solving an inverse problem, such methods must exploit strong priors, e.g. learned from high-resolution training data, or be constrained by auxiliary data, e.g. by a high-resolution guide from another modality. While qualitatively pleasing, such approaches often lead to hallucinated structures that do not match reality.
-                        </p>
-                        <p>
-                            In contrast, multi-image super-resolution (MISR) aims to improve resolution by constraining the reconstruction with multiple views taken with sub-pixel shifts. We propose SuperF, a test-time optimization approach for MISR that leverages coordinate-based neural networks, also called neural fields. Their ability to represent continuous signals with an implicit neural representation (INR) makes them an ideal fit for the MISR task. The key characteristic of our approach is to share an INR for multiple shifted low-resolution frames and to jointly optimize the frame alignment with the INR. Our approach advances related INR baselines by directly parameterizing the sub-pixel alignment as optimizable affine transformation parameters and by optimizing via a super-sampled coordinate grid that corresponds to the output resolution. Our experiments yield compelling results on simulated bursts of satellite imagery and ground-level images from handheld cameras, with upsampling factors of up to 8. A key advantage of SuperF is that this approach does not rely on any high-resolution training data.
-                        </p>
-                    </div>
-                </details>
-            </div>
-        </section>
-
-        <section id="problem">
-            <h2>Problem</h2>
-            <div class="problem-content">
-                <p>
-                    High-quality imagery is frequently limited by sensor capabilities, atmospheric interference, and hardware costs, impacting applications ranging from satellite remote sensing to smartphone photography. While Single-Image Super-Resolution (SISR) attempts to overcome these limits, it relies on learned priors that often lead to "hallucinated" details which do not match reality. Although Multi-Image Super-Resolution (MISR) can improve resolution by utilizing sub-pixel shifts between repeated frames, existing supervised approaches struggle because acquiring large datasets of paired low- and high-resolution images is expensive and non-trivial.
-                </p>
-                <div style="text-align: center; margin: 32px 0;">
-                    <video src="figs/SuperF-problem-animation-v2-1080p.mp4" controls playsinline style="max-width: 100%; border-radius: 16px; box-shadow: 0 12px 32px rgba(0,0,0,0.25);">
-                        Your browser does not support the video tag.
-                    </video>
-                    <p style="font-size: 14px; color: #6b7280; margin-top: 8px; max-width: 700px; margin-left: auto; margin-right: auto;">
-                        Animated illustration of the SuperF multi-image super-resolution problem setup.
-                    </p>
-                </div>
-                <p style="text-align: center; font-weight: 600; color: var(--primary); margin: 32px 0;">
-                    <strong>SuperF</strong> bridges that gap: a neural implicit representation that you optimize only at inference time, aligning every frame and rendering a continuous, alias-free reconstruction of the scene.
+        <section id="misr">
+            <div style="text-align: center; margin: 32px 0;">
+                <video src="figs/SuperF-problem-animation-v2-1080p.mp4" controls playsinline style="max-width: 100%; border-radius: 16px; box-shadow: 0 12px 32px rgba(0,0,0,0.25);">
+                    Your browser does not support the video tag.
+                </video>
+                <p style="font-size: 14px; color: #6b7280; margin-top: 8px; max-width: 700px; margin-left: auto; margin-right: auto;">
+                    Animation of the MISR setup: multiple jittered low-resolution frames combining into a sharp reconstruction.
                 </p>
             </div>
         </section>
@@ -1210,7 +1199,128 @@
             <p>
                 We introduce SuperF, a test-time optimization approach that leverages Implicit Neural Representations (INRs) to achieve super-resolution without the need for high-resolution training data. SuperF shares a single INR across multiple low-resolution frames, jointly optimizing the neural network alongside the sub-pixel alignment of each frame. By parameterizing these alignments as affine transformations and optimizing on a super-sampled coordinate grid, our method effectively reconstructs the underlying high-resolution signal. Furthermore, SuperF can estimate uncertainty maps to robustly handle noise, such as ignoring pixels obscured by clouds in satellite imagery.
             </p>
-            <div class="burst-sequence">
+            <div style="text-align: center; margin: 32px 0 16px 0;">
+                <video src="figs/SuperF_method_animation-1080p.mp4" controls playsinline style="max-width: 100%; border-radius: 16px; box-shadow: 0 12px 32px rgba(0,0,0,0.25);">
+                    Your browser does not support the video tag.
+                </video>
+                <p style="font-size: 14px; color: #6b7280; margin-top: 8px; max-width: 700px; margin-left: auto; margin-right: auto;">
+                    Animation of the SuperF method, illustrating joint alignment, the shared neural field, and super-resolved output.
+                </p>
+            </div>
+            <div style="text-align: center; margin: 40px 0;">
+                <div style="display: inline-block; background: #fff; padding: 10px; border-radius: 16px; box-shadow: 0 16px 40px rgba(0,0,0,0.25);">
+                    <img src="figs/SuperF_method_v2.png" alt="Overview of the SuperF method (v2)" style="width: 100%; max-width: 1200px; border-radius: 12px; display: block;">
+                </div>
+                <p style="font-size: 14px; color: #6b7280; margin-top: 8px; max-width: 700px; margin-left: auto; margin-right: auto;">
+                    Figure 1: Overview of the SuperF method, showing the shared implicit neural representation, frame-specific alignments, and super-resolved reconstruction.
+                </p>
+            </div>
+        </section>
+
+        <section id="uncertainty">
+            <h2>Robustness: Handling Real-World Noise</h2>
+            <p style="max-width: 800px; margin: 0 auto;">
+                Real-world imagery is rarely perfect. Satellite observations are frequently obstructed by clouds or shadows, while handheld bursts often contain moving objects or lighting shifts. Standard super-resolution methods can be easily confused by these inconsistencies, resulting in glitchy artifacts in the final image. <strong>SuperF does not just reconstruct the image; it also learns to estimate its own confidence</strong> via <strong>pixel-wise uncertainty maps</strong> that identify which parts of an image are reliable and which are noisy. During optimization, the model assigns <strong>high uncertainty to outliers</strong>—such as a cloud that appears in only one satellite frame—and effectively ignores or strongly down-weights these corrupted pixels. This allows SuperF to extract the <strong>consistent, high-quality underlying structure</strong> of the scene, even when individual input frames are messy or partially occluded.
+            </p>
+            <div style="max-width: 1100px; margin: 32px auto 12px auto; display: flex; flex-direction: column; gap: 16px;">
+                <img src="figs/uncertainty_map_1.png" alt="Uncertainty example 1 from WorldStrat-bitter" style="width: 100%; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
+                <img src="figs/uncertainty_map_2.png" alt="Uncertainty example 2 from WorldStrat-bitter" style="width: 100%; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
+                <img src="figs/uncertainty_map_3.png" alt="Uncertainty example 3 from WorldStrat-bitter" style="width: 100%; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
+                <img src="figs/uncertainty_map_4.png" alt="Uncertainty example 4 from WorldStrat-bitter" style="width: 100%; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
+            </div>
+            <p style="max-width: 800px; margin: 0 auto; font-size: 14px; color: #6b7280; text-align: center;">
+                Four examples from the <em>WorldStrat-bitter</em> dataset, each showing LR frames (top row) and the corresponding estimated uncertainty maps (bottom row). The uncertainty maps highlight cloudy or inconsistent pixels, enabling the GNLL loss to downweight these during optimization.
+            </p>
+        </section>
+
+        <section id="results">
+            <h2>Results</h2>
+            <p style="max-width: 800px; margin: 0 auto 32px auto;">
+                SuperF consistently outperforms test-time optimization baselines across multiple datasets, delivering sharper detail and lower perceptual error.
+            </p>
+            <div style="text-align: center; margin: 40px 0;">
+                <div style="display: inline-block; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); overflow-x: auto; max-width: 100%;">
+                    <table style="border-collapse: collapse; font-size: 14px; min-width: 800px; margin: 0 auto;">
+                        <caption style="font-weight: 600; margin-bottom: 12px; text-align: left; font-size: 15px;">
+                            <strong>Comparison with TTO baselines.</strong> PSNR (↑) for different upscaling factors. Note that the SatSynthBurst fixes the HR output resolution while SyntheticBurst fixes the resolution of the LR frames. Hence, as the upsampling factor increases, we only expect lower performance metrics for SatSynthBurst.<br>
+                            <em>Experimental setup:</em> upsampling factors ×2, ×4, ×8, 16 LR frames. Standard deviation across samples is given in parentheses and the number of iterations in square brackets.
+                        </caption>
+                        <thead>
+                            <tr>
+                                <th style="border-bottom: 2px solid #333; padding: 10px 12px; text-align: left; font-weight: 600;"></th>
+                                <th colspan="3" style="border-bottom: 2px solid #333; padding: 10px 12px; text-align: center; font-weight: 600;">SatSynthBurst</th>
+                                <th colspan="3" style="border-bottom: 2px solid #333; padding: 10px 12px; text-align: center; font-weight: 600;">SyntheticBurst</th>
+                            </tr>
+                            <tr>
+                                <th style="border-bottom: 1px solid #ddd; padding: 8px 12px; text-align: left; font-weight: 500;"></th>
+                                <th style="border-bottom: 1px solid #ddd; padding: 8px 12px; text-align: center; font-weight: 500;">×2</th>
+                                <th style="border-bottom: 1px solid #ddd; padding: 8px 12px; text-align: center; font-weight: 500;">×4</th>
+                                <th style="border-bottom: 1px solid #ddd; padding: 8px 12px; text-align: center; font-weight: 500;">×8</th>
+                                <th style="border-bottom: 1px solid #ddd; padding: 8px 12px; text-align: center; font-weight: 500;">×2</th>
+                                <th style="border-bottom: 1px solid #ddd; padding: 8px 12px; text-align: center; font-weight: 500;">×4</th>
+                                <th style="border-bottom: 1px solid #ddd; padding: 8px 12px; text-align: center; font-weight: 500;">×8</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="border-bottom: 1px solid #eee; padding: 10px 12px; text-align: left;">Bilinear</td>
+                                <td style="border-bottom: 1px solid #eee; padding: 10px 12px; text-align: center;">34.69 (3.50)</td>
+                                <td style="border-bottom: 1px solid #eee; padding: 10px 12px; text-align: center;">29.71 (3.64)</td>
+                                <td style="border-bottom: 1px solid #eee; padding: 10px 12px; text-align: center;">26.62 (3.68)</td>
+                                <td style="border-bottom: 1px solid #eee; padding: 10px 12px; text-align: center;">27.66 (3.50)</td>
+                                <td style="border-bottom: 1px solid #eee; padding: 10px 12px; text-align: center;">26.12 (3.72)</td>
+                                <td style="border-bottom: 1px solid #eee; padding: 10px 12px; text-align: center;">25.44 (3.82)</td>
+                            </tr>
+                            <tr>
+                                <td style="border-bottom: 1px solid #eee; padding: 10px 12px; text-align: left;">Lafenetre et al. (2023)</td>
+                                <td style="border-bottom: 1px solid #eee; padding: 10px 12px; text-align: center;">33.46 (3.62)</td>
+                                <td style="border-bottom: 1px solid #eee; padding: 10px 12px; text-align: center;">27.70 (3.79)</td>
+                                <td style="border-bottom: 1px solid #eee; padding: 10px 12px; text-align: center;">24.88 (3.71)</td>
+                                <td style="border-bottom: 1px solid #eee; padding: 10px 12px; text-align: center;">27.02 (3.29)</td>
+                                <td style="border-bottom: 1px solid #eee; padding: 10px 12px; text-align: center;">26.46 (3.05)</td>
+                                <td style="border-bottom: 1px solid #eee; padding: 10px 12px; text-align: center;">25.19 (2.97)</td>
+                            </tr>
+                            <tr>
+                                <td style="border-bottom: 1px solid #eee; padding: 10px 12px; text-align: left;">NIR (Nam et al., 2022) [2k]</td>
+                                <td style="border-bottom: 1px solid #eee; padding: 10px 12px; text-align: center;">26.26 (3.91)</td>
+                                <td style="border-bottom: 1px solid #eee; padding: 10px 12px; text-align: center;">24.63 (4.41)</td>
+                                <td style="border-bottom: 1px solid #eee; padding: 10px 12px; text-align: center;">23.85 (3.79)</td>
+                                <td style="border-bottom: 1px solid #eee; padding: 10px 12px; text-align: center;">23.62 (4.43)</td>
+                                <td style="border-bottom: 1px solid #eee; padding: 10px 12px; text-align: center;">22.69 (4.41)</td>
+                                <td style="border-bottom: 1px solid #eee; padding: 10px 12px; text-align: center;">22.28 (4.40)</td>
+                            </tr>
+                            <tr>
+                                <td style="border-bottom: 1px solid #eee; padding: 10px 12px; text-align: left;">NIR (Nam et al., 2022) [5k]</td>
+                                <td style="border-bottom: 1px solid #eee; padding: 10px 12px; text-align: center;">25.65 (5.82)</td>
+                                <td style="border-bottom: 1px solid #eee; padding: 10px 12px; text-align: center;">24.99 (4.12)</td>
+                                <td style="border-bottom: 1px solid #eee; padding: 10px 12px; text-align: center;">23.61 (2.97)</td>
+                                <td style="border-bottom: 1px solid #eee; padding: 10px 12px; text-align: center;">24.46 (4.31)</td>
+                                <td style="border-bottom: 1px solid #eee; padding: 10px 12px; text-align: center;">23.39 (4.32)</td>
+                                <td style="border-bottom: 1px solid #eee; padding: 10px 12px; text-align: center;">22.93 (4.33)</td>
+                            </tr>
+                            <tr>
+                                <td style="border-bottom: 1px solid #eee; padding: 10px 12px; text-align: left;">SuperF MSE (ours) [2k]</td>
+                                <td style="border-bottom: 1px solid #eee; padding: 10px 12px; text-align: center;">36.73 (1.66)</td>
+                                <td style="border-bottom: 1px solid #eee; padding: 10px 12px; text-align: center;">32.94 (1.83)</td>
+                                <td style="border-bottom: 1px solid #eee; padding: 10px 12px; text-align: center;">28.87 (2.32)</td>
+                                <td style="border-bottom: 1px solid #eee; padding: 10px 12px; text-align: center;">29.38 (3.43)</td>
+                                <td style="border-bottom: 1px solid #eee; padding: 10px 12px; text-align: center;">27.90 (3.94)</td>
+                                <td style="border-bottom: 1px solid #eee; padding: 10px 12px; text-align: center;">27.08 (3.97)</td>
+                            </tr>
+                            <tr>
+                                <td style="border-bottom: 2px solid #333; padding: 10px 12px; text-align: left; font-weight: 600;">SuperF GNLL (ours) [2k]</td>
+                                <td style="border-bottom: 2px solid #333; padding: 10px 12px; text-align: center; font-weight: 600;">37.26 (2.30)</td>
+                                <td style="border-bottom: 2px solid #333; padding: 10px 12px; text-align: center; font-weight: 600;">34.03 (2.71)</td>
+                                <td style="border-bottom: 2px solid #333; padding: 10px 12px; text-align: center; font-weight: 600;">29.28 (3.21)</td>
+                                <td style="border-bottom: 2px solid #333; padding: 10px 12px; text-align: center; font-weight: 600;">29.48 (3.76)</td>
+                                <td style="border-bottom: 2px solid #333; padding: 10px 12px; text-align: center; font-weight: 600;">27.47 (4.18)</td>
+                                <td style="border-bottom: 2px solid #333; padding: 10px 12px; text-align: center; font-weight: 600;">26.58 (4.18)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="burst-sequence" style="margin-top: 60px;">
                 <div class="sequence-card">
                     <div class="sequence-display" data-sequence="cph" role="button" tabindex="0" aria-pressed="false" aria-label="CPH burst: hover for base LR frame, press to show SR output">
                         <img class="sequence-img" src="figs/cph/2025-04-03_S2B_33UUB_20250403_0_L2A.png" alt="Animated Copenhagen LR burst frames" draggable="false" loading="lazy">
@@ -1235,37 +1345,38 @@
             </p>
         </section>
 
-        <section id="timelapse">
-            <h2>Timelapse</h2>
-            <p style="text-align: center; max-width: 800px; margin-bottom: 20px;">
-                Watch SuperF reconstruct high-resolution detail over time as the optimization progresses. Each frame shows the evolving reconstruction during test-time optimization.
+        <section id="demo">
+            <h2>Demo App</h2>
+            <p style="max-width: 800px; margin: 0 auto 24px auto;">
+                Try SuperF in your browser: upload your burst, watch the joint alignment converge, and inspect the super-resolved render directly.
             </p>
-            <div style="text-align: center;">
-                <div class="timelapse-container">
-                    <img id="timelapse-img" class="timelapse-frame" alt="Timelapse animation" style="display: block;">
-                </div>
+            <div style="text-align: center; margin: 32px 0;">
+                <a href="https://huggingface.co/spaces/sjyhne/superf_demo" class="btn" target="_blank" rel="noopener noreferrer" style="display: inline-block;">
+                    Try SuperF Demo
+                </a>
             </div>
-            <div class="timelapse-controls">
-                <input type="range" id="timelapse-slider" class="timelapse-slider" min="0" max="29" value="0" step="1">
-                <span class="timelapse-frame-info" id="timelapse-frame-info">Frame 1 / 30</span>
+        </section>
+
+        <section id="abstract">
+            <h2>Abstract</h2>
+            <div class="abstract-toggle">
+                <details>
+                    <summary>
+                        <div class="summary-label">
+                            <span style="font-weight:600; color:var(--primary);">Show / hide abstract</span>
+                        </div>
+                        <span class="summary-icon">&#8250;</span>
+                    </summary>
+                    <div class="abstract">
+                        <p>
+                            High-resolution imagery is often hindered by limitations in sensor technology, atmospheric conditions, and costs. Such challenges occur in satellite remote sensing, but also with handheld cameras, such as our smartphones. Hence, super-resolution aims to enhance image resolution algorithmically. Since single-image super-resolution requires solving an inverse problem, such methods must exploit strong priors, e.g. learned from high-resolution training data, or be constrained by auxiliary data, e.g. by a high-resolution guide from another modality. While qualitatively pleasing, such approaches often lead to hallucinated structures that do not match reality.
+                        </p>
+                        <p>
+                            In contrast, multi-image super-resolution (MISR) aims to improve resolution by constraining the reconstruction with multiple views taken with sub-pixel shifts. We propose SuperF, a test-time optimization approach for MISR that leverages coordinate-based neural networks, also called neural fields. Their ability to represent continuous signals with an implicit neural representation (INR) makes them an ideal fit for the MISR task. The key characteristic of our approach is to share an INR for multiple shifted low-resolution frames and to jointly optimize the frame alignment with the INR. Our approach advances related INR baselines by directly parameterizing the sub-pixel alignment as optimizable affine transformation parameters and by optimizing via a super-sampled coordinate grid that corresponds to the output resolution. Our experiments yield compelling results on simulated bursts of satellite imagery and ground-level images from handheld cameras, with upsampling factors of up to 8. A key advantage of SuperF is that this approach does not rely on any high-resolution training data.
+                        </p>
+                    </div>
+                </details>
             </div>
-            <div class="timelapse-selector">
-                <div class="timelapse-option active" data-timelapse="kjevik">
-                    <img src="figs/timelapse/frame_001979.png" class="timelapse-preview" alt="Kjevik preview">
-                    <span class="timelapse-option-label">Kjevik</span>
-                </div>
-                <div class="timelapse-option" data-timelapse="island">
-                    <img src="figs/timelapse_island/frame_001999.png" class="timelapse-preview" alt="Island preview">
-                    <span class="timelapse-option-label">Island</span>
-                </div>
-                <div class="timelapse-option" data-timelapse="roundabout">
-                    <img src="figs/timelapse_roundabout/frame_001996.png" class="timelapse-preview" alt="Roundabout preview">
-                    <span class="timelapse-option-label">Roundabout</span>
-                </div>
-            </div>
-            <p style="text-align: center; font-size: 14px; color: #6b7280; margin-top: 20px;">
-                The timelapse shows the progressive refinement of the high-resolution reconstruction throughout the optimization process.
-            </p>
         </section>
 
         <section>
@@ -1852,9 +1963,8 @@
             });
         }
 
-        // Initialize timelapse
+        // Initialize
         document.addEventListener('DOMContentLoaded', () => {
-            initTimelapse();                        // For Timelapse
             initBurstSequence();                    // For LR sequence interaction
         });
     </script>
