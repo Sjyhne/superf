@@ -168,6 +168,24 @@
             pointer-events: none;
         }
 
+        .method-toggle-btn.active {
+            background-color: var(--primary) !important;
+            color: white !important;
+            border-color: var(--primary) !important;
+        }
+        
+        .method-toggle-btn:hover:not(.active) {
+            background-color: #f9fafb !important;
+            border-color: #d1d5db !important;
+        }
+
+        #uncertainty-prev:hover, #uncertainty-next:hover,
+        #qualitative-prev:hover, #qualitative-next:hover {
+            background: var(--primary) !important;
+            color: white !important;
+            transform: translateY(-50%) scale(1.1);
+        }
+
         .hero-media {
             border-radius: 16px;
             overflow: visible;
@@ -1183,6 +1201,27 @@
             </div>
         </header>
 
+        <section id="abstract">
+            <h2>Abstract</h2>
+            <div class="abstract-toggle">
+                <details open>
+                    <summary>
+                        <div class="summary-label">
+                            <span id="abstract-toggle-text" style="font-weight:600; color:var(--primary);">Hide abstract</span>
+                        </div>
+                        <span class="summary-icon">&#8250;</span>
+                    </summary>
+                    <div class="abstract">
+                        <p>
+                            High-resolution imagery is often hindered by limitations in sensor technology, atmospheric conditions, and costs. Such challenges occur in satellite remote sensing, but also with handheld cameras, such as our smartphones. Hence, super-resolution aims to enhance image resolution algorithmically. Since single-image super-resolution requires solving an inverse problem, such methods must exploit strong priors, e.g. learned from high-resolution training data, or be constrained by auxiliary data, e.g. by a high-resolution guide from another modality. While qualitatively pleasing, such approaches often lead to hallucinated structures that do not match reality.
+                        </p>
+                        <p>
+                            In contrast, multi-image super-resolution (MISR) aims to improve resolution by constraining the reconstruction with multiple views taken with sub-pixel shifts. We propose SuperF, a test-time optimization approach for MISR that leverages coordinate-based neural networks, also called neural fields. Their ability to represent continuous signals with an implicit neural representation (INR) makes them an ideal fit for the MISR task. The key characteristic of our approach is to share an INR for multiple shifted low-resolution frames and to jointly optimize the frame alignment with the INR. Our approach advances related INR baselines by directly parameterizing the sub-pixel alignment as optimizable affine transformation parameters and by optimizing via a super-sampled coordinate grid that corresponds to the output resolution. Our experiments yield compelling results on simulated bursts of satellite imagery and ground-level images from handheld cameras, with upsampling factors of up to 8. A key advantage of SuperF is that this approach does not rely on any high-resolution training data.
+                        </p>
+                    </div>
+                </details>
+            </div>
+        </section>
 
         <section id="misr">
             <div style="text-align: center; margin: 32px 0;">
@@ -1200,21 +1239,31 @@
             <p>
                 We introduce SuperF, a test-time optimization approach that leverages Implicit Neural Representations (INRs) to achieve super-resolution without the need for high-resolution training data. SuperF shares a single INR across multiple low-resolution frames, jointly optimizing the neural network alongside the sub-pixel alignment of each frame. By parameterizing these alignments as affine transformations and optimizing on a super-sampled coordinate grid, our method effectively reconstructs the underlying high-resolution signal. Furthermore, SuperF can estimate uncertainty maps to robustly handle noise, such as ignoring pixels obscured by clouds in satellite imagery.
             </p>
-            <div style="text-align: center; margin: 32px 0 16px 0;">
-                <video src="figs/SuperF_method_animation-1080p.mp4" controls playsinline style="max-width: 100%; border-radius: 16px; box-shadow: 0 12px 32px rgba(0,0,0,0.25);">
-                    Your browser does not support the video tag.
-                </video>
-                <p style="font-size: 14px; color: #6b7280; margin-top: 8px; max-width: 700px; margin-left: auto; margin-right: auto;">
-                    Animation of the SuperF method, illustrating joint alignment, the shared neural field, and super-resolved output.
-                </p>
-            </div>
-            <div style="text-align: center; margin: 40px 0;">
-                <div style="display: inline-block; background: #fff; padding: 10px; border-radius: 16px; box-shadow: 0 16px 40px rgba(0,0,0,0.25);">
-                    <img src="figs/SuperF_method_v2.png" alt="Overview of the SuperF method (v2)" style="width: 100%; max-width: 1200px; border-radius: 12px; display: block;">
+            <div style="text-align: center; margin: 32px 0;">
+                <div style="display: inline-flex; gap: 12px; margin-bottom: 24px;">
+                    <button id="method-toggle-figure" class="method-toggle-btn active" onclick="switchMethodView('figure')" style="padding: 10px 24px; border: 2px solid var(--primary); background: var(--primary); color: white; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 600; transition: all 0.2s;">
+                        Figure
+                    </button>
+                    <button id="method-toggle-video" class="method-toggle-btn" onclick="switchMethodView('video')" style="padding: 10px 24px; border: 2px solid #e5e7eb; background: white; color: var(--primary); border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 600; transition: all 0.2s;">
+                        Animation
+                    </button>
                 </div>
-                <p style="font-size: 14px; color: #6b7280; margin-top: 8px; max-width: 700px; margin-left: auto; margin-right: auto;">
-                    Figure 1: Overview of the SuperF method, showing the shared implicit neural representation, frame-specific alignments, and super-resolved reconstruction.
-                </p>
+                <div id="method-figure-container" style="display: block;">
+                    <div style="display: inline-block; background: #fff; padding: 10px; border-radius: 16px; box-shadow: 0 16px 40px rgba(0,0,0,0.25);">
+                        <img src="figs/SuperF_method_v2.png" alt="Overview of the SuperF method (v2)" style="width: 100%; max-width: 1200px; border-radius: 12px; display: block;">
+                    </div>
+                    <p style="font-size: 14px; color: #6b7280; margin-top: 8px; max-width: 700px; margin-left: auto; margin-right: auto;">
+                        Figure 1: Overview of the SuperF method, showing the shared implicit neural representation, frame-specific alignments, and super-resolved reconstruction.
+                    </p>
+                </div>
+                <div id="method-video-container" style="display: none;">
+                    <video src="figs/SuperF_method_animation-1080p.mp4" controls playsinline style="max-width: 100%; border-radius: 16px; box-shadow: 0 12px 32px rgba(0,0,0,0.25);">
+                        Your browser does not support the video tag.
+                    </video>
+                    <p style="font-size: 14px; color: #6b7280; margin-top: 8px; max-width: 700px; margin-left: auto; margin-right: auto;">
+                        Animation of the SuperF method, illustrating joint alignment, the shared neural field, and super-resolved output.
+                    </p>
+                </div>
             </div>
         </section>
 
@@ -1223,11 +1272,23 @@
             <p style="max-width: 800px; margin: 0 auto;">
                 Real-world imagery is rarely perfect. Satellite observations are frequently obstructed by clouds or shadows, while handheld bursts often contain moving objects or lighting shifts. Standard super-resolution methods can be easily confused by these inconsistencies, resulting in glitchy artifacts in the final image. <strong>SuperF does not just reconstruct the image; it also learns to estimate its own confidence</strong> via <strong>pixel-wise uncertainty maps</strong> that identify which parts of an image are reliable and which are noisy. During optimization, the model assigns <strong>high uncertainty to outliers</strong>—such as a cloud that appears in only one satellite frame—and effectively ignores or strongly down-weights these corrupted pixels. This allows SuperF to extract the <strong>consistent, high-quality underlying structure</strong> of the scene, even when individual input frames are messy or partially occluded.
             </p>
-            <div style="max-width: 1100px; margin: 32px auto 12px auto; display: flex; flex-direction: column; gap: 16px;">
-                <img src="figs/uncertainty_map_1.png" alt="Uncertainty example 1" style="width: 100%; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
-                <img src="figs/uncertainty_map_2.png" alt="Uncertainty example 2" style="width: 100%; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
-                <img src="figs/uncertainty_map_3.png" alt="Uncertainty example 3" style="width: 100%; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
-                <img src="figs/uncertainty_map_4.png" alt="Uncertainty example 4" style="width: 100%; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
+            <div style="max-width: 1100px; margin: 32px auto 12px auto; position: relative;">
+                <div id="uncertainty-carousel" style="position: relative; overflow: hidden; border-radius: 12px;">
+                    <div id="uncertainty-images" style="display: flex; transition: transform 0.4s ease-in-out;">
+                        <img src="figs/uncertainty_map_1.png" alt="Uncertainty example 1" class="uncertainty-slide" style="min-width: 100%; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
+                        <img src="figs/uncertainty_map_2.png" alt="Uncertainty example 2" class="uncertainty-slide" style="min-width: 100%; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
+                        <img src="figs/uncertainty_map_3.png" alt="Uncertainty example 3" class="uncertainty-slide" style="min-width: 100%; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
+                        <img src="figs/uncertainty_map_4.png" alt="Uncertainty example 4" class="uncertainty-slide" style="min-width: 100%; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
+                    </div>
+                    <button id="uncertainty-prev" onclick="changeUncertaintySlide(-1)" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.9); border: 2px solid var(--primary); color: var(--primary); width: 44px; height: 44px; border-radius: 50%; cursor: pointer; font-size: 20px; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: all 0.2s; z-index: 10;">‹</button>
+                    <button id="uncertainty-next" onclick="changeUncertaintySlide(1)" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.9); border: 2px solid var(--primary); color: var(--primary); width: 44px; height: 44px; border-radius: 50%; cursor: pointer; font-size: 20px; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: all 0.2s; z-index: 10;">›</button>
+                </div>
+                <div style="display: flex; justify-content: center; gap: 8px; margin-top: 16px;">
+                    <span class="uncertainty-dot active" onclick="goToUncertaintySlide(0)" style="width: 12px; height: 12px; border-radius: 50%; background: var(--primary); cursor: pointer; transition: all 0.2s;"></span>
+                    <span class="uncertainty-dot" onclick="goToUncertaintySlide(1)" style="width: 12px; height: 12px; border-radius: 50%; background: #d1d5db; cursor: pointer; transition: all 0.2s;"></span>
+                    <span class="uncertainty-dot" onclick="goToUncertaintySlide(2)" style="width: 12px; height: 12px; border-radius: 50%; background: #d1d5db; cursor: pointer; transition: all 0.2s;"></span>
+                    <span class="uncertainty-dot" onclick="goToUncertaintySlide(3)" style="width: 12px; height: 12px; border-radius: 50%; background: #d1d5db; cursor: pointer; transition: all 0.2s;"></span>
+                </div>
             </div>
             <p style="max-width: 800px; margin: 0 auto; font-size: 14px; color: #6b7280; text-align: center;">
                 Four examples showing LR frames (top row) and the corresponding estimated uncertainty maps (bottom row) for images with occlusions and inconsistencies. The uncertainty maps highlight cloudy or inconsistent pixels, enabling the GNLL loss to downweight these during optimization.
@@ -1239,6 +1300,9 @@
             <p style="max-width: 800px; margin: 0 auto 32px auto;">
                 SuperF consistently outperforms test-time optimization baselines across multiple datasets, delivering sharper detail and lower perceptual error.
             </p>
+            <h3 style="text-align: center; font-size: 24px; font-weight: 600; color: var(--primary); margin: 40px 0 20px 0;">
+                Quantitative Results
+            </h3>
             <div style="text-align: center; margin: 40px 0;">
                 <div style="display: inline-block; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); overflow-x: auto; max-width: 100%;">
                     <table style="border-collapse: collapse; font-size: 14px; min-width: 800px; margin: 0 auto;">
@@ -1321,7 +1385,16 @@
                     </table>
                 </div>
             </div>
-            <div class="burst-sequence" style="margin-top: 60px;">
+            <h3 style="text-align: center; font-size: 24px; font-weight: 600; color: var(--primary); margin: 60px 0 20px 0;">
+                Real Satellite Data
+            </h3>
+            <p style="text-align: center; max-width: 800px; margin: 0 auto 24px auto; font-size: 16px; color: #6b7280;">
+                Results on <strong>real satellite imagery</strong> from Sentinel-2 time series. These reconstructions were generated using the SuperF demo application.
+            </p>
+            <p class="sequence-instructions" style="text-align:center; max-width: 780px; margin: 0 auto 20px auto;">
+                Each tile loops through the LR burst automatically. <strong>Hover</strong> (or focus) to freeze on our base LR frame, then <strong>press / long-press</strong> to show the SuperF SR output. Let go to resume the LR sequence.
+            </p>
+            <div class="burst-sequence" style="margin-top: 0;">
                 <div class="sequence-card">
                     <div class="sequence-display" data-sequence="cph" role="button" tabindex="0" aria-pressed="false" aria-label="CPH burst: hover for base LR frame, press to show SR output">
                         <img class="sequence-img" src="figs/cph/2025-04-03_S2B_33UUB_20250403_0_L2A.png" alt="Animated Copenhagen LR burst frames" draggable="false" loading="lazy">
@@ -1341,9 +1414,34 @@
                     </div>
                 </div>
             </div>
-            <p class="sequence-instructions" style="text-align:center; max-width: 780px; margin: 24px auto 0;">
-                Each tile loops through the LR burst automatically. <strong>Hover</strong> (or focus) to freeze on our base LR frame, then <strong>press / long-press</strong> to show the SuperF SR output. Let go to resume the LR sequence.
+            <h3 style="text-align: center; font-size: 24px; font-weight: 600; color: var(--primary); margin: 60px 0 20px 0;">
+                Qualitative Comparison
+            </h3>
+            <p style="text-align: center; max-width: 800px; margin: 0 auto 24px auto; font-size: 16px; color: #6b7280;">
+                Results on <strong>synthetic data</strong> for both satellite images and ground-level bursts.
             </p>
+            <div style="max-width: 1100px; margin: 20px auto 12px auto; position: relative;">
+                <div id="qualitative-carousel" style="position: relative; overflow: hidden; border-radius: 12px;">
+                    <div id="qualitative-images" style="display: flex; transition: transform 0.4s ease-in-out;">
+                        <img src="figs/qualitative_examples_many_df2 (1)-1.png" alt="Qualitative examples df2" class="qualitative-slide" style="min-width: 100%; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
+                        <img src="figs/qualitative_examples_many_df4 (1)-1.png" alt="Qualitative examples df4" class="qualitative-slide" style="min-width: 100%; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
+                        <img src="figs/qualitative_examples_many_df8 (1)-1.png" alt="Qualitative examples df8" class="qualitative-slide" style="min-width: 100%; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
+                    </div>
+                    <button id="qualitative-prev" onclick="changeQualitativeSlide(-1)" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.9); border: 2px solid var(--primary); color: var(--primary); width: 44px; height: 44px; border-radius: 50%; cursor: pointer; font-size: 20px; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: all 0.2s; z-index: 10;">‹</button>
+                    <button id="qualitative-next" onclick="changeQualitativeSlide(1)" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.9); border: 2px solid var(--primary); color: var(--primary); width: 44px; height: 44px; border-radius: 50%; cursor: pointer; font-size: 20px; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: all 0.2s; z-index: 10;">›</button>
+                </div>
+                <div style="display: flex; justify-content: center; gap: 8px; margin-top: 16px;">
+                    <span class="qualitative-dot active" onclick="goToQualitativeSlide(0)" style="width: 12px; height: 12px; border-radius: 50%; background: var(--primary); cursor: pointer; transition: all 0.2s;"></span>
+                    <span class="qualitative-dot" onclick="goToQualitativeSlide(1)" style="width: 12px; height: 12px; border-radius: 50%; background: #d1d5db; cursor: pointer; transition: all 0.2s;"></span>
+                    <span class="qualitative-dot" onclick="goToQualitativeSlide(2)" style="width: 12px; height: 12px; border-radius: 50%; background: #d1d5db; cursor: pointer; transition: all 0.2s;"></span>
+                </div>
+                <p id="qualitative-caption" style="font-size: 16px; font-weight: 600; color: var(--primary); margin-top: 16px; text-align: center;">
+                    Upsampling Factor: ×2
+                </p>
+                <p style="font-size: 14px; color: #6b7280; margin-top: 8px; text-align: center; max-width: 800px; margin-left: auto; margin-right: auto;">
+                    Qualitative comparison of SuperF reconstructions against baseline methods.
+                </p>
+            </div>
         </section>
 
         <section id="demo">
@@ -1355,28 +1453,6 @@
                 <a href="https://huggingface.co/spaces/sjyhne/superf_demo" class="btn" target="_blank" rel="noopener noreferrer" style="display: inline-block;">
                     Try SuperF Demo
                 </a>
-            </div>
-        </section>
-
-        <section id="abstract">
-            <h2>Abstract</h2>
-            <div class="abstract-toggle">
-                <details>
-                    <summary>
-                        <div class="summary-label">
-                            <span style="font-weight:600; color:var(--primary);">Show / hide abstract</span>
-                        </div>
-                        <span class="summary-icon">&#8250;</span>
-                    </summary>
-                    <div class="abstract">
-                        <p>
-                            High-resolution imagery is often hindered by limitations in sensor technology, atmospheric conditions, and costs. Such challenges occur in satellite remote sensing, but also with handheld cameras, such as our smartphones. Hence, super-resolution aims to enhance image resolution algorithmically. Since single-image super-resolution requires solving an inverse problem, such methods must exploit strong priors, e.g. learned from high-resolution training data, or be constrained by auxiliary data, e.g. by a high-resolution guide from another modality. While qualitatively pleasing, such approaches often lead to hallucinated structures that do not match reality.
-                        </p>
-                        <p>
-                            In contrast, multi-image super-resolution (MISR) aims to improve resolution by constraining the reconstruction with multiple views taken with sub-pixel shifts. We propose SuperF, a test-time optimization approach for MISR that leverages coordinate-based neural networks, also called neural fields. Their ability to represent continuous signals with an implicit neural representation (INR) makes them an ideal fit for the MISR task. The key characteristic of our approach is to share an INR for multiple shifted low-resolution frames and to jointly optimize the frame alignment with the INR. Our approach advances related INR baselines by directly parameterizing the sub-pixel alignment as optimizable affine transformation parameters and by optimizing via a super-sampled coordinate grid that corresponds to the output resolution. Our experiments yield compelling results on simulated bursts of satellite imagery and ground-level images from handheld cameras, with upsampling factors of up to 8. A key advantage of SuperF is that this approach does not rely on any high-resolution training data.
-                        </p>
-                    </div>
-                </details>
             </div>
         </section>
 
@@ -1782,6 +1858,116 @@
             loadTimelapse('kjevik');
         }
 
+        // Method view toggle (video/figure)
+        function switchMethodView(view) {
+            const videoContainer = document.getElementById('method-video-container');
+            const figureContainer = document.getElementById('method-figure-container');
+            const videoBtn = document.getElementById('method-toggle-video');
+            const figureBtn = document.getElementById('method-toggle-figure');
+            
+            if (view === 'video') {
+                videoContainer.style.display = 'block';
+                figureContainer.style.display = 'none';
+                videoBtn.classList.add('active');
+                figureBtn.classList.remove('active');
+                videoBtn.style.background = 'var(--primary)';
+                videoBtn.style.color = 'white';
+                videoBtn.style.borderColor = 'var(--primary)';
+                figureBtn.style.background = 'white';
+                figureBtn.style.color = 'var(--primary)';
+                figureBtn.style.borderColor = '#e5e7eb';
+            } else {
+                videoContainer.style.display = 'none';
+                figureContainer.style.display = 'block';
+                videoBtn.classList.remove('active');
+                figureBtn.classList.add('active');
+                figureBtn.style.background = 'var(--primary)';
+                figureBtn.style.color = 'white';
+                figureBtn.style.borderColor = 'var(--primary)';
+                videoBtn.style.background = 'white';
+                videoBtn.style.color = 'var(--primary)';
+                videoBtn.style.borderColor = '#e5e7eb';
+            }
+        }
+
+        // Uncertainty carousel
+        let currentUncertaintySlide = 0;
+        const totalUncertaintySlides = 4;
+
+        function updateUncertaintyCarousel() {
+            const imagesContainer = document.getElementById('uncertainty-images');
+            const dots = document.querySelectorAll('.uncertainty-dot');
+            
+            imagesContainer.style.transform = `translateX(-${currentUncertaintySlide * 100}%)`;
+            
+            dots.forEach((dot, index) => {
+                if (index === currentUncertaintySlide) {
+                    dot.classList.add('active');
+                    dot.style.background = 'var(--primary)';
+                } else {
+                    dot.classList.remove('active');
+                    dot.style.background = '#d1d5db';
+                }
+            });
+        }
+
+        function changeUncertaintySlide(direction) {
+            currentUncertaintySlide += direction;
+            if (currentUncertaintySlide < 0) {
+                currentUncertaintySlide = totalUncertaintySlides - 1;
+            } else if (currentUncertaintySlide >= totalUncertaintySlides) {
+                currentUncertaintySlide = 0;
+            }
+            updateUncertaintyCarousel();
+        }
+
+        function goToUncertaintySlide(index) {
+            currentUncertaintySlide = index;
+            updateUncertaintyCarousel();
+        }
+
+        // Qualitative examples carousel
+        let currentQualitativeSlide = 0;
+        const totalQualitativeSlides = 3;
+
+        function updateQualitativeCarousel() {
+            const imagesContainer = document.getElementById('qualitative-images');
+            const dots = document.querySelectorAll('.qualitative-dot');
+            const caption = document.getElementById('qualitative-caption');
+            
+            imagesContainer.style.transform = `translateX(-${currentQualitativeSlide * 100}%)`;
+            
+            const factors = ['×2', '×4', '×8'];
+            if (caption) {
+                caption.textContent = `Upsampling Factor: ${factors[currentQualitativeSlide]}`;
+            }
+            
+            dots.forEach((dot, index) => {
+                if (index === currentQualitativeSlide) {
+                    dot.classList.add('active');
+                    dot.style.background = 'var(--primary)';
+                } else {
+                    dot.classList.remove('active');
+                    dot.style.background = '#d1d5db';
+                }
+            });
+        }
+
+        function changeQualitativeSlide(direction) {
+            currentQualitativeSlide += direction;
+            if (currentQualitativeSlide < 0) {
+                currentQualitativeSlide = totalQualitativeSlides - 1;
+            } else if (currentQualitativeSlide >= totalQualitativeSlides) {
+                currentQualitativeSlide = 0;
+            }
+            updateQualitativeCarousel();
+        }
+
+        function goToQualitativeSlide(index) {
+            currentQualitativeSlide = index;
+            updateQualitativeCarousel();
+        }
+
         // Burst sequence interaction (hover to base frame, press to reveal HR)
         function initBurstSequence() {
             const sequences = {
@@ -1965,8 +2151,27 @@
         }
 
         // Initialize
+        // Abstract toggle text update
+        function initAbstractToggle() {
+            const abstractDetails = document.querySelector('#abstract details');
+            const abstractToggleText = document.getElementById('abstract-toggle-text');
+            
+            if (abstractDetails && abstractToggleText) {
+                // Set initial text based on whether details is open
+                abstractToggleText.textContent = abstractDetails.open ? 'Hide abstract' : 'Show abstract';
+                
+                // Listen for toggle events
+                abstractDetails.addEventListener('toggle', () => {
+                    abstractToggleText.textContent = abstractDetails.open ? 'Hide abstract' : 'Show abstract';
+                });
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             initBurstSequence();                    // For LR sequence interaction
+            updateUncertaintyCarousel();            // Initialize uncertainty carousel
+            updateQualitativeCarousel();            // Initialize qualitative carousel
+            initAbstractToggle();                    // Initialize abstract toggle text
         });
     </script>
 </body>
