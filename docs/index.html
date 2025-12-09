@@ -120,6 +120,18 @@
             margin-bottom: 6px;
             line-height: 1.5;
         }
+        
+        .authors a {
+            color: inherit;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+            transition: all 0.2s ease;
+        }
+        
+        .authors a:hover {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
 
         .affiliations {
             font-size: 14px;
@@ -174,9 +186,42 @@
             border-color: var(--primary) !important;
         }
         
-        .method-toggle-btn:hover:not(.active) {
+        .method-toggle-btn:hover:not(.active),
+        .sequence-view-toggle:hover:not(.active) {
             background-color: #f9fafb !important;
             border-color: #d1d5db !important;
+        }
+        
+        .slider-divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 36px;
+            height: 36px;
+            background: white;
+            border: 3px solid var(--primary);
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+        }
+        
+        .slider-container {
+            aspect-ratio: 1;
+        }
+        
+        .slider-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .slider-lr {
+            /* Force pixelated/nearest-neighbor scaling instead of bilinear */
+            image-rendering: -moz-crisp-edges;
+            image-rendering: -webkit-crisp-edges;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
         }
 
         #uncertainty-prev:hover, #uncertainty-next:hover,
@@ -1098,9 +1143,107 @@
             max-width: 1100px;
             margin: 60px auto 10px;
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(3, 1fr);
             gap: 32px;
             align-items: start;
+            position: relative;
+        }
+        
+        .burst-sequence-wrapper {
+            position: relative;
+            max-width: 1100px;
+            margin: 0 auto;
+            overflow: hidden;
+        }
+        
+        .burst-sequence-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 32px;
+            width: 100%;
+            transition: none;
+        }
+        
+        .burst-sequence-container .sequence-card {
+            width: 100%;
+        }
+        
+        /* For 4 items: force 2x2 grid */
+        .burst-sequence-container:has(.sequence-card:nth-child(4):last-child) {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        /* For 5 items: use 3 columns (creates 3+2 layout) */
+        .burst-sequence-container:has(.sequence-card:nth-child(5):last-child) {
+            grid-template-columns: repeat(3, 1fr);
+        }
+        
+        /* For 6+ items: auto-fit handles it naturally (3x2, 4x2, etc.) */
+        
+        @media (max-width: 1200px) {
+            /* On medium screens, max 2 columns for better size */
+            .burst-sequence-container:has(.sequence-card:nth-child(5):last-child) {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 900px) {
+            .burst-sequence-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .sequence-nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: white;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            z-index: 10;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transition: all 0.2s;
+        }
+        
+        .sequence-nav-btn:not(:disabled) {
+            display: flex;
+        }
+        
+        .sequence-nav-btn:hover {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+        }
+        
+        .sequence-nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        
+        .sequence-nav-btn.prev {
+            left: -60px;
+        }
+        
+        .sequence-nav-btn.next {
+            right: -60px;
+        }
+        
+        @media (max-width: 1200px) {
+            .sequence-nav-btn.prev {
+                left: 10px;
+            }
+            .sequence-nav-btn.next {
+                right: 10px;
+            }
         }
         .sequence-card {
             background: #fff;
@@ -1182,7 +1325,7 @@
                     <h1>SuperF</h1>
                     <p class="tagline">Neural Implicit Fields for Multi-Image Super-Resolution</p>
                     <p class="authors">
-                        Sander Riisøen Jyhne<sup>1,*</sup>, Christian Igel<sup>2</sup>, Morten Goodwin<sup>1</sup>, Per-Arne Andersen<sup>1</sup>, Serge Belongie<sup>2</sup>, Nico Lang<sup>2,*</sup>
+                        Sander Riisøen Jyhne<sup>1,*</sup>, <a href="https://christian-igel.github.io/" target="_blank" rel="noopener noreferrer">Christian Igel</a><sup>2</sup>, <a href="https://mortengoodwin.no/" target="_blank" rel="noopener noreferrer">Morten Goodwin</a><sup>1</sup>, Per-Arne Andersen<sup>1</sup>, <a href="https://sergebelongie.github.io/" target="_blank" rel="noopener noreferrer">Serge Belongie</a><sup>2</sup>, <a href="https://langnico.github.io/" target="_blank" rel="noopener noreferrer">Nico Lang</a><sup>2,*</sup>
                     </p>
                     <p class="affiliations">
                         <sup>1</sup>University of Agder &nbsp;&middot;&nbsp; <sup>2</sup>University of Copenhagen<br>
@@ -1369,17 +1512,17 @@
                                 <td style="border-bottom: 1px solid #eee; padding: 10px 12px; text-align: center;">32.94 (1.83)</td>
                                 <td style="border-bottom: 1px solid #eee; padding: 10px 12px; text-align: center;">28.87 (2.32)</td>
                                 <td style="border-bottom: 1px solid #eee; padding: 10px 12px; text-align: center;">29.38 (3.43)</td>
-                                <td style="border-bottom: 1px solid #eee; padding: 10px 12px; text-align: center;">27.90 (3.94)</td>
-                                <td style="border-bottom: 1px solid #eee; padding: 10px 12px; text-align: center;">27.08 (3.97)</td>
+                                <td style="border-bottom: 1px solid #eee; padding: 10px 12px; text-align: center; font-weight: 700;"><strong>27.90 (3.94)</strong></td>
+                                <td style="border-bottom: 1px solid #eee; padding: 10px 12px; text-align: center; font-weight: 700;"><strong>27.08 (3.97)</strong></td>
                             </tr>
                             <tr>
                                 <td style="border-bottom: 2px solid #333; padding: 10px 12px; text-align: left; font-weight: 600;">SuperF GNLL (ours) [2k]</td>
-                                <td style="border-bottom: 2px solid #333; padding: 10px 12px; text-align: center; font-weight: 600;">37.26 (2.30)</td>
-                                <td style="border-bottom: 2px solid #333; padding: 10px 12px; text-align: center; font-weight: 600;">34.03 (2.71)</td>
-                                <td style="border-bottom: 2px solid #333; padding: 10px 12px; text-align: center; font-weight: 600;">29.28 (3.21)</td>
-                                <td style="border-bottom: 2px solid #333; padding: 10px 12px; text-align: center; font-weight: 600;">29.48 (3.76)</td>
-                                <td style="border-bottom: 2px solid #333; padding: 10px 12px; text-align: center; font-weight: 600;">27.47 (4.18)</td>
-                                <td style="border-bottom: 2px solid #333; padding: 10px 12px; text-align: center; font-weight: 600;">26.58 (4.18)</td>
+                                <td style="border-bottom: 2px solid #333; padding: 10px 12px; text-align: center; font-weight: 700;"><strong>37.26 (2.30)</strong></td>
+                                <td style="border-bottom: 2px solid #333; padding: 10px 12px; text-align: center; font-weight: 700;"><strong>34.03 (2.71)</strong></td>
+                                <td style="border-bottom: 2px solid #333; padding: 10px 12px; text-align: center; font-weight: 700;"><strong>29.28 (3.21)</strong></td>
+                                <td style="border-bottom: 2px solid #333; padding: 10px 12px; text-align: center; font-weight: 700;"><strong>29.48 (3.76)</strong></td>
+                                <td style="border-bottom: 2px solid #333; padding: 10px 12px; text-align: center; font-weight: 400;">27.47 (4.18)</td>
+                                <td style="border-bottom: 2px solid #333; padding: 10px 12px; text-align: center; font-weight: 400;">26.58 (4.18)</td>
                             </tr>
                         </tbody>
                     </table>
@@ -1391,28 +1534,86 @@
             <p style="text-align: center; max-width: 800px; margin: 0 auto 24px auto; font-size: 16px; color: #6b7280;">
                 Results on <strong>real satellite imagery</strong> from Sentinel-2 time series. These reconstructions were generated using the SuperF demo application.
             </p>
-            <p class="sequence-instructions" style="text-align:center; max-width: 780px; margin: 0 auto 20px auto;">
-                Each tile loops through the LR burst automatically. <strong>Hover</strong> (or focus) to freeze on our base LR frame, then <strong>press / long-press</strong> to show the SuperF SR output. Let go to resume the LR sequence.
-            </p>
-            <div class="burst-sequence" style="margin-top: 0;">
+            <div style="text-align: center; margin: 0 auto 20px auto;">
+                <div style="display: inline-flex; gap: 12px; margin-bottom: 20px;">
+                    <button id="sequence-toggle-interactive" class="sequence-view-toggle active" onclick="switchSequenceView('interactive')" style="padding: 10px 24px; border: 2px solid var(--primary); background: var(--primary); color: white; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 600; transition: all 0.2s; min-width: 140px;">
+                        Interactive
+                    </button>
+                    <button id="sequence-toggle-slider" class="sequence-view-toggle" onclick="switchSequenceView('slider')" style="padding: 10px 24px; border: 2px solid #e5e7eb; background: white; color: var(--primary); border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 600; transition: all 0.2s; min-width: 140px;">
+                        Slider
+                    </button>
+                </div>
+                <p id="sequence-instructions" class="sequence-instructions" style="text-align:center; max-width: 780px; margin: 0 auto;">
+                    Each tile loops through the LR burst automatically. <strong>Hover</strong> (or focus) to freeze on our base LR frame, then <strong>press / long-press</strong> to show the SuperF SR output. Let go to resume the LR sequence.
+                </p>
+            </div>
+            <div id="burst-sequence-interactive" class="burst-sequence-wrapper" style="margin-top: 0; display: block;">
+                <button class="sequence-nav-btn prev" onclick="navigateSequence('interactive', -1)" aria-label="Previous sequences">‹</button>
+                <div class="burst-sequence-container">
+                    <div class="sequence-card">
+                        <div class="sequence-display" data-sequence="cph" role="button" tabindex="0" aria-pressed="false" aria-label="CPH burst: hover for base LR frame, press to show SR output">
+                            <img class="sequence-img" src="figs/cph/2025-04-03_S2B_33UUB_20250403_0_L2A.png" alt="Animated Copenhagen LR burst frames" draggable="false" loading="lazy">
+                            <span class="sequence-label">LR Sequence</span>
+                        </div>
+                    </div>
+                    <div class="sequence-card">
+                        <div class="sequence-display" data-sequence="circle" role="button" tabindex="0" aria-pressed="false" aria-label="Circle burst: hover for base LR frame, press to show SR output">
+                            <img class="sequence-img" src="figs/circle/2025-04-02_S2A_30STG_20250402_1_L2A.png" alt="Animated circle LR burst frames" draggable="false" loading="lazy">
+                            <span class="sequence-label">LR Sequence</span>
+                        </div>
+                    </div>
+                    <div class="sequence-card">
+                        <div class="sequence-display" data-sequence="roundabout" role="button" tabindex="0" aria-pressed="false" aria-label="Roundabout burst: hover for base LR frame, press to show SR output">
+                            <img class="sequence-img" src="figs/roundabout/2025-04-17_S2C_17RMP_20250417_0_L2A.png" alt="Animated roundabout LR burst frames" draggable="false" loading="lazy">
+                            <span class="sequence-label">LR Sequence</span>
+                        </div>
+                    </div>
+                    <div class="sequence-card">
+                        <div class="sequence-display" data-sequence="island" role="button" tabindex="0" aria-pressed="false" aria-label="Island burst: hover for base LR frame, press to show SR output">
+                            <img class="sequence-img" src="figs/island/2025-02-06_S2B_48PUV_20250206_0_L2A.png" alt="Animated island LR burst frames" draggable="false" loading="lazy">
+                            <span class="sequence-label">LR Sequence</span>
+                        </div>
+                    </div>
+                </div>
+                <button class="sequence-nav-btn next" onclick="navigateSequence('interactive', 1)" aria-label="Next sequences">›</button>
+            </div>
+            <div id="burst-sequence-slider" class="burst-sequence-wrapper" style="margin-top: 0; display: none;">
+                <button class="sequence-nav-btn prev" onclick="navigateSequence('slider', -1)" aria-label="Previous sequences">‹</button>
+                <div class="burst-sequence-container">
                 <div class="sequence-card">
-                    <div class="sequence-display" data-sequence="cph" role="button" tabindex="0" aria-pressed="false" aria-label="CPH burst: hover for base LR frame, press to show SR output">
-                        <img class="sequence-img" src="figs/cph/2025-04-03_S2B_33UUB_20250403_0_L2A.png" alt="Animated Copenhagen LR burst frames" draggable="false" loading="lazy">
-                        <span class="sequence-label">LR Sequence</span>
+                    <div class="slider-container" style="position: relative; width: 100%; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
+                        <img class="slider-lr" src="figs/cph/2025-05-08_S2C_33UUB_20250508_0_L2A.png" alt="Copenhagen LR">
+                        <img class="slider-sr" src="figs/cph/sr_sample_000.png" alt="Copenhagen SR" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; clip-path: inset(0 50% 0 0);">
+                        <input type="range" class="slider-control" min="0" max="100" value="50" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: ew-resize; z-index: 10;" oninput="updateSlider(this, 'cph')">
+                        <div class="slider-divider" style="position: absolute; top: 0; left: 50%; width: 2px; height: 100%; background: white; box-shadow: 0 0 4px rgba(0,0,0,0.3); pointer-events: none; z-index: 5; transform: translateX(-50%);"></div>
                     </div>
                 </div>
                 <div class="sequence-card">
-                    <div class="sequence-display" data-sequence="circle" role="button" tabindex="0" aria-pressed="false" aria-label="Circle burst: hover for base LR frame, press to show SR output">
-                        <img class="sequence-img" src="figs/circle/2025-04-02_S2A_30STG_20250402_1_L2A.png" alt="Animated circle LR burst frames" draggable="false" loading="lazy">
-                        <span class="sequence-label">LR Sequence</span>
+                    <div class="slider-container" style="position: relative; width: 100%; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
+                        <img class="slider-lr" src="figs/circle/2025-05-10_S2C_30STG_20250510_0_L2A.png" alt="Circle LR">
+                        <img class="slider-sr" src="figs/circle/sr_sample_000.png" alt="Circle SR" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; clip-path: inset(0 50% 0 0);">
+                        <input type="range" class="slider-control" min="0" max="100" value="50" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: ew-resize; z-index: 10;" oninput="updateSlider(this, 'circle')">
+                        <div class="slider-divider" style="position: absolute; top: 0; left: 50%; width: 2px; height: 100%; background: white; box-shadow: 0 0 4px rgba(0,0,0,0.3); pointer-events: none; z-index: 5; transform: translateX(-50%);"></div>
                     </div>
                 </div>
                 <div class="sequence-card">
-                    <div class="sequence-display" data-sequence="roundabout" role="button" tabindex="0" aria-pressed="false" aria-label="Roundabout burst: hover for base LR frame, press to show SR output">
-                        <img class="sequence-img" src="figs/roundabout/2025-04-17_S2C_17RMP_20250417_0_L2A.png" alt="Animated roundabout LR burst frames" draggable="false" loading="lazy">
-                        <span class="sequence-label">LR Sequence</span>
+                    <div class="slider-container" style="position: relative; width: 100%; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
+                        <img class="slider-lr" src="figs/roundabout/2025-05-17_S2C_17RMP_20250517_0_L2A.png" alt="Roundabout LR">
+                        <img class="slider-sr" src="figs/roundabout/sr_sample_000.png" alt="Roundabout SR" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; clip-path: inset(0 50% 0 0);">
+                        <input type="range" class="slider-control" min="0" max="100" value="50" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: ew-resize; z-index: 10;" oninput="updateSlider(this, 'roundabout')">
+                        <div class="slider-divider" style="position: absolute; top: 0; left: 50%; width: 2px; height: 100%; background: white; box-shadow: 0 0 4px rgba(0,0,0,0.3); pointer-events: none; z-index: 5; transform: translateX(-50%);"></div>
                     </div>
                 </div>
+                <div class="sequence-card">
+                    <div class="slider-container" style="position: relative; width: 100%; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
+                        <img class="slider-lr" src="figs/island/2025-04-12_S2C_48PUV_20250412_0_L2A.png" alt="Island LR">
+                        <img class="slider-sr" src="figs/island/sr_sample_000.png" alt="Island SR" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; clip-path: inset(0 50% 0 0);">
+                        <input type="range" class="slider-control" min="0" max="100" value="50" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: ew-resize; z-index: 10;" oninput="updateSlider(this, 'island')">
+                        <div class="slider-divider" style="position: absolute; top: 0; left: 50%; width: 2px; height: 100%; background: white; box-shadow: 0 0 4px rgba(0,0,0,0.3); pointer-events: none; z-index: 5; transform: translateX(-50%);"></div>
+                    </div>
+                </div>
+                </div>
+                <button class="sequence-nav-btn next" onclick="navigateSequence('slider', 1)" aria-label="Next sequences">›</button>
             </div>
             <h3 style="text-align: center; font-size: 24px; font-weight: 600; color: var(--primary); margin: 60px 0 20px 0;">
                 Qualitative Comparison
@@ -1968,6 +2169,135 @@
             updateQualitativeCarousel();
         }
 
+        // Carousel state
+        let sequenceCarouselPos = {
+            interactive: 0,
+            slider: 0
+        };
+        
+        // Reset carousel positions on load
+        function resetSequenceCarousel() {
+            const interactiveContainer = document.getElementById('burst-sequence-interactive')?.querySelector('.burst-sequence-container');
+            const sliderContainer = document.getElementById('burst-sequence-slider')?.querySelector('.burst-sequence-container');
+            
+            if (interactiveContainer) {
+                interactiveContainer.style.transform = 'translateX(0px)';
+            }
+            if (sliderContainer) {
+                sliderContainer.style.transform = 'translateX(0px)';
+            }
+            
+            sequenceCarouselPos.interactive = 0;
+            sequenceCarouselPos.slider = 0;
+        }
+
+        // Sequence view toggle (interactive/slider)
+        function switchSequenceView(view) {
+            const interactiveView = document.getElementById('burst-sequence-interactive');
+            const sliderView = document.getElementById('burst-sequence-slider');
+            const interactiveBtn = document.getElementById('sequence-toggle-interactive');
+            const sliderBtn = document.getElementById('sequence-toggle-slider');
+            const instructions = document.getElementById('sequence-instructions');
+            
+            if (view === 'slider') {
+                interactiveView.style.display = 'none';
+                sliderView.style.display = 'block';
+                interactiveBtn.classList.remove('active');
+                sliderBtn.classList.add('active');
+                interactiveBtn.style.background = 'white';
+                interactiveBtn.style.color = 'var(--primary)';
+                interactiveBtn.style.borderColor = '#e5e7eb';
+                sliderBtn.style.background = 'var(--primary)';
+                sliderBtn.style.color = 'white';
+                sliderBtn.style.borderColor = 'var(--primary)';
+                if (instructions) {
+                    instructions.textContent = 'Drag the slider to compare the low-resolution input (left) with the super-resolved output (right).';
+                }
+                updateSequenceNavButtons('slider');
+            } else {
+                interactiveView.style.display = 'block';
+                sliderView.style.display = 'none';
+                sliderBtn.classList.remove('active');
+                interactiveBtn.classList.add('active');
+                sliderBtn.style.background = 'white';
+                sliderBtn.style.color = 'var(--primary)';
+                sliderBtn.style.borderColor = '#e5e7eb';
+                interactiveBtn.style.background = 'var(--primary)';
+                interactiveBtn.style.color = 'white';
+                interactiveBtn.style.borderColor = 'var(--primary)';
+                if (instructions) {
+                    instructions.textContent = 'Each tile loops through the LR burst automatically. Hover (or focus) to freeze on our base LR frame, then press / long-press to show the SuperF SR output. Let go to resume the LR sequence.';
+                }
+                updateSequenceNavButtons('interactive');
+            }
+        }
+
+        // Navigate carousel
+        function navigateSequence(view, direction) {
+            const viewElement = document.getElementById(`burst-sequence-${view}`);
+            const container = viewElement.querySelector('.burst-sequence-container');
+            const cards = container.querySelectorAll('.sequence-card');
+            const totalCards = cards.length;
+            const cardsPerView = 4; // Show all 4 items
+            const maxPosition = Math.max(0, totalCards - cardsPerView);
+            
+            sequenceCarouselPos[view] += direction;
+            if (sequenceCarouselPos[view] < 0) sequenceCarouselPos[view] = 0;
+            if (sequenceCarouselPos[view] > maxPosition) sequenceCarouselPos[view] = maxPosition;
+            
+            // Calculate translate percentage (each card is ~25% + gap)
+            const containerWidth = container.offsetWidth;
+            const cardWidth = containerWidth / cardsPerView;
+            const translateX = -sequenceCarouselPos[view] * cardWidth;
+            container.style.transform = `translateX(${translateX}px)`;
+            
+            updateSequenceNavButtons(view);
+        }
+
+        // Update navigation button states
+        function updateSequenceNavButtons(view) {
+            const viewElement = document.getElementById(`burst-sequence-${view}`);
+            if (!viewElement) return;
+            
+            const prevBtn = viewElement.querySelector('.sequence-nav-btn.prev');
+            const nextBtn = viewElement.querySelector('.sequence-nav-btn.next');
+            const container = viewElement.querySelector('.burst-sequence-container');
+            const cards = container.querySelectorAll('.sequence-card');
+            const totalCards = cards.length;
+            const cardsPerView = 4; // Show all 4 items
+            const maxPosition = Math.max(0, totalCards - cardsPerView);
+            
+            // Hide navigation buttons if all items fit on screen
+            if (totalCards <= cardsPerView) {
+                if (prevBtn) prevBtn.style.display = 'none';
+                if (nextBtn) nextBtn.style.display = 'none';
+            } else {
+                if (prevBtn) {
+                    prevBtn.disabled = sequenceCarouselPos[view] === 0;
+                    prevBtn.style.display = prevBtn.disabled ? 'none' : 'flex';
+                }
+                if (nextBtn) {
+                    nextBtn.disabled = sequenceCarouselPos[view] >= maxPosition;
+                    nextBtn.style.display = nextBtn.disabled ? 'none' : 'flex';
+                }
+            }
+        }
+
+        // Slider update function
+        function updateSlider(slider, sequenceId) {
+            const value = slider.value;
+            const container = slider.closest('.slider-container');
+            const srImage = container.querySelector('.slider-sr');
+            const divider = container.querySelector('.slider-divider');
+            
+            if (srImage) {
+                srImage.style.clipPath = `inset(0 ${100 - value}% 0 0)`;
+            }
+            if (divider) {
+                divider.style.left = `${value}%`;
+            }
+        }
+
         // Burst sequence interaction (hover to base frame, press to reveal HR)
         function initBurstSequence() {
             const sequences = {
@@ -2012,6 +2342,22 @@
                     ],
                     base: 'figs/roundabout/2025-05-17_S2C_17RMP_20250517_0_L2A.png',
                     sr: 'figs/roundabout/sr_sample_000.png',
+                    interval: 420
+                },
+                island: {
+                    frames: [
+                        'figs/island/2025-02-06_S2B_48PUV_20250206_0_L2A.png',
+                        'figs/island/2025-02-11_S2C_48PUV_20250211_0_L2A.png',
+                        'figs/island/2025-03-23_S2C_48PUV_20250323_0_L2A.png',
+                        'figs/island/2025-03-25_S2A_48PUV_20250325_0_L2A.png',
+                        'figs/island/2025-03-28_S2B_48PUV_20250328_0_L2A.png',
+                        'figs/island/2025-04-12_S2C_48PUV_20250412_0_L2A.png',
+                        'figs/island/2025-04-27_S2B_48PUV_20250427_0_L2A.png',
+                        'figs/island/2025-05-17_S2B_48PUV_20250517_0_L2A.png',
+                        'figs/island/2025-06-13_S2A_48PUV_20250613_0_L2A.png'
+                    ],
+                    base: 'figs/island/2025-04-12_S2C_48PUV_20250412_0_L2A.png',
+                    sr: 'figs/island/sr_sample_000.png',
                     interval: 420
                 }
             };
@@ -2172,6 +2518,9 @@
             updateUncertaintyCarousel();            // Initialize uncertainty carousel
             updateQualitativeCarousel();            // Initialize qualitative carousel
             initAbstractToggle();                    // Initialize abstract toggle text
+            resetSequenceCarousel();                 // Reset carousel to show all items
+            updateSequenceNavButtons('interactive'); // Initialize sequence carousel buttons
+            updateSequenceNavButtons('slider');      // Initialize sequence carousel buttons
         });
     </script>
 </body>
