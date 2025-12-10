@@ -1153,43 +1153,37 @@
             position: relative;
             max-width: 1100px;
             margin: 0 auto;
+            padding: 0 80px;
+        }
+        
+        .burst-sequence-wrapper {
             overflow: hidden;
         }
         
         .burst-sequence-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            display: flex;
             gap: 32px;
-            width: 100%;
-            transition: none;
+            width: max-content;
+            transition: transform 0.4s ease-in-out;
         }
         
         .burst-sequence-container .sequence-card {
-            width: 100%;
-        }
-        
-        /* For 4 items: force 2x2 grid */
-        .burst-sequence-container:has(.sequence-card:nth-child(4):last-child) {
-            grid-template-columns: repeat(2, 1fr);
-        }
-        
-        /* For 5 items: use 3 columns (creates 3+2 layout) */
-        .burst-sequence-container:has(.sequence-card:nth-child(5):last-child) {
-            grid-template-columns: repeat(3, 1fr);
-        }
-        
-        /* For 6+ items: auto-fit handles it naturally (3x2, 4x2, etc.) */
-        
-        @media (max-width: 1200px) {
-            /* On medium screens, max 2 columns for better size */
-            .burst-sequence-container:has(.sequence-card:nth-child(5):last-child) {
-                grid-template-columns: repeat(2, 1fr);
-            }
+            flex: 0 0 calc(33.333% - 22px);
+            min-width: 0;
+            max-width: calc(33.333% - 22px);
         }
         
         @media (max-width: 900px) {
-            .burst-sequence-container {
-                grid-template-columns: 1fr;
+            .burst-sequence-container .sequence-card {
+                flex: 0 0 calc(50% - 16px);
+                max-width: calc(50% - 16px);
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .burst-sequence-container .sequence-card {
+                flex: 0 0 100%;
+                max-width: 100%;
             }
         }
         
@@ -1204,7 +1198,7 @@
             height: 48px;
             border-radius: 50%;
             cursor: pointer;
-            display: none;
+            display: flex;
             align-items: center;
             justify-content: center;
             font-size: 20px;
@@ -1212,10 +1206,6 @@
             z-index: 10;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             transition: all 0.2s;
-        }
-        
-        .sequence-nav-btn:not(:disabled) {
-            display: flex;
         }
         
         .sequence-nav-btn:hover {
@@ -1230,11 +1220,11 @@
         }
         
         .sequence-nav-btn.prev {
-            left: -60px;
+            left: 10px;
         }
         
         .sequence-nav-btn.next {
-            right: -60px;
+            right: 10px;
         }
         
         @media (max-width: 1200px) {
@@ -1574,6 +1564,12 @@
                             <span class="sequence-label">LR Sequence</span>
                         </div>
                     </div>
+                    <div class="sequence-card">
+                        <div class="sequence-display" data-sequence="kjevik" role="button" tabindex="0" aria-pressed="false" aria-label="Kjevik burst: hover for base LR frame, press to show SR output">
+                            <img class="sequence-img" src="figs/kjevik/2025-04-01_S2C_32VMK_20250401_0_L2A.png" alt="Animated Kjevik LR burst frames" draggable="false" loading="lazy">
+                            <span class="sequence-label">LR Sequence</span>
+                        </div>
+                    </div>
                 </div>
                 <button class="sequence-nav-btn next" onclick="navigateSequence('interactive', 1)" aria-label="Next sequences">›</button>
             </div>
@@ -1609,6 +1605,14 @@
                         <img class="slider-lr" src="figs/island/2025-04-12_S2C_48PUV_20250412_0_L2A.png" alt="Island LR">
                         <img class="slider-sr" src="figs/island/sr_sample_000.png" alt="Island SR" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; clip-path: inset(0 50% 0 0);">
                         <input type="range" class="slider-control" min="0" max="100" value="50" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: ew-resize; z-index: 10;" oninput="updateSlider(this, 'island')">
+                        <div class="slider-divider" style="position: absolute; top: 0; left: 50%; width: 2px; height: 100%; background: white; box-shadow: 0 0 4px rgba(0,0,0,0.3); pointer-events: none; z-index: 5; transform: translateX(-50%);"></div>
+                    </div>
+                </div>
+                <div class="sequence-card">
+                    <div class="slider-container" style="position: relative; width: 100%; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
+                        <img class="slider-lr" src="figs/kjevik/2025-05-06_S2A_32VMK_20250506_1_L2A.png" alt="Kjevik LR">
+                        <img class="slider-sr" src="figs/kjevik/sr_sample_000.png" alt="Kjevik SR" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; clip-path: inset(0 50% 0 0);">
+                        <input type="range" class="slider-control" min="0" max="100" value="50" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: ew-resize; z-index: 10;" oninput="updateSlider(this, 'kjevik')">
                         <div class="slider-divider" style="position: absolute; top: 0; left: 50%; width: 2px; height: 100%; background: white; box-shadow: 0 0 4px rgba(0,0,0,0.3); pointer-events: none; z-index: 5; transform: translateX(-50%);"></div>
                     </div>
                 </div>
@@ -2235,21 +2239,29 @@
         // Navigate carousel
         function navigateSequence(view, direction) {
             const viewElement = document.getElementById(`burst-sequence-${view}`);
+            if (!viewElement) return;
+            
             const container = viewElement.querySelector('.burst-sequence-container');
+            if (!container) return;
+            
             const cards = container.querySelectorAll('.sequence-card');
             const totalCards = cards.length;
-            const cardsPerView = 4; // Show all 4 items
+            const cardsPerView = 3; // Show 3 items at a time
             const maxPosition = Math.max(0, totalCards - cardsPerView);
             
             sequenceCarouselPos[view] += direction;
             if (sequenceCarouselPos[view] < 0) sequenceCarouselPos[view] = 0;
             if (sequenceCarouselPos[view] > maxPosition) sequenceCarouselPos[view] = maxPosition;
             
-            // Calculate translate percentage (each card is ~25% + gap)
-            const containerWidth = container.offsetWidth;
-            const cardWidth = containerWidth / cardsPerView;
-            const translateX = -sequenceCarouselPos[view] * cardWidth;
-            container.style.transform = `translateX(${translateX}px)`;
+            // Calculate translate: each card width + gap (32px)
+            if (cards.length > 0 && cards[0]) {
+                const firstCard = cards[0];
+                const cardRect = firstCard.getBoundingClientRect();
+                const cardWidth = cardRect.width;
+                const gap = 32; // Match the gap in CSS
+                const translateX = -sequenceCarouselPos[view] * (cardWidth + gap);
+                container.style.transform = `translateX(${translateX}px)`;
+            }
             
             updateSequenceNavButtons(view);
         }
@@ -2264,7 +2276,7 @@
             const container = viewElement.querySelector('.burst-sequence-container');
             const cards = container.querySelectorAll('.sequence-card');
             const totalCards = cards.length;
-            const cardsPerView = 4; // Show all 4 items
+            const cardsPerView = 3; // Show 3 items at a time
             const maxPosition = Math.max(0, totalCards - cardsPerView);
             
             // Hide navigation buttons if all items fit on screen
@@ -2272,13 +2284,14 @@
                 if (prevBtn) prevBtn.style.display = 'none';
                 if (nextBtn) nextBtn.style.display = 'none';
             } else {
+                // Show buttons when navigation is possible
                 if (prevBtn) {
                     prevBtn.disabled = sequenceCarouselPos[view] === 0;
-                    prevBtn.style.display = prevBtn.disabled ? 'none' : 'flex';
+                    prevBtn.style.display = 'flex';
                 }
                 if (nextBtn) {
                     nextBtn.disabled = sequenceCarouselPos[view] >= maxPosition;
-                    nextBtn.style.display = nextBtn.disabled ? 'none' : 'flex';
+                    nextBtn.style.display = 'flex';
                 }
             }
         }
@@ -2309,7 +2322,6 @@
                         'figs/cph/2025-04-27_S2A_33UUB_20250427_0_L2A.png',
                         'figs/cph/2025-05-08_S2C_33UUB_20250508_0_L2A.png',
                         'figs/cph/2025-05-15_S2C_33UUB_20250515_0_L2A.png',
-                        'figs/cph/2025-05-25_S2C_33UUB_20250525_0_L2A.png',
                         'figs/cph/2025-06-19_S2B_33UUB_20250619_0_L2A.png'
                     ],
                     base: 'figs/cph/2025-05-08_S2C_33UUB_20250508_0_L2A.png',
@@ -2353,11 +2365,38 @@
                         'figs/island/2025-03-28_S2B_48PUV_20250328_0_L2A.png',
                         'figs/island/2025-04-12_S2C_48PUV_20250412_0_L2A.png',
                         'figs/island/2025-04-27_S2B_48PUV_20250427_0_L2A.png',
-                        'figs/island/2025-05-17_S2B_48PUV_20250517_0_L2A.png',
-                        'figs/island/2025-06-13_S2A_48PUV_20250613_0_L2A.png'
+                        'figs/island/2025-05-17_S2B_48PUV_20250517_0_L2A.png'
                     ],
                     base: 'figs/island/2025-04-12_S2C_48PUV_20250412_0_L2A.png',
                     sr: 'figs/island/sr_sample_000.png',
+                    interval: 420
+                },
+                kjevik: {
+                    frames: [
+                        'figs/kjevik/2025-04-01_S2C_32VMK_20250401_0_L2A.png',
+                        'figs/kjevik/2025-04-03_S2A_32VMK_20250403_0_L2A.png',
+                        'figs/kjevik/2025-04-04_S2C_32VMK_20250404_0_L2A.png',
+                        'figs/kjevik/2025-04-06_S2A_32VMK_20250406_1_L2A.png',
+                        'figs/kjevik/2025-04-06_S2B_32VMK_20250406_0_L2A.png',
+                        'figs/kjevik/2025-04-09_S2B_32VMK_20250409_0_L2A.png',
+                        'figs/kjevik/2025-04-26_S2A_32VMK_20250426_1_L2A.png',
+                        'figs/kjevik/2025-04-26_S2B_32VMK_20250426_0_L2A.png',
+                        'figs/kjevik/2025-04-29_S2B_32VMK_20250429_0_L2A.png',
+                        'figs/kjevik/2025-05-01_S2C_32VMK_20250501_0_L2A.png',
+                        'figs/kjevik/2025-05-06_S2A_32VMK_20250506_1_L2A.png',
+                        'figs/kjevik/2025-05-06_S2B_32VMK_20250506_0_L2A.png',
+                        'figs/kjevik/2025-05-11_S2C_32VMK_20250511_0_L2A.png',
+                        'figs/kjevik/2025-05-13_S2A_32VMK_20250513_0_L2A.png',
+                        'figs/kjevik/2025-05-16_S2A_32VMK_20250516_2_L2A.png',
+                        'figs/kjevik/2025-05-19_S2B_32VMK_20250519_0_L2A.png',
+                        'figs/kjevik/2025-05-31_S2C_32VMK_20250531_0_L2A.png',
+                        'figs/kjevik/2025-06-12_S2A_32VMK_20250612_0_L2A.png',
+                        'figs/kjevik/2025-06-25_S2A_32VMK_20250625_1_L2A.png',
+                        'figs/kjevik/2025-06-25_S2B_32VMK_20250625_0_L2A.png',
+                        'figs/kjevik/2025-06-30_S2C_32VMK_20250630_0_L2A.png'
+                    ],
+                    base: 'figs/kjevik/2025-05-06_S2A_32VMK_20250506_1_L2A.png',
+                    sr: 'figs/kjevik/sr_sample_000.png',
                     interval: 420
                 }
             };
