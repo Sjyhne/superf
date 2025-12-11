@@ -1157,9 +1157,49 @@
             overflow: hidden;
         }
         
+        /* Default: show interactive, hide slider */
+        #burst-sequence-interactive {
+            display: block;
+        }
+        #burst-sequence-slider {
+            display: none;
+        }
+        
+        /* Default button states: interactive active on desktop */
+        #sequence-toggle-interactive {
+            background: var(--primary) !important;
+            color: white !important;
+            border-color: var(--primary) !important;
+        }
+        #sequence-toggle-slider {
+            background: white !important;
+            color: var(--primary) !important;
+            border-color: #e5e7eb !important;
+        }
+        
         @media (max-width: 768px) {
             .burst-sequence-wrapper {
-                padding: 0 20px;
+                padding: 0 24px;
+                max-width: 800px;
+                width: 100%;
+                margin: 0 auto;
+            }
+            /* On mobile, default to slider view */
+            #burst-sequence-interactive {
+                display: none;
+            }
+            #burst-sequence-slider {
+                display: block;
+            }
+            /* Hide interactive button on mobile */
+            #sequence-toggle-interactive {
+                display: none !important;
+            }
+            /* On mobile, slider button is active and only visible button */
+            #sequence-toggle-slider {
+                background: var(--primary) !important;
+                color: white !important;
+                border-color: var(--primary) !important;
             }
         }
         
@@ -1180,11 +1220,34 @@
             .burst-sequence-container {
                 gap: 0;
                 justify-content: flex-start;
+                width: 100%;
             }
             .burst-sequence-container .sequence-card {
                 flex: 0 0 100%;
                 min-width: 100%;
                 max-width: 100%;
+                width: 100%;
+                padding: 0;
+                margin: 0;
+            }
+            .slider-container {
+                width: 100% !important;
+                max-width: 100% !important;
+                aspect-ratio: 1;
+                position: relative;
+                margin: 0;
+                border-radius: 16px !important;
+            }
+            .slider-container .slider-lr {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                display: block;
+            }
+            .slider-container .slider-sr {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
             }
         }
         
@@ -1527,7 +1590,7 @@
             </p>
             <div style="text-align: center; margin: 0 auto 20px auto;">
                 <div style="display: inline-flex; gap: 12px; margin-bottom: 20px;">
-                    <button id="sequence-toggle-interactive" class="sequence-view-toggle active" onclick="switchSequenceView('interactive')" style="padding: 10px 24px; border: 2px solid var(--primary); background: var(--primary); color: white; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 600; transition: all 0.2s; min-width: 140px;">
+                    <button id="sequence-toggle-interactive" class="sequence-view-toggle" onclick="switchSequenceView('interactive')" style="padding: 10px 24px; border: 2px solid var(--primary); background: var(--primary); color: white; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 600; transition: all 0.2s; min-width: 140px;">
                         Interactive
                     </button>
                     <button id="sequence-toggle-slider" class="sequence-view-toggle" onclick="switchSequenceView('slider')" style="padding: 10px 24px; border: 2px solid #e5e7eb; background: white; color: var(--primary); border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 600; transition: all 0.2s; min-width: 140px;">
@@ -1538,7 +1601,7 @@
                     Each tile loops through the LR burst automatically. <strong>Hover</strong> (or focus) to freeze on our base LR frame, then <strong>press / long-press</strong> to show the SuperF SR output. Let go to resume the LR sequence.
                 </p>
             </div>
-            <div id="burst-sequence-interactive" class="burst-sequence-wrapper" style="margin-top: 0; display: block;">
+            <div id="burst-sequence-interactive" class="burst-sequence-wrapper" style="margin-top: 0;">
                 <button class="sequence-nav-btn prev" onclick="navigateSequence('interactive', -1)" aria-label="Previous sequences">‹</button>
                 <div class="burst-sequence-container">
                     <div class="sequence-card">
@@ -1574,7 +1637,7 @@
                 </div>
                 <button class="sequence-nav-btn next" onclick="navigateSequence('interactive', 1)" aria-label="Next sequences">›</button>
             </div>
-            <div id="burst-sequence-slider" class="burst-sequence-wrapper" style="margin-top: 0; display: none;">
+            <div id="burst-sequence-slider" class="burst-sequence-wrapper" style="margin-top: 0;">
                 <button class="sequence-nav-btn prev" onclick="navigateSequence('slider', -1)" aria-label="Previous sequences">‹</button>
                 <div class="burst-sequence-container">
                 <div class="sequence-card">
@@ -2256,8 +2319,11 @@
             const cards = container.querySelectorAll('.sequence-card');
             const totalCards = cards.length;
             // Show 1 card on phones (<=768px), 3 cards on desktop
-            const cardsPerView = window.innerWidth <= 768 ? 1 : 3;
-            const maxPosition = Math.max(0, totalCards - cardsPerView);
+            const isMobile = window.innerWidth <= 768;
+            const cardsPerView = isMobile ? 1 : 3;
+            // For mobile: maxPosition = totalCards - 1 (to show all cards: positions 0 to totalCards-1)
+            // For desktop: maxPosition = totalCards - cardsPerView
+            const maxPosition = isMobile ? Math.max(0, totalCards - 1) : Math.max(0, totalCards - cardsPerView);
             
             sequenceCarouselPos[view] += direction;
             if (sequenceCarouselPos[view] < 0) sequenceCarouselPos[view] = 0;
@@ -2267,18 +2333,9 @@
             if (cards.length > 0 && cards[0]) {
                 const firstCard = cards[0];
                 const isMobile = window.innerWidth <= 768;
-                let cardWidth;
-                if (isMobile) {
-                    // On mobile, use wrapper width minus padding for accurate card width
-                    const wrapper = container.closest('.burst-sequence-wrapper');
-                    const wrapperStyle = window.getComputedStyle(wrapper);
-                    const paddingLeft = parseFloat(wrapperStyle.paddingLeft) || 0;
-                    const paddingRight = parseFloat(wrapperStyle.paddingRight) || 0;
-                    cardWidth = wrapper.clientWidth - paddingLeft - paddingRight;
-                } else {
-                    const cardRect = firstCard.getBoundingClientRect();
-                    cardWidth = cardRect.width;
-                }
+                // Always use the actual rendered card width for accuracy
+                const cardRect = firstCard.getBoundingClientRect();
+                const cardWidth = cardRect.width;
                 const gap = isMobile ? 0 : 32; // No gap on mobile when cards are 100% width
                 const translateX = -sequenceCarouselPos[view] * (cardWidth + gap);
                 container.style.transform = `translateX(${translateX}px)`;
@@ -2298,8 +2355,11 @@
             const cards = container.querySelectorAll('.sequence-card');
             const totalCards = cards.length;
             // Show 1 card on phones (<=768px), 3 cards on desktop
-            const cardsPerView = window.innerWidth <= 768 ? 1 : 3;
-            const maxPosition = Math.max(0, totalCards - cardsPerView);
+            const isMobile = window.innerWidth <= 768;
+            const cardsPerView = isMobile ? 1 : 3;
+            // For mobile: maxPosition = totalCards - 1 (to show all cards: positions 0 to totalCards-1)
+            // For desktop: maxPosition = totalCards - cardsPerView
+            const maxPosition = isMobile ? Math.max(0, totalCards - 1) : Math.max(0, totalCards - cardsPerView);
             
             // Hide navigation buttons if all items fit on screen
             if (totalCards <= cardsPerView) {
@@ -2578,20 +2638,40 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            // Set initial view based on screen size BEFORE initializing other components
+            const isMobile = window.innerWidth <= 768;
+            if (isMobile) {
+                switchSequenceView('slider');
+            } else {
+                switchSequenceView('interactive');
+            }
+            
             initBurstSequence();                    // For LR sequence interaction
             updateUncertaintyCarousel();            // Initialize uncertainty carousel
             updateQualitativeCarousel();            // Initialize qualitative carousel
             initAbstractToggle();                    // Initialize abstract toggle text
             resetSequenceCarousel();                 // Reset carousel to show all items
+            
             updateSequenceNavButtons('interactive'); // Initialize sequence carousel buttons
             updateSequenceNavButtons('slider');      // Initialize sequence carousel buttons
         });
 
         // Update carousel navigation on window resize
         let resizeTimeout;
+        let lastMobileState = window.innerWidth <= 768;
         window.addEventListener('resize', () => {
             clearTimeout(resizeTimeout);
             resizeTimeout = setTimeout(() => {
+                const isMobile = window.innerWidth <= 768;
+                // Switch view if crossing mobile/desktop threshold
+                if (isMobile !== lastMobileState) {
+                    if (isMobile) {
+                        switchSequenceView('slider');
+                    } else {
+                        switchSequenceView('interactive');
+                    }
+                    lastMobileState = isMobile;
+                }
                 updateSequenceNavButtons('interactive');
                 updateSequenceNavButtons('slider');
             }, 250);
