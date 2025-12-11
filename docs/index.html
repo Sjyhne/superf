@@ -1168,14 +1168,15 @@
         }
         
         .burst-sequence-container .sequence-card {
-            flex: 0 0 calc(33.333% - 22px);
-            min-width: 0;
-            max-width: calc(33.333% - 22px);
+            flex: 0 0 300px;
+            min-width: 300px;
+            max-width: 300px;
         }
         
         @media (max-width: 900px) {
             .burst-sequence-container .sequence-card {
                 flex: 0 0 calc(50% - 16px);
+                min-width: calc(50% - 16px);
                 max-width: calc(50% - 16px);
             }
         }
@@ -1183,6 +1184,7 @@
         @media (max-width: 600px) {
             .burst-sequence-container .sequence-card {
                 flex: 0 0 100%;
+                min-width: 100%;
                 max-width: 100%;
             }
         }
@@ -2409,7 +2411,10 @@
                 }
             };
 
-            const displays = document.querySelectorAll('.sequence-display');
+            const interactiveContainer = document.getElementById('burst-sequence-interactive');
+            if (!interactiveContainer) return;
+            
+            const displays = interactiveContainer.querySelectorAll('.sequence-display');
             if (!displays.length) return;
 
             displays.forEach((display) => {
