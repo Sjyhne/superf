@@ -1154,10 +1154,13 @@
             max-width: 1100px;
             margin: 0 auto;
             padding: 0 80px;
+            overflow: hidden;
         }
         
-        .burst-sequence-wrapper {
-            overflow: hidden;
+        @media (max-width: 768px) {
+            .burst-sequence-wrapper {
+                padding: 0 20px;
+            }
         }
         
         .burst-sequence-container {
@@ -1173,15 +1176,11 @@
             max-width: 300px;
         }
         
-        @media (max-width: 900px) {
-            .burst-sequence-container .sequence-card {
-                flex: 0 0 calc(50% - 16px);
-                min-width: calc(50% - 16px);
-                max-width: calc(50% - 16px);
+        @media (max-width: 768px) {
+            .burst-sequence-container {
+                gap: 0;
+                justify-content: flex-start;
             }
-        }
-        
-        @media (max-width: 600px) {
             .burst-sequence-container .sequence-card {
                 flex: 0 0 100%;
                 min-width: 100%;
@@ -2256,19 +2255,31 @@
             
             const cards = container.querySelectorAll('.sequence-card');
             const totalCards = cards.length;
-            const cardsPerView = 3; // Show 3 items at a time
+            // Show 1 card on phones (<=768px), 3 cards on desktop
+            const cardsPerView = window.innerWidth <= 768 ? 1 : 3;
             const maxPosition = Math.max(0, totalCards - cardsPerView);
             
             sequenceCarouselPos[view] += direction;
             if (sequenceCarouselPos[view] < 0) sequenceCarouselPos[view] = 0;
             if (sequenceCarouselPos[view] > maxPosition) sequenceCarouselPos[view] = maxPosition;
             
-            // Calculate translate: each card width + gap (32px)
+            // Calculate translate: each card width + gap (32px on desktop, 0 on mobile)
             if (cards.length > 0 && cards[0]) {
                 const firstCard = cards[0];
-                const cardRect = firstCard.getBoundingClientRect();
-                const cardWidth = cardRect.width;
-                const gap = 32; // Match the gap in CSS
+                const isMobile = window.innerWidth <= 768;
+                let cardWidth;
+                if (isMobile) {
+                    // On mobile, use wrapper width minus padding for accurate card width
+                    const wrapper = container.closest('.burst-sequence-wrapper');
+                    const wrapperStyle = window.getComputedStyle(wrapper);
+                    const paddingLeft = parseFloat(wrapperStyle.paddingLeft) || 0;
+                    const paddingRight = parseFloat(wrapperStyle.paddingRight) || 0;
+                    cardWidth = wrapper.clientWidth - paddingLeft - paddingRight;
+                } else {
+                    const cardRect = firstCard.getBoundingClientRect();
+                    cardWidth = cardRect.width;
+                }
+                const gap = isMobile ? 0 : 32; // No gap on mobile when cards are 100% width
                 const translateX = -sequenceCarouselPos[view] * (cardWidth + gap);
                 container.style.transform = `translateX(${translateX}px)`;
             }
@@ -2286,7 +2297,8 @@
             const container = viewElement.querySelector('.burst-sequence-container');
             const cards = container.querySelectorAll('.sequence-card');
             const totalCards = cards.length;
-            const cardsPerView = 3; // Show 3 items at a time
+            // Show 1 card on phones (<=768px), 3 cards on desktop
+            const cardsPerView = window.innerWidth <= 768 ? 1 : 3;
             const maxPosition = Math.max(0, totalCards - cardsPerView);
             
             // Hide navigation buttons if all items fit on screen
@@ -2573,6 +2585,16 @@
             resetSequenceCarousel();                 // Reset carousel to show all items
             updateSequenceNavButtons('interactive'); // Initialize sequence carousel buttons
             updateSequenceNavButtons('slider');      // Initialize sequence carousel buttons
+        });
+
+        // Update carousel navigation on window resize
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                updateSequenceNavButtons('interactive');
+                updateSequenceNavButtons('slider');
+            }, 250);
         });
     </script>
 </body>
