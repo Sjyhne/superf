@@ -186,6 +186,12 @@
             border-color: var(--primary) !important;
         }
         
+        .sequence-view-toggle.active {
+            background-color: var(--primary) !important;
+            color: white !important;
+            border-color: var(--primary) !important;
+        }
+        
         .method-toggle-btn:hover:not(.active),
         .sequence-view-toggle:hover:not(.active) {
             background-color: #f9fafb !important;
@@ -1386,10 +1392,10 @@
                         <span style="font-size: 13px; color: #9ca3af;">*Corresponding authors: <a href="mailto:sander.jyhne@kartverket.no" style="color: #6b7280; text-decoration: none; border-bottom: 1px solid rgba(59, 130, 246, 0.3);">sander.jyhne@kartverket.no</a>, <a href="mailto:nila@di.ku.dk" style="color: #6b7280; text-decoration: none; border-bottom: 1px solid rgba(59, 130, 246, 0.3);">nila@di.ku.dk</a></span>
                     </p>
                     <div class="links">
+                        <a href="https://www.arxiv.org/abs/2512.09115" class="btn secondary" target="_blank" rel="noopener noreferrer">Paper</a>
+                        <a href="https://huggingface.co/spaces/sjyhne/superf_demo" class="btn secondary" target="_blank" rel="noopener noreferrer">Demo</a>
                         <a class="btn disabled">Code</a>
                         <a class="btn disabled">Dataset</a>
-                        <a href="SuperF.pdf" class="btn secondary">Paper</a>
-                        <a href="https://huggingface.co/spaces/sjyhne/superf_demo" class="btn secondary" target="_blank" rel="noopener noreferrer">Demo</a>
                     </div>
                     <p style="font-size: 13px; color: #9ca3af; margin-top: 12px; margin-bottom: 0;">
                         *Code and datasets are coming soon.
@@ -1714,7 +1720,7 @@
         </section>
 
         <section id="demo">
-            <h2>Demo App</h2>
+            <h2>Demo App: Super-resolving any Place on Earth</h2>
             <p style="max-width: 800px; margin: 0 auto 24px auto;">
                 Try SuperF in your browser: choose a location and time period, and inspect the super-resolved render directly.
             </p>
@@ -1727,15 +1733,12 @@
 
         <section>
             <h2>Citation</h2>
-            <pre style="background: #1f2937; color: #f3f4f6; padding: 24px; border-radius: 12px; overflow-x: auto;"><code>@misc{jyhne2025superfneuralimplicitfields,
-                title={SuperF: Neural Implicit Fields for Multi-Image Super-Resolution}, 
-                author={Sander Riisøen Jyhne and Christian Igel and Morten Goodwin and Per-Arne Andersen and Serge Belongie and Nico Lang},
-                year={2025},
-                eprint={2512.09115},
-                archivePrefix={arXiv},
-                primaryClass={cs.CV},
-                url={https://arxiv.org/abs/2512.09115}, 
-          }</code></pre>
+            <pre style="background: #1f2937; color: #f3f4f6; padding: 24px; border-radius: 12px; overflow-x: auto;"><code>@article{jyhne2025superf,
+  title={SuperF: Neural Implicit Fields for Multi-Image Super-Resolution},
+  author={Jyhne, Sander Riis{\o}en and Igel, Christian and Goodwin, Morten and Andersen, Per-Arne and Belongie, Serge and Lang, Nico},
+  journal={arXiv preprint arXiv:2512.09115},
+  year={2025}
+}</code></pre>
         </section>
 
         <section>
@@ -2302,7 +2305,7 @@
                 interactiveBtn.style.color = 'white';
                 interactiveBtn.style.borderColor = 'var(--primary)';
                 if (instructions) {
-                    instructions.textContent = 'Each tile loops through the LR burst automatically. Hover (or focus) to freeze on our base LR frame, then press / long-press to show the SuperF SR output. Let go to resume the LR sequence.';
+                    instructions.innerHTML = 'Each tile loops through the LR burst automatically. <strong>Hover</strong> (or focus) to freeze on our base LR frame, then <strong>press / long-press</strong> to show the SuperF SR output. Let go to resume the LR sequence.';
                 }
                 updateSequenceNavButtons('interactive');
             }
