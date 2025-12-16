@@ -2283,12 +2283,12 @@
                 sliderView.style.display = 'block';
                 interactiveBtn.classList.remove('active');
                 sliderBtn.classList.add('active');
-                interactiveBtn.style.background = 'white';
-                interactiveBtn.style.color = 'var(--primary)';
-                interactiveBtn.style.borderColor = '#e5e7eb';
-                sliderBtn.style.background = 'var(--primary)';
-                sliderBtn.style.color = 'white';
-                sliderBtn.style.borderColor = 'var(--primary)';
+                interactiveBtn.style.setProperty('background', 'white', 'important');
+                interactiveBtn.style.setProperty('color', 'var(--primary)', 'important');
+                interactiveBtn.style.setProperty('border', '2px solid #e5e7eb', 'important');
+                sliderBtn.style.setProperty('background', 'var(--primary)', 'important');
+                sliderBtn.style.setProperty('color', 'white', 'important');
+                sliderBtn.style.setProperty('border', '2px solid var(--primary)', 'important');
                 if (instructions) {
                     instructions.textContent = 'Drag the slider to compare the low-resolution input (left) with the super-resolved output (right).';
                 }
@@ -2298,12 +2298,12 @@
                 sliderView.style.display = 'none';
                 sliderBtn.classList.remove('active');
                 interactiveBtn.classList.add('active');
-                sliderBtn.style.background = 'white';
-                sliderBtn.style.color = 'var(--primary)';
-                sliderBtn.style.borderColor = '#e5e7eb';
-                interactiveBtn.style.background = 'var(--primary)';
-                interactiveBtn.style.color = 'white';
-                interactiveBtn.style.borderColor = 'var(--primary)';
+                sliderBtn.style.setProperty('background', 'white', 'important');
+                sliderBtn.style.setProperty('color', 'var(--primary)', 'important');
+                sliderBtn.style.setProperty('border', '2px solid #e5e7eb', 'important');
+                interactiveBtn.style.setProperty('background', 'var(--primary)', 'important');
+                interactiveBtn.style.setProperty('color', 'white', 'important');
+                interactiveBtn.style.setProperty('border', '2px solid var(--primary)', 'important');
                 if (instructions) {
                     instructions.innerHTML = 'Each tile loops through the LR burst automatically. <strong>Hover</strong> (or focus) to freeze on our base LR frame, then <strong>press / long-press</strong> to show the SuperF SR output. Let go to resume the LR sequence.';
                 }
