@@ -1,0 +1,86 @@
+{
+  "data_schema": {
+    "master_data.json": {
+      "description": "Main experiment metadata and checkpoint index",
+      "structure": {
+        "experiment_info": {
+          "total_iterations": "int - Total training iterations completed",
+          "num_checkpoints": "int - Number of saved checkpoints",
+          "num_samples": "int - Number of image samples",
+          "created_at": "string - ISO timestamp of generation",
+          "checkpoint_intervals": "array[int] - List of iteration numbers with saved data",
+          "includes_initial_state": "boolean - Whether iteration 0 is included",
+          "image_sizes": "object - Available image size formats"
+        },
+        "checkpoints": "array[object] - Summary of each checkpoint"
+      }
+    },
+    "loss_evolution.json": {
+      "description": "Complete training loss history",
+      "structure": {
+        "iterations": "array[int] - Iteration numbers",
+        "recon_losses": "array[float|null] - Reconstruction loss values (null for iter 0)",
+        "trans_losses": "array[float|null] - Translation loss values (null for iter 0)",
+        "total_losses": "array[float|null] - Total loss values (null for iter 0)",
+        "has_initial_point": "boolean - Whether iteration 0 is included"
+      }
+    },
+    "alignment_evolution.json": {
+      "description": "Alignment shift evolution throughout training",
+      "structure": {
+        "iterations": "array[int] - Checkpoint iteration numbers",
+        "global_stats": {
+          "mean_dx": "array[float] - Mean horizontal shift per iteration",
+          "mean_dy": "array[float] - Mean vertical shift per iteration",
+          "mean_magnitude": "array[float] - Mean shift magnitude per iteration",
+          "convergence": "array[float] - Convergence metric (lower = more aligned)"
+        },
+        "individual_samples": {
+          "sample_X": {
+            "dx": "array[float] - Horizontal shifts for this sample",
+            "dy": "array[float] - Vertical shifts for this sample",
+            "magnitude": "array[float] - Shift magnitudes for this sample",
+            "angle_degrees": "array[float] - Shift angles in degrees"
+          }
+        }
+      }
+    },
+    "image_evolution.json": {
+      "description": "Image paths and quality metrics evolution",
+      "structure": {
+        "iterations": "array[int] - Checkpoint iteration numbers",
+        "available_sizes": "array[string] - Available image sizes ['web', 'fullscreen', 'thumbnail']",
+        "image_paths": {
+          "sample_X": {
+            "lr_reference": {
+              "web": "string - Path to 800x800 LR reference",
+              "fullscreen": "string - Path to 1200x1200 LR reference",
+              "thumbnail": "string - Path to 200x200 LR reference"
+            },
+            "sr_progression": {
+              "web": "array[string] - Paths to 800x800 SR outputs per iteration",
+              "fullscreen": "array[string] - Paths to 1200x1200 SR outputs per iteration",
+              "thumbnail": "array[string] - Paths to 200x200 SR outputs per iteration"
+            }
+          }
+        }
+      }
+    }
+  },
+  "access_patterns": {
+    "get_image_at_iteration": {
+      "description": "Get image path for specific sample at specific iteration",
+      "example": "image_evolution.image_paths.sample_0.sr_progression.web[iteration_index]",
+      "parameters": {
+        "sample_id": "int - Sample identifier (0 to num_samples-1)",
+        "iteration_index": "int - Index in iterations array (0 to num_checkpoints-1)",
+        "size": "string - Image size ('web', 'fullscreen', 'thumbnail')"
+      }
+    },
+    "get_loss_at_iteration": {
+      "description": "Get loss values for specific iteration",
+      "example": "loss_evolution.recon_losses[iteration_index]",
+      "note": "Returns null for iteration 0, float values for training iterations"
+    }
+  }
+}

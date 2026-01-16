@@ -174,13 +174,21 @@ cython_debug/
 
 data/
 final_mask_vis/
+<<<<<<< HEAD
+=======
+
+*.png
+>>>>>>> keep-20250930-073423
 results/
 wandb/
 *.zip
 SyntheticBurstVal/
 burst_test_folder/
 deep_rep/
+<<<<<<< HEAD
 handheld/
+=======
+>>>>>>> keep-20250930-073423
 test_burst/
 *.zip
 *.tar
@@ -224,4 +232,13 @@ pioneer_centre*
 vøra*
 real_world_data/
 samle_mappe
+<<<<<<< HEAD
 worldstrat_datasets
+=======
+worldstrat_datasets
+handheld/results*
+handheld/single_exposure_data/
+handheld/synthetic burst/
+handheld/handheld_synthetic/
+handheld/data
+>>>>>>> keep-20250930-073423
