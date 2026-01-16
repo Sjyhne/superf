@@ -67,7 +67,7 @@ def get_dataset(args, name='satburst', keep_in_memory=True):
     elif name == 'burst_synth':
         return SyntheticBurstVal(data_dir=args.root_burst_synth, 
                                  sample_id=args.sample_id, keep_in_memory=keep_in_memory, 
-                                 scale_factor=args.scale_factor, df=args.df)
+                                 scale_factor=args.scale_factor, df=args.df, num_samples=args.num_samples)
     elif name == 'worldstrat':
         return WorldStratDatasetFrame(data_dir=args.root_worldstrat, 
                                       area_name=args.area_name, hr_size=args.worldstrat_hr_size)
@@ -225,7 +225,7 @@ class SRData(torch.utils.data.Dataset):
 
 
 class SyntheticBurstVal(torch.utils.data.Dataset):
-    def __init__(self, data_dir, sample_id, keep_in_memory=True, scale_factor=4, df=4):
+    def __init__(self, data_dir, sample_id, keep_in_memory=True, scale_factor=4, df=4, num_samples=None):
         """
         Initialize SyntheticBurstVal dataset.
         
@@ -235,12 +235,14 @@ class SyntheticBurstVal(torch.utils.data.Dataset):
             keep_in_memory: Whether to load all images into memory
             scale_factor: Scaling factor for coordinate generation
             df: Downsampling factor for HR image resizing (HR = df * LR)
+            num_samples: Number of burst frames to use (if None, use all available)
         """
         self.data_dir = Path(data_dir)
         self.keep_in_memory = keep_in_memory
         self.sample_id = sample_id
         self.scale_factor = scale_factor
         self.df = df
+        self.num_samples = num_samples
 
         self.rggb = True
 
@@ -256,7 +258,6 @@ class SyntheticBurstVal(torch.utils.data.Dataset):
         
         # Find all burst images
         self.burst_paths = sorted(list(self.burst_dir.glob('im_raw_*.png')))
-        self.burst_size = len(self.burst_paths)
         
         # Extract frame indices from filenames
         self.frame_indices = []
@@ -264,6 +265,13 @@ class SyntheticBurstVal(torch.utils.data.Dataset):
             # Extract the frame index from the filename (im_raw_XX.png)
             frame_idx = int(path.stem.split('_')[-1])
             self.frame_indices.append(frame_idx)
+        
+        # Limit the number of frames based on num_samples parameter
+        if self.num_samples is not None and self.num_samples < len(self.frame_indices):
+            self.frame_indices = self.frame_indices[:self.num_samples]
+            self.burst_paths = self.burst_paths[:self.num_samples]
+        
+        self.burst_size = len(self.frame_indices)
         
         # Load burst images first
         if self.keep_in_memory:
@@ -674,17 +682,39 @@ class WorldStratTestDataset(torch.utils.data.Dataset):
         self.hr_image = self._load_image(self.hr_path)
         self.hr_h, self.hr_w = self.hr_image.shape[:2]
         
-        # Load first LR image to determine size and make it square (following SRData pattern)
-        first_lr_img, _, _ = self._load_and_standardize_image(self.lr_paths[0])
-        original_lr_size = first_lr_img.shape[:2]
+        # Load first LR image to determine original size
+        first_lr_img = self._load_image(self.lr_paths[0])
+        original_lr_h, original_lr_w = first_lr_img.shape[:2]
+        print(f"Original LR image size: {original_lr_h}x{original_lr_w}")
         
-        # Make LR images square by using the larger dimension (following SRData pattern)
-        self.lr_size = max(original_lr_size)  # Use larger dimension for square images
-        self.target_lr_size = (self.lr_size, self.lr_size)
+        # LR will be center cropped to 64x64 (no resize)
+        # We want to center crop from the original size
+        lr_crop_size = min(original_lr_h, original_lr_w)
+        # But limit to 64x64 max
+        self.lr_crop_size = min(lr_crop_size, 64)
+        print(f"Will center crop LR images to {self.lr_crop_size}x{self.lr_crop_size} (no resize)")
         
-        # Calculate actual scale factor based on HR/LR ratio (following SRData pattern)
-        actual_scale_factor = self.hr_h / self.lr_size
-        self.scale_factor = [actual_scale_factor]  # Use actual scale factor as list like SRData
+        # For HR: First resize to 4x the original LR resolution
+        # This ensures HR and LR are at the correct relative scale
+        target_hr_h = original_lr_h * 4
+        target_hr_w = original_lr_w * 4
+        print(f"Resizing HR image from {self.hr_h}x{self.hr_w} to {target_hr_h}x{target_hr_w} (4x LR resolution)")
+        hr_np = self.hr_image.cpu().numpy() if isinstance(self.hr_image, torch.Tensor) else self.hr_image.numpy()
+        hr_resized = cv2.resize(hr_np, (target_hr_w, target_hr_h), interpolation=cv2.INTER_AREA)
+        self.hr_image = torch.from_numpy(hr_resized).float()
+        
+        # Now center crop HR to 4x the LR crop size
+        hr_crop_size = self.lr_crop_size * 4
+        print(f"Center cropping HR image to {hr_crop_size}x{hr_crop_size}")
+        self.hr_image = self._center_crop(self.hr_image, hr_crop_size)
+        self.hr_h, self.hr_w = self.hr_image.shape[:2]
+        
+        # Set LR size
+        self.lr_size = self.lr_crop_size
+        self.target_lr_size = (self.lr_crop_size, self.lr_crop_size)
+        
+        # Set scale factor to exactly 4.0
+        self.scale_factor = [4.0]  # Fixed scale factor of 4x
         
         # Generate coordinate grids following SRData pattern
         # HR coordinates
@@ -698,21 +728,38 @@ class WorldStratTestDataset(torch.utils.data.Dataset):
         self.lr_coords = torch.FloatTensor(self.lr_coords).cuda()
         
         # Initialize lists for LR data (following SRData pattern)
-        self.means = []
-        self.stds = []
         self.lr_image_sizes = []
         
+        # Step 1: Load all LR images (cropped) to compute global statistics
+        print("Computing global mean/std across all LR samples...")
+        all_cropped_images = []
+        for lr_path in self.lr_paths:
+            # Load image and center crop (no resize!)
+            lr_img = self._load_image(lr_path)
+            lr_img = self._center_crop(lr_img, self.lr_crop_size)
+            all_cropped_images.append(lr_img)
+        
+        # Compute global mean and std across all LR images (per channel)
+        # Stack all images and compute statistics
+        all_images_tensor = torch.stack(all_cropped_images)  # [N, H, W, C]
+        
+        # Compute mean and std per channel across all images and pixels
+        # Shape: [C] for mean and std
+        self.global_mean = all_images_tensor.mean(dim=(0, 1, 2))  # Mean across N, H, W
+        self.global_std = all_images_tensor.std(dim=(0, 1, 2))   # Std across N, H, W
+        self.global_std = torch.clamp(self.global_std, min=1e-8)  # Avoid division by zero
+        
+        print(f"Global mean (per channel): {self.global_mean}")
+        print(f"Global std (per channel): {self.global_std}")
+        
+        # Step 2: Standardize all images using global stats
         if self.keep_in_memory:
             self.lr_images = []
-            for lr_path in self.lr_paths:
-                # Load image and resize to square size first
-                lr_img = self._load_image(lr_path)
-                lr_img = self._resize_to_consistent_size(lr_img, self.target_lr_size)
-                # Then standardize the resized image
-                lr_img, mean, std = get_and_standardize_image(lr_img)
-                self.lr_images.append(lr_img)
-                self.means.append(mean)
-                self.stds.append(std)
+            for lr_img in all_cropped_images:
+                # Standardize using global stats (reshape for broadcasting)
+                # lr_img: [H, W, C], global_mean/std: [C]
+                lr_img_std = (lr_img - self.global_mean) / self.global_std
+                self.lr_images.append(lr_img_std)
                 self.lr_image_sizes.append(self.target_lr_size)
         else:
             # Set consistent size for all images
@@ -736,10 +783,20 @@ class WorldStratTestDataset(torch.utils.data.Dataset):
         
         return img
     
+    def _center_crop(self, img, crop_size):
+        """Center crop an image to the specified size."""
+        h, w = img.shape[:2]
+        start_h = (h - crop_size) // 2
+        start_w = (w - crop_size) // 2
+        return img[start_h:start_h + crop_size, start_w:start_w + crop_size]
+    
     def _load_and_standardize_image(self, path):
-        """Load and standardize an image."""
+        """Load and standardize an image using global stats."""
         img = self._load_image(path)
-        return get_and_standardize_image(img)
+        img = self._center_crop(img, self.lr_crop_size)
+        # Standardize using global stats
+        img_std = (img - self.global_mean) / self.global_std
+        return img_std
     
     def __len__(self):
         return len(self.lr_paths)
@@ -763,21 +820,20 @@ class WorldStratTestDataset(torch.utils.data.Dataset):
         
         if self.keep_in_memory:
             lr_img = self.lr_images[idx]
-            mean = self.means[idx]
-            std = self.stds[idx]
         else:
-            # Load image and resize to square size first
+            # Load image and center crop (no resize!)
             lr_img = self._load_image(lr_path)
-            lr_img = self._resize_to_consistent_size(lr_img, self.target_lr_size)
-            # Then standardize the resized image
-            lr_img, mean, std = get_and_standardize_image(lr_img)
+            # Center crop to square - this is the final size
+            lr_img = self._center_crop(lr_img, self.lr_crop_size)
+            # Standardize using global stats
+            lr_img = (lr_img - self.global_mean) / self.global_std
         
         return {
             'input': input_coordinates,
             'lr_target': lr_img,
             'scale_factor': scale_factor,
-            'mean': mean,
-            'std': std,
+            'mean': self.global_mean,  # Use global mean
+            'std': self.global_std,     # Use global std
             'sample_id': idx,  # Use index as sample_id (following SRData pattern)
             'shifts': {
                 'dx_lr': 0.0,  # No ground truth shifts available
@@ -802,11 +858,12 @@ class WorldStratTestDataset(torch.utils.data.Dataset):
         if self.keep_in_memory:
             return self.lr_images[index].permute(2, 0, 1)
         else:
-            # Load image and resize to square size first
+            # Load image and center crop (no resize!)
             lr_img = self._load_image(self.lr_paths[index])
-            lr_img = self._resize_to_consistent_size(lr_img, self.target_lr_size)
-            # Then standardize the resized image
-            lr_img, _, _ = get_and_standardize_image(lr_img)
+            # Center crop to square - this is the final size
+            lr_img = self._center_crop(lr_img, self.lr_crop_size)
+            # Standardize using global stats
+            lr_img = (lr_img - self.global_mean) / self.global_std
             return lr_img.permute(2, 0, 1)
     
     def get_lr_sample_hwc(self, index):
@@ -814,36 +871,23 @@ class WorldStratTestDataset(torch.utils.data.Dataset):
         if self.keep_in_memory:
             return self.lr_images[index]  # Already in HWC format
         else:
-            # Load image and resize to square size first
+            # Load image and center crop (no resize!)
             lr_img = self._load_image(self.lr_paths[index])
-            lr_img = self._resize_to_consistent_size(lr_img, self.target_lr_size)
-            # Then standardize the resized image
-            lr_img, _, _ = get_and_standardize_image(lr_img)
+            # Center crop to square - this is the final size
+            lr_img = self._center_crop(lr_img, self.lr_crop_size)
+            # Standardize using global stats
+            lr_img = (lr_img - self.global_mean) / self.global_std
             return lr_img  # Return in HWC format
     
     def get_lr_mean(self, index):
-        """Get the mean for unstandardization."""
-        if self.keep_in_memory:
-            return self.means[index]
-        else:
-            # Load image and resize to square size first
-            lr_img = self._load_image(self.lr_paths[index])
-            lr_img = self._resize_to_consistent_size(lr_img, self.target_lr_size)
-            # Then standardize the resized image
-            _, mean, _ = get_and_standardize_image(lr_img)
-            return mean
+        """Get the global mean for unstandardization."""
+        # Always return global mean (index parameter is kept for API compatibility)
+        return self.global_mean
     
     def get_lr_std(self, index):
-        """Get the std for unstandardization."""
-        if self.keep_in_memory:
-            return self.stds[index]
-        else:
-            # Load image and resize to square size first
-            lr_img = self._load_image(self.lr_paths[index])
-            lr_img = self._resize_to_consistent_size(lr_img, self.target_lr_size)
-            # Then standardize the resized image
-            _, _, std = get_and_standardize_image(lr_img)
-            return std
+        """Get the global std for unstandardization."""
+        # Always return global std (index parameter is kept for API compatibility)
+        return self.global_std
 
 
 if __name__ == "__main__":
