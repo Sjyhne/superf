@@ -1,0 +1,30 @@
+{
+  "dataset": "worldstrat_test",
+  "sample_id": "Landcover-773257",
+  "downsampling_factor": 8,
+  "model": "mlp",
+  "iterations": 2000,
+  "learning_rate": 0.002,
+  "psnr": {
+    "model": 26.50319480895996,
+    "bilinear": 26.366836547851562,
+    "improvement": 0.13635826110839844
+  },
+  "ssim": {
+    "model": 0.6130498051643372,
+    "bilinear": 0.6033117771148682,
+    "improvement": 0.009738028049468994
+  },
+  "lpips": {
+    "model": 0.6499793529510498,
+    "bilinear": 0.6674607992172241,
+    "improvement": 0.017481446266174316
+  },
+  "training": {
+    "final_test_loss": 0.0023015958722680807,
+    "final_test_psnr": 26.379709243774414,
+    "final_recon_loss": 0.05536193773150444,
+    "final_trans_loss": 0.0037437810096889734,
+    "final_total_loss": 0.059105718741193414
+  }
+}

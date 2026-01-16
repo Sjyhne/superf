@@ -1,0 +1,41 @@
+Super-Resolution Results
+    =======================
+
+    Dataset: worldstrat_test
+    Sample ID: Amnesty POI-17-2-3
+    Downsampling Factor: 8
+    Model: mlp
+    Iterations: 2000
+
+    PSNR Results:
+    - Model Output: 22.25 dB
+    - Bilinear Interpolation: 22.20 dB
+    - PSNR Improvement: 0.05 dB
+
+    SSIM Results:
+    - Model Output: 0.6280
+    - Bilinear Interpolation: 0.6228
+    - SSIM Improvement: 0.0052
+
+    LPIPS Results:
+    - Model Output: 0.5914
+    - Bilinear Interpolation: 0.5851
+    - LPIPS Improvement: -0.0063
+
+    Training Results:
+    - Final Test Loss: 0.008052
+    - Final Test PSNR: 20.94 dB
+    - Final Reconstruction Loss: 0.098572
+    - Final Transformation Loss: 0.009126
+    - Final Total Loss: 0.107699
+
+    Training Metrics History:
+    - Number of evaluation points: 20
+- PSNR range: 20.36 - 21.29 dB
+- Reconstruction loss range: 0.098572 - 0.319128
+- Transformation loss range: 0.005192 - 0.009148
+- Total loss range: 0.107699 - 0.324320
+- Final PSNR: 20.94 dB
+- Final reconstruction loss: 0.098572
+- Final transformation loss: 0.009126
+- Final total loss: 0.107699

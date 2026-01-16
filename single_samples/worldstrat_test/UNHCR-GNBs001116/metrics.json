@@ -1,0 +1,30 @@
+{
+  "dataset": "worldstrat_test",
+  "sample_id": "UNHCR-GNBs001116",
+  "downsampling_factor": 4,
+  "model": "mlp",
+  "iterations": 2000,
+  "learning_rate": 0.002,
+  "psnr": {
+    "model": 26.757909774780273,
+    "bilinear": 26.682348251342773,
+    "improvement": 0.0755615234375
+  },
+  "ssim": {
+    "model": 0.7090219259262085,
+    "bilinear": 0.7064685821533203,
+    "improvement": 0.0025533437728881836
+  },
+  "lpips": {
+    "model": 0.6159900426864624,
+    "bilinear": 0.6339918375015259,
+    "improvement": 0.018001794815063477
+  },
+  "training": {
+    "final_test_loss": 0.015052731148898602,
+    "final_test_psnr": 18.223847150802612,
+    "final_recon_loss": 0.08814876526594162,
+    "final_trans_loss": 0.004010651377029717,
+    "final_total_loss": 0.09215941664297134
+  }
+}

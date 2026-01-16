@@ -1,0 +1,41 @@
+Super-Resolution Results
+    =======================
+
+    Dataset: worldstrat_test
+    Sample ID: Landcover-209395
+    Downsampling Factor: 4
+    Model: mlp
+    Iterations: 2000
+
+    PSNR Results:
+    - Model Output: 37.45 dB
+    - Bilinear Interpolation: 37.70 dB
+    - PSNR Improvement: -0.25 dB
+
+    SSIM Results:
+    - Model Output: 0.9148
+    - Bilinear Interpolation: 0.9157
+    - SSIM Improvement: -0.0009
+
+    LPIPS Results:
+    - Model Output: 0.4743
+    - Bilinear Interpolation: 0.4804
+    - LPIPS Improvement: 0.0061
+
+    Training Results:
+    - Final Test Loss: 0.172624
+    - Final Test PSNR: 7.63 dB
+    - Final Reconstruction Loss: 0.100552
+    - Final Transformation Loss: 0.000259
+    - Final Total Loss: 0.100811
+
+    Training Metrics History:
+    - Number of evaluation points: 20
+- PSNR range: 7.35 - 7.80 dB
+- Reconstruction loss range: 0.055152 - 0.125830
+- Transformation loss range: 0.000259 - 0.003142
+- Total loss range: 0.058294 - 0.127225
+- Final PSNR: 7.63 dB
+- Final reconstruction loss: 0.100552
+- Final transformation loss: 0.000259
+- Final total loss: 0.100811

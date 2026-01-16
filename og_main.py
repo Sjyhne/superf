@@ -12,14 +12,13 @@ import pandas as pd  # Add to imports
 from torchmetrics.functional import structural_similarity_index_measure as ssim
 from torch.utils.data import DataLoader
 from data import get_dataset
-from utils import bilinear_resize_torch, align_kornia_brute_force
+from handheld.utils import bilinear_resize_torch, align_kornia_brute_force
 from losses import BasicLosses
 from viz_utils import (
-    plot_training_curves, visualize_translations,
-    visualize_shift_evolution, visualize_shift_evolution_animation_frames
+    plot_training_curves, visualize_translations
 )
-from evals import PSNR, SSIM, LPIPS as LPIPS_Eval  # Import evaluation metrics from evals.py
-from evals import get_gaussian_kernel, match_colors
+from handheld.evals_2 import PSNR, SSIM, LPIPS as LPIPS_Eval  # Import evaluation metrics from evals.py
+from handheld.evals_2 import get_gaussian_kernel, match_colors
 
 from models.utils import get_decoder
 from input_projections.utils import get_input_projection
@@ -195,7 +194,6 @@ def train_one_iteration(model, optimizer, shift_optimizer, train_sample, device,
 
         if yi.shape[1] == 3:
             yi = yi.permute(0, 2, 3, 1)
-        optim_decode = decoder_trainable(sid, model.keep_out_indices)
 
         # ── zero grads (per-sample) ─────────────────────────────────────
         optimizer.zero_grad()
@@ -992,7 +990,7 @@ def create_result_directories(args, sample_id):
     Returns the path to the results directory.
     """
     # Base results directory
-    base_results_dir = Path("results")
+    base_results_dir = Path(".")
     base_results_dir.mkdir(exist_ok=True)
 
     # First level: dataset name
@@ -1107,13 +1105,13 @@ def initialize_model(args, device, num_samples):
         output_dim = args.output_dim  # Default is 3 (RGB)
     
     decoder = get_decoder(args.model, args.network_depth, args.projection_dim, args.network_hidden_dim, output_dim=output_dim)
-    model = INR(input_projection, decoder, num_samples, use_gnll=args.use_gnll, disable_shifts=args.disable_shifts, disable_frame_decoder=args.disable_frame_decoder).to(device)
+    model = INR(input_projection, decoder, num_samples, use_gnll=args.use_gnll).to(device)
 
     # Fix parameter passing to optimizer
     if args.use_gnll:
-        recon_params = list(model.decoder.parameters()) + list(model.color_transforms.parameters()) + list(model.variance_predictor.parameters())
+        recon_params = list(model.decoder.parameters()) + list(model.variance_predictor.parameters())
     else:
-        recon_params = list(model.decoder.parameters()) + list(model.color_transforms.parameters())
+        recon_params = list(model.decoder.parameters())
     
     if args.use_dual_optimizer:
         optimizer = optim.AdamW(recon_params, lr=args.learning_rate, weight_decay=args.weight_decay)
@@ -1551,19 +1549,6 @@ def visualize_results(model, train_data, history, results_dir, device, args):
             save_path=results_dir / 'final_translation_vis.png'
         )
         
-        # Visualize shift evolution for full history
-        visualize_shift_evolution(
-            history,
-            save_path=results_dir / 'shift_evolution.png'
-        )
-        
-        # Generate animation if requested
-        if args.use_full_visualization:
-            print("Generating full visualizations (animations)...")
-            visualize_shift_evolution_animation_frames(
-                history,
-                save_path=results_dir / 'shift_evolution_animation.gif'
-            )
 
         # Initialize metrics from evals.py
         loss_fn_alex = lpips.LPIPS(net='alex').to(device)  # Keep using original LPIPS for compatibility
@@ -2012,7 +1997,7 @@ def main():
     # Check if we're only testing aggregation
     if args.test_aggregate_only:
         print("Running aggregation test only...")
-        base_results_dir = Path("results")
+        base_results_dir = Path(".")
         dataset_results = aggregate_results(base_results_dir)
         
         # Print summary of aggregated results

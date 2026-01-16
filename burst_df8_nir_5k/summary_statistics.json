@@ -1,0 +1,45 @@
+{
+  "total_samples": 50,
+  "psnr": {
+    "model_mean": 22.931304378509523,
+    "model_std": 4.329160031352009,
+    "model_min": 13.792586326599121,
+    "model_max": 38.909996032714844,
+    "bilinear_mean": 25.442631454467772,
+    "bilinear_std": 3.8283839550174874,
+    "bilinear_min": 18.95455551147461,
+    "bilinear_max": 42.41483688354492,
+    "improvement_mean": -2.5113270759582518,
+    "improvement_std": 1.6372765241720018,
+    "improvement_min": -9.210951805114746,
+    "improvement_max": 2.6872634887695312
+  },
+  "ssim": {
+    "model_mean": 0.6743455374240875,
+    "model_std": 0.1538443902276572,
+    "model_min": 0.2856426239013672,
+    "model_max": 0.990086019039154,
+    "bilinear_mean": 0.7111176747083664,
+    "bilinear_std": 0.13504945885388314,
+    "bilinear_min": 0.30854666233062744,
+    "bilinear_max": 0.987153947353363,
+    "improvement_mean": -0.03677213728427887,
+    "improvement_std": 0.0399416614137922,
+    "improvement_min": -0.15005990862846375,
+    "improvement_max": 0.10628259181976318
+  },
+  "lpips": {
+    "model_mean": 0.6018765312433243,
+    "model_std": 0.0775313755896685,
+    "model_min": 0.38313448429107666,
+    "model_max": 0.8100502490997314,
+    "bilinear_mean": 0.5321044433116913,
+    "bilinear_std": 0.06191688630078107,
+    "bilinear_min": 0.35517796874046326,
+    "bilinear_max": 0.6746382713317871,
+    "improvement_mean": -0.06977208793163299,
+    "improvement_std": 0.05256371538197521,
+    "improvement_min": -0.20928168296813965,
+    "improvement_max": 0.06586426496505737
+  }
+}
