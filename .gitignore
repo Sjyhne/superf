@@ -227,3 +227,6 @@ real_world_data/
 samle_mappe
 worldstrat_datasets
 handheld/results*
+handheld/single_exposure_data/
+handheld/synthetic burst/
+handheld/handheld_synthetic/

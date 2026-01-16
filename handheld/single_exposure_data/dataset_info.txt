@@ -1,7 +1,0 @@
-Dataset Summary:
-Number of samples: 50
-Frames per sample: 15
-Image dimensions: 256x256
-Value range: [0.000, 1.000]
-Mean value: 0.079
-Std deviation: 0.029
