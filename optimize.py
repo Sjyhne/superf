@@ -23,8 +23,7 @@ from models.utils import get_decoder
 from input_projections.utils import get_input_projection
 from models.inr import INR
 from models.nir import NIR, nir_loss
-from handheld.utils import align_kornia_brute_force
-from handheld.evals_2 import get_gaussian_kernel, match_colors
+from handheld.evals_2 import align_kornia_brute_force, get_gaussian_kernel, match_colors
 
 import time
 
@@ -33,14 +32,16 @@ import lpips
 from torchmetrics.functional import structural_similarity_index_measure as ssim
 import pandas as pd
 
-def train_one_iteration(model, optimizer, train_sample, device, downsample_factor):
+def train_one_iteration(model, optimizer, train_sample, device, downsample_factor, variance_reg=0.0, variance_smooth_reg=0.0):
     model.train()
     
     # Initialize loss functions
     recon_criterion = BasicLosses.mse_loss
     trans_criterion = BasicLosses.mae_loss
     
-    if model.use_gnll:
+    # Use GNLL loss if use_gnll is True
+    use_gnll_loss = model.use_gnll
+    if use_gnll_loss:
         recon_criterion = nn.GaussianNLLLoss()
 
     input = train_sample['input'].to(device)
@@ -57,40 +58,72 @@ def train_one_iteration(model, optimizer, train_sample, device, downsample_facto
 
     optimizer.zero_grad()
 
-    if model.use_gnll:
+    if use_gnll_loss:
         output, pred_shifts, pred_variance = model(input, sample_id, scale_factor=1/scale_factor, lr_frames=lr_target)
-        
-        # Check for NaN values in variance before computing loss
-        if torch.isnan(pred_variance).any() or torch.isinf(pred_variance).any():
-            print(f"Warning: NaN/Inf detected in pred_variance, replacing with small positive value")
-            pred_variance = torch.clamp(pred_variance, min=1e-6, max=1e6)
-            pred_variance = torch.where(torch.isnan(pred_variance) | torch.isinf(pred_variance), 
-                                      torch.full_like(pred_variance, 1e-6), pred_variance)
-        
         recon_loss = recon_criterion(output, lr_target, pred_variance)
         
-        # Check for NaN in loss
-        if torch.isnan(recon_loss) or torch.isinf(recon_loss):
-            print(f"Warning: NaN/Inf detected in recon_loss, replacing with MSE loss")
-            recon_loss = F.mse_loss(output, lr_target)
+        # Add variance regularization if enabled
+        variance_reg_loss = torch.tensor(0.0, device=device)
+        variance_smooth_loss = torch.tensor(0.0, device=device)
+        
+        if variance_reg > 0.0 or variance_smooth_reg > 0.0:
+            # For separate_ud, we need to access the log-variances (before exp)
+            if hasattr(model, 'use_separate_ud') and model.use_separate_ud and hasattr(model, 'variances'):
+                # Collect log-variances for samples in this batch
+                log_var_list = []
+                for sid in sample_id:
+                    log_var = model.variances[sid.item()]  # [H, W, C] - these are log-variances
+                    log_var_list.append(log_var)
+                
+                if log_var_list:
+                    log_vars = torch.stack(log_var_list, dim=0)  # [B, H, W, C]
+                    
+                    # L2 regularization on log-variances (prevents extreme values)
+                    if variance_reg > 0.0:
+                        variance_reg_loss = variance_reg * torch.mean(log_vars ** 2)
+                    
+                    # Smoothness regularization (encourages spatial smoothness)
+                    if variance_smooth_reg > 0.0:
+                        # Compute gradients in spatial dimensions
+                        # log_vars: [B, H, W, C]
+                        if log_vars.shape[1] > 1 and log_vars.shape[2] > 1:
+                            # Horizontal smoothness
+                            h_diff = log_vars[:, 1:, :, :] - log_vars[:, :-1, :, :]
+                            # Vertical smoothness
+                            v_diff = log_vars[:, :, 1:, :] - log_vars[:, :, :-1, :]
+                            variance_smooth_loss = variance_smooth_reg * (torch.mean(h_diff ** 2) + torch.mean(v_diff ** 2))
+            # For regular GNLL (predicted variances), we could also add regularization
+            # but it's less critical since they're predicted by a network
     else:
         output, pred_shifts = model(input, sample_id, scale_factor=1/scale_factor, lr_frames=lr_target)
         recon_loss = recon_criterion(output, lr_target)
+        variance_reg_loss = torch.tensor(0.0, device=device)
+        variance_smooth_loss = torch.tensor(0.0, device=device)
 
     if isinstance(model, INR):
         pred_dx, pred_dy = pred_shifts
-        trans_loss = trans_criterion(pred_dx, gt_dx) + trans_criterion(pred_dy, gt_dy)
+        # Convert predicted shifts from pixels to percentages for fair comparison
+        lr_h, lr_w = lr_target.shape[1:3]  # Get LR image dimensions
+        pred_dx_percent = pred_dx / lr_w
+        pred_dy_percent = pred_dy / lr_h
+        # Euclidean distance loss for 2D shifts (now both in percentage units)
+        trans_loss = torch.mean(torch.sqrt((pred_dx_percent - gt_dx)**2 + (pred_dy_percent - gt_dy)**2))
     else:
         trans_loss = torch.zeros(1, device=device)
 
-    # Only backpropagate the reconstruction loss
-    recon_loss.backward()
+    # Total loss includes reconstruction, transformation, and variance regularization
+    total_loss = recon_loss + variance_reg_loss + variance_smooth_loss
+    
+    # Backpropagate the total loss
+    total_loss.backward()
     optimizer.step()
     
     return {
         'recon_loss': recon_loss.item(),
         'trans_loss': trans_loss.item(),
-        'total_loss': recon_loss.item() + trans_loss.item()
+        'variance_reg_loss': variance_reg_loss.item(),
+        'variance_smooth_loss': variance_smooth_loss.item(),
+        'total_loss': total_loss.item()
     }
 
 
@@ -103,7 +136,7 @@ def test_one_epoch(model, test_loader, device):
         sample_id = torch.tensor([0]).to(device)
         
         if model.use_gnll:
-            output, _, _ = model(hr_coords, sample_id, scale_factor=1, training=False)
+            output, _ = model(hr_coords, sample_id, scale_factor=1, training=False)
         else:
             if isinstance(model, INR):
                 output, _ = model(hr_coords, sample_id, scale_factor=1, training=False)
@@ -156,15 +189,22 @@ def optimize_and_evaluate_sample(model, train_data, device, sample_idx, args, ou
             if iteration >= args.iters:
                 break
                 
-            train_losses = train_one_iteration(model, optimizer, train_sample, device, args.df)
+            train_losses = train_one_iteration(model, optimizer, train_sample, device, args.df, 
+                                                variance_reg=args.variance_reg, 
+                                                variance_smooth_reg=args.variance_smooth_reg)
             scheduler.step()
             iteration += 1
 
             progress_bar.update(1)
-            progress_bar.set_postfix({
+            postfix_dict = {
                 'recon': f"{train_losses['recon_loss']:.4f}",
                 'trans': f"{train_losses['trans_loss']:.4f}"
-            })
+            }
+            if train_losses.get('variance_reg_loss', 0.0) > 0.0:
+                postfix_dict['var_reg'] = f"{train_losses['variance_reg_loss']:.4f}"
+            if train_losses.get('variance_smooth_loss', 0.0) > 0.0:
+                postfix_dict['var_smooth'] = f"{train_losses['variance_smooth_loss']:.4f}"
+            progress_bar.set_postfix(postfix_dict)
             
             # Periodic evaluation
             if iteration % 100 == 0:
@@ -194,7 +234,7 @@ def optimize_and_evaluate_sample(model, train_data, device, sample_idx, args, ou
         sample_id = torch.tensor([0]).to(device)
         
         if model.use_gnll:
-            output, _, _ = model(hr_coords, sample_id, scale_factor=1, training=False)
+            output, _ = model(hr_coords, sample_id, scale_factor=1, training=False)
         else:
             output, _ = model(hr_coords, sample_id, scale_factor=1, training=False)
 
@@ -255,9 +295,6 @@ def optimize_and_evaluate_sample(model, train_data, device, sample_idx, args, ou
         pred_aligned = align_kornia_brute_force(pred_tensor.squeeze(0), gt_tensor.squeeze(0)).unsqueeze(0)
         pred_aligned, _ = match_colors(pred_aligned, gt_tensor, pred_aligned, ksz, gauss_kernel)
 
-        print("bilinear_tensor:", bilinear_tensor.shape)
-        print("gt_tensor:", gt_tensor.shape)
-
         # Align bilinear baseline to ground truth
         bilinear_aligned = align_kornia_brute_force(bilinear_tensor.squeeze(0), gt_tensor.squeeze(0)).unsqueeze(0)
         bilinear_aligned, _ = match_colors(bilinear_aligned, gt_tensor, bilinear_aligned, ksz, gauss_kernel)
@@ -281,23 +318,6 @@ def optimize_and_evaluate_sample(model, train_data, device, sample_idx, args, ou
         # MAE (Mean Absolute Error)
         model_mae = F.l1_loss(pred_aligned, gt_tensor).item()
         bilinear_mae = F.l1_loss(bilinear_aligned, gt_tensor).item()
-        
-        # Calculate alignment error if shifts are available
-        alignment_error = 0.0
-        final_dx = 0.0
-        final_dy = 0.0
-        if hasattr(model, 'transformation_net') and hasattr(model.transformation_net, 'get_final_shifts'):
-            try:
-                pred_shifts = model.transformation_net.get_final_shifts()
-                if pred_shifts is not None:
-                    pred_dx, pred_dy = pred_shifts
-                    final_dx = pred_dx.item() if torch.is_tensor(pred_dx) else pred_dx
-                    final_dy = pred_dy.item() if torch.is_tensor(pred_dy) else pred_dy
-                    
-                    # Calculate alignment error (assuming ground truth shifts are 0 for now)
-                    alignment_error = np.sqrt(final_dx**2 + final_dy**2)
-            except:
-                pass
         
         # Convert aligned tensors back to numpy for visualization
         pred_aligned_np = pred_aligned.squeeze(0).permute(1, 2, 0).cpu().numpy()
@@ -380,6 +400,11 @@ def optimize_and_evaluate_sample(model, train_data, device, sample_idx, args, ou
             plt.savefig(sample_dir / "training_metrics.png", bbox_inches='tight', pad_inches=0.1, dpi=300)
             plt.close()
     
+    # Generate variance visualizations if using GNLL (unless disabled)
+    if model.use_gnll and not args.no_variance_viz:
+        print(f"\nGenerating variance visualizations for sample {sample_idx + 1}...")
+        visualize_lr_variance(model, train_data, device, sample_dir, sample_idx)
+    
     # Record evaluation end time
     evaluation_end_time = time.time()
     evaluation_time = evaluation_end_time - evaluation_start_time
@@ -414,12 +439,6 @@ def optimize_and_evaluate_sample(model, train_data, device, sample_idx, args, ou
             'model_mae': model_mae,
             'bilinear_mae': bilinear_mae,
             'mae_improvement': bilinear_mae - model_mae,
-        },
-        'alignment_metrics': {
-            'alignment_error': alignment_error,
-            'final_dx': final_dx,
-            'final_dy': final_dy,
-            'alignment_used': True,  # Since we used align_kornia_brute_force
         },
         'training_metrics': {
             'final_test_loss': final_test_loss,
@@ -464,7 +483,8 @@ def visualize_lr_variance(model, train_data, device, output_dir, sample_id):
         output_dir: Directory to save visualizations
         sample_id: Sample ID being processed
     """
-    if not model.use_gnll:
+    use_gnll_loss = model.use_gnll
+    if not use_gnll_loss:
         print("Warning: visualize_lr_variance called but model does not use GNLL")
         return
     
@@ -488,6 +508,12 @@ def visualize_lr_variance(model, train_data, device, output_dir, sample_id):
             return
             
         print(f"Creating variance visualizations for {num_samples} LR samples...")
+        
+        # Collect data for 2x8 grid visualization
+        lr_samples_for_grid = []
+        variance_maps_for_grid = []
+        global_vmin = None
+        global_vmax = None
         
         # Process each LR sample individually
         for i in range(num_samples):
@@ -577,8 +603,11 @@ def visualize_lr_variance(model, train_data, device, output_dir, sample_id):
             if variance_np.min() < 0:
                 variance_np = np.maximum(variance_np, 0)
             
-            # Create visualization
-            fig, axes = plt.subplots(2, 3, figsize=(15, 10))
+            # Convert variance to standard deviation (std = sqrt(variance))
+            std_np = np.sqrt(variance_np)
+            
+            # Create visualization - 2x2 grid (removed absolute error and high variance regions)
+            fig, axes = plt.subplots(2, 2, figsize=(12, 12))
             
             # Row 1: Original images
             axes[0, 0].imshow(hr_np)
@@ -589,49 +618,81 @@ def visualize_lr_variance(model, train_data, device, output_dir, sample_id):
             axes[0, 1].set_title(f'Model Output (Sample {i})', fontsize=12, fontweight='bold')
             axes[0, 1].axis('off')
             
-            # Show difference between model output and GT
-            diff = np.abs(output_np - hr_np)
-            im_diff = axes[0, 2].imshow(diff, cmap='hot')
-            axes[0, 2].set_title(f'Absolute Error (Sample {i})', fontsize=12, fontweight='bold')
-            axes[0, 2].axis('off')
-            plt.colorbar(im_diff, ax=axes[0, 2], fraction=0.046, pad=0.04)
+            # Row 2: Standard deviation analysis
+            # Raw std map - upsample to match output size if needed
+            std_display = std_np.copy()
+            if std_np.shape[:2] != output_np.shape[:2]:
+                # Std is at different resolution, upsample to match output
+                if std_np.ndim == 3:
+                    # Resize each channel
+                    std_display = np.zeros((output_np.shape[0], output_np.shape[1], std_np.shape[2]))
+                    for c in range(std_np.shape[2]):
+                        std_display[:, :, c] = cv2.resize(
+                            std_np[:, :, c], 
+                            (output_np.shape[1], output_np.shape[0]), 
+                            interpolation=cv2.INTER_LINEAR
+                        )
+                else:
+                    std_display = cv2.resize(
+                        std_np, 
+                        (output_np.shape[1], output_np.shape[0]), 
+                        interpolation=cv2.INTER_LINEAR
+                    )
             
-            # Row 2: Variance analysis
-            # Raw variance map
-            im_var = axes[1, 0].imshow(variance_np, cmap='viridis')
-            axes[1, 0].set_title(f'Variance Map (Sample {i})', fontsize=12, fontweight='bold')
-            axes[1, 0].axis('off')
-            plt.colorbar(im_var, ax=axes[1, 0], fraction=0.046, pad=0.04)
-            
-            # Variance overlaid on model output (transparency)
-            # Build a 2D variance map (H x W)
-            if variance_np.ndim == 3:
-                var_map = variance_np.mean(axis=-1)
+            # Build a 2D std map (H x W) for display
+            if std_display.ndim == 3:
+                std_map = std_display.mean(axis=-1)
             else:
-                var_map = variance_np
+                std_map = std_display
             
-            # Prepare a 3-channel base image for overlay
-            disp_img = output_np
-            if disp_img.ndim == 2:
-                disp_img = np.repeat(disp_img[..., None], 3, axis=-1)
-            elif disp_img.shape[-1] == 1:
-                disp_img = np.repeat(disp_img, 3, axis=-1)
+            # Calculate color scale centered around 1 (neutral)
+            # Find maximum deviation from 1
+            max_deviation = max(abs(std_map.max() - 1), abs(std_map.min() - 1))
             
-            # Ensure display image is in [0,1]
-            disp_img = np.clip(disp_img, 0.0, 1.0)
-            axes[1, 1].imshow(disp_img)
+            # Set symmetric range around 1, but ensure vmin >= 0 (std is sqrt(variance) which is always >= 0)
+            vmin = max(0, 1 - max_deviation)
+            vmax = 1 + max_deviation
             
-            # High variance mask (2D)
-            thresh = np.percentile(var_map, 75)
-            high_var_mask = var_map > thresh
+            # Ensure we have a reasonable range (at least some small deviation)
+            if max_deviation < 1e-6:
+                # If all values are very close to 1, use a small symmetric range
+                vmin = max(0, 0.99)  # Ensure >= 0
+                vmax = 1.01
             
-            # 3-channel overlay
-            overlay = np.zeros_like(disp_img)
-            if high_var_mask.any():
-                overlay[high_var_mask, :] = [1.0, 0.0, 0.0]
-                axes[1, 1].imshow(overlay, alpha=0.3)
-            axes[1, 1].set_title(f'High Variance Regions (Sample {i})', fontsize=12, fontweight='bold')
-            axes[1, 1].axis('off')
+            # Track global std range for consistent color scale across all samples
+            if global_vmin is None:
+                global_vmin = vmin
+                global_vmax = vmax
+            else:
+                # Update global range to include this sample's range
+                global_max_deviation = max(abs(global_vmax - 1), abs(global_vmin - 1), max_deviation)
+                global_vmin = 1 - global_max_deviation
+                global_vmax = 1 + global_max_deviation
+            
+            # Store std map and LR sample for grid visualization
+            variance_maps_for_grid.append(std_map.copy())
+            if lr_np is not None:
+                # Prepare LR sample for grid (resize to HR size)
+                if lr_np.ndim == 2:
+                    lr_np_grid = np.repeat(lr_np[..., None], 3, axis=-1)
+                elif lr_np.shape[-1] == 1:
+                    lr_np_grid = np.repeat(lr_np, 3, axis=-1)
+                else:
+                    lr_np_grid = lr_np.copy()
+                lr_vis_grid = cv2.resize(lr_np_grid, (output_np.shape[1], output_np.shape[0]), interpolation=cv2.INTER_LINEAR)
+                # Brighten LR image for better visibility (scale + shift)
+                lr_vis_grid = lr_vis_grid * 1.2 + 0.15
+                lr_vis_grid = np.clip(lr_vis_grid, 0.0, 1.0)
+                lr_samples_for_grid.append(lr_vis_grid)
+            else:
+                lr_samples_for_grid.append(None)
+            
+            # Display std map with Blues colormap
+            im_var = axes[1, 0].imshow(std_map, cmap='Blues', vmin=vmin, vmax=vmax)
+            axes[1, 0].set_title(f'Standard Deviation Map (Sample {i})', fontsize=12, fontweight='bold')
+            axes[1, 0].axis('off')
+            cbar = plt.colorbar(im_var, ax=axes[1, 0], fraction=0.046, pad=0.04)
+            cbar.set_label('Standard Deviation', rotation=270, labelpad=15)
             
             # Show the LR sample alongside
             if lr_np is not None:
@@ -641,38 +702,152 @@ def visualize_lr_variance(model, train_data, device, output_dir, sample_id):
                 elif lr_np.shape[-1] == 1:
                     lr_np = np.repeat(lr_np, 3, axis=-1)
                 lr_vis = cv2.resize(lr_np, (output_np.shape[1], output_np.shape[0]), interpolation=cv2.INTER_LINEAR)
+                # Brighten LR image for better visibility (scale + shift)
+                lr_vis = lr_vis * 1.2 + 0.15
                 lr_vis = np.clip(lr_vis, 0.0, 1.0)
-                axes[1, 2].imshow(lr_vis)
-                axes[1, 2].set_title(f'LR Sample (Sample {i})', fontsize=12, fontweight='bold')
-                axes[1, 2].axis('off')
+                axes[1, 1].imshow(lr_vis)
+                axes[1, 1].set_title(f'LR Sample (Sample {i})', fontsize=12, fontweight='bold')
+                axes[1, 1].axis('off')
             else:
-                # Fallback: show variance stats if LR not available
-                axes[1, 2].text(0.1, 0.8, f'Variance Statistics:', fontsize=12, fontweight='bold', transform=axes[1, 2].transAxes)
-                axes[1, 2].text(0.1, 0.7, f'Mean: {np.mean(variance_np):.6f}', fontsize=10, transform=axes[1, 2].transAxes)
-                axes[1, 2].text(0.1, 0.6, f'Std: {np.std(variance_np):.6f}', fontsize=10, transform=axes[1, 2].transAxes)
-                axes[1, 2].text(0.1, 0.5, f'Min: {np.min(variance_np):.6f}', fontsize=10, transform=axes[1, 2].transAxes)
-                axes[1, 2].text(0.1, 0.4, f'Max: {np.max(variance_np):.6f}', fontsize=10, transform=axes[1, 2].transAxes)
-                axes[1, 2].text(0.1, 0.3, f'75th percentile: {np.percentile(variance_np, 75):.6f}', fontsize=10, transform=axes[1, 2].transAxes)
-                axes[1, 2].text(0.1, 0.2, f'95th percentile: {np.percentile(variance_np, 95):.6f}', fontsize=10, transform=axes[1, 2].transAxes)
-                axes[1, 2].set_xlim(0, 1)
-                axes[1, 2].set_ylim(0, 1)
-                axes[1, 2].axis('off')
+                # Fallback: show std stats if LR not available
+                axes[1, 1].text(0.1, 0.8, f'Standard Deviation Statistics:', fontsize=12, fontweight='bold', transform=axes[1, 1].transAxes)
+                axes[1, 1].text(0.1, 0.7, f'Mean: {np.mean(std_np):.6f}', fontsize=10, transform=axes[1, 1].transAxes)
+                axes[1, 1].text(0.1, 0.6, f'Std: {np.std(std_np):.6f}', fontsize=10, transform=axes[1, 1].transAxes)
+                axes[1, 1].text(0.1, 0.5, f'Min: {np.min(std_np):.6f}', fontsize=10, transform=axes[1, 1].transAxes)
+                axes[1, 1].text(0.1, 0.4, f'Max: {np.max(std_np):.6f}', fontsize=10, transform=axes[1, 1].transAxes)
+                axes[1, 1].text(0.1, 0.3, f'75th percentile: {np.percentile(std_np, 75):.6f}', fontsize=10, transform=axes[1, 1].transAxes)
+                axes[1, 1].text(0.1, 0.2, f'95th percentile: {np.percentile(std_np, 95):.6f}', fontsize=10, transform=axes[1, 1].transAxes)
+                axes[1, 1].set_xlim(0, 1)
+                axes[1, 1].set_ylim(0, 1)
+                axes[1, 1].axis('off')
             
             plt.tight_layout(pad=2.0)
             
-            # Save individual variance visualization
+            # Save individual std visualization
             variance_path = variance_dir / f"sample_{i:03d}_variance_analysis.png"
             plt.savefig(variance_path, bbox_inches='tight', pad_inches=0.1, dpi=300)
             plt.close()
             
-            # Save individual variance map as numpy array
+            # Save individual std map as an image (for later 2x8 grid visualization)
+            fig_var_only = plt.figure(figsize=(8, 8))
+            ax_var_only = fig_var_only.add_subplot(111)
+            im_var_only = ax_var_only.imshow(std_map, cmap='Blues', vmin=vmin, vmax=vmax)
+            ax_var_only.axis('off')
+            cbar_var_only = plt.colorbar(im_var_only, ax=ax_var_only, fraction=0.046, pad=0.04)
+            cbar_var_only.set_label('Standard Deviation', rotation=270, labelpad=15)
+            plt.tight_layout(pad=0)
+            variance_map_path = variance_dir / f"sample_{i:03d}_variance_map.png"
+            plt.savefig(variance_map_path, bbox_inches='tight', pad_inches=0, dpi=300)
+            plt.close(fig_var_only)
+            
+            # Save individual LR sample as an image (for later 2x8 grid visualization)
+            if lr_np is not None:
+                fig_lr_only = plt.figure(figsize=(8, 8))
+                ax_lr_only = fig_lr_only.add_subplot(111)
+                # Resize LR to HR size for visualization if needed
+                if lr_np.ndim == 2:
+                    lr_np_vis = np.repeat(lr_np[..., None], 3, axis=-1)
+                elif lr_np.shape[-1] == 1:
+                    lr_np_vis = np.repeat(lr_np, 3, axis=-1)
+                else:
+                    lr_np_vis = lr_np.copy()
+                lr_vis_resized = cv2.resize(lr_np_vis, (output_np.shape[1], output_np.shape[0]), interpolation=cv2.INTER_LINEAR)
+                # Brighten LR image for better visibility (scale + shift)
+                lr_vis_resized = lr_vis_resized * 1.2 + 0.15
+                lr_vis_resized = np.clip(lr_vis_resized, 0.0, 1.0)
+                ax_lr_only.imshow(lr_vis_resized)
+                ax_lr_only.axis('off')
+                plt.tight_layout(pad=0)
+                lr_sample_path = variance_dir / f"sample_{i:03d}_lr_sample.png"
+                plt.savefig(lr_sample_path, bbox_inches='tight', pad_inches=0, dpi=300)
+                plt.close(fig_lr_only)
+            
+            # Save individual std map as numpy array (also save variance for reference)
+            np.save(variance_dir / f"sample_{i:03d}_std.npy", std_np)
             np.save(variance_dir / f"sample_{i:03d}_variance.npy", variance_np)
             np.save(variance_dir / f"sample_{i:03d}_output.npy", output_np)
         
         # Create a summary visualization showing all variance maps side by side
         create_variance_summary(train_data, variance_dir, device)
         
-        print(f"Variance visualizations saved to {variance_dir}")
+        # Create 2x8 grid: top row = LR samples, bottom row = std maps
+        if len(lr_samples_for_grid) >= 8 and len(variance_maps_for_grid) >= 8:
+            create_lr_variance_grid(lr_samples_for_grid[:8], variance_maps_for_grid[:8], 
+                                   global_vmin, global_vmax, variance_dir)
+        
+        print(f"Standard deviation visualizations saved to {variance_dir}")
+
+def create_lr_variance_grid(lr_samples, variance_maps, vmin, vmax, variance_dir):
+    """
+    Create a 2x8 grid visualization: top row = LR samples, bottom row = std maps.
+    
+    Args:
+        lr_samples: List of LR sample images (numpy arrays) or None
+        variance_maps: List of std maps (numpy arrays) - note: variable name kept for compatibility
+        vmin: Minimum value for std color scale
+        vmax: Maximum value for std color scale
+        variance_dir: Directory to save the grid
+    """
+    from matplotlib.patches import Rectangle
+    
+    if len(variance_maps) < 8:
+        print(f"Warning: Only {len(variance_maps)} samples available, need 8 for grid")
+        return
+    
+    # Ensure vmin is at least 0 (std is sqrt(variance) which is always >= 0)
+    vmin = max(0, vmin)
+    
+    fig, axes = plt.subplots(2, 8, figsize=(24, 8))  # Increased height from 6 to 8 for less compact y direction
+    
+    # Top row: LR samples
+    for i in range(8):
+        ax = axes[0, i]
+        if lr_samples[i] is not None:
+            ax.imshow(lr_samples[i])
+        else:
+            ax.text(0.5, 0.5, f'LR {i}', ha='center', va='center', transform=ax.transAxes)
+        # Get image bounds for border
+        if lr_samples[i] is not None:
+            h, w = lr_samples[i].shape[:2]
+            rect = Rectangle((-0.5, -0.5), w, h, 
+                            fill=False, edgecolor='gray', linewidth=0.5, clip_on=False)
+            ax.add_patch(rect)
+        ax.axis('off')
+    
+    # Bottom row: Standard deviation maps
+    for i in range(8):
+        ax = axes[1, i]
+        im = ax.imshow(variance_maps[i], cmap='Blues', vmin=vmin, vmax=vmax)
+        # Get image bounds for border
+        h, w = variance_maps[i].shape[:2]
+        rect = Rectangle((-0.5, -0.5), w, h, 
+                        fill=False, edgecolor='gray', linewidth=0.5, clip_on=False)
+        ax.add_patch(rect)
+        ax.axis('off')
+    
+    # Adjust layout to leave room for colorbar on the right
+    # Use tight_layout first to get proper spacing, then adjust for colorbar
+    plt.tight_layout(pad=1.0)
+    
+    # Get the position of the bottom-right subplot to align colorbar
+    # The bottom row is axes[1, 7] (last std map)
+    bottom_right_ax = axes[1, 7]
+    bbox = bottom_right_ax.get_position()
+    
+    # Position colorbar to the right of the last std map
+    # [left, bottom, width, height] in figure coordinates
+    cbar_width = 0.015
+    cbar_left = bbox.x1 + 0.02  # Small gap after the last subplot
+    cbar_bottom = bbox.y0  # Align with bottom of bottom row
+    cbar_height = bbox.height  # Match height of bottom row subplots
+    
+    cbar_ax = fig.add_axes([cbar_left, cbar_bottom, cbar_width, cbar_height])
+    cbar = fig.colorbar(im, cax=cbar_ax)
+    cbar.set_label('Standard Deviation (1 = neutral)', rotation=270, labelpad=20)
+    grid_path = variance_dir / "lr_variance_grid_2x8.png"
+    plt.savefig(grid_path, bbox_inches='tight', pad_inches=0.1, dpi=300)
+    plt.close()
+    print(f"Created 2x8 grid visualization: {grid_path}")
 
 def create_variance_summary(train_data, variance_dir, device):
     """
@@ -691,11 +866,12 @@ def create_variance_summary(train_data, variance_dir, device):
         num_samples = "Unknown"
     
     with open(summary_path, 'w') as f:
-        f.write("Variance Analysis Summary\n")
+        f.write("Standard Deviation Analysis Summary\n")
         f.write("=" * 50 + "\n\n")
         f.write(f"Number of LR samples: {num_samples}\n")
         f.write(f"Each sample has been processed individually to show model uncertainty.\n")
-        f.write(f"High variance regions indicate where the model is less confident.\n")
+        f.write(f"High standard deviation regions indicate where the model is less confident.\n")
+        f.write(f"Standard deviation is computed as sqrt(variance) for easier interpretation.\n")
         f.write(f"Check individual sample_XXX_variance_analysis.png files for detailed analysis.\n")
     
     print(f"Variance summary saved to {summary_path}")
@@ -716,9 +892,10 @@ def create_summary_visualization(all_results, output_dir):
     model_lpips = [r['image_metrics']['model_lpips'] for r in all_results]
     bilinear_lpips = [r['image_metrics']['bilinear_lpips'] for r in all_results]
     lpips_improvement = [r['image_metrics']['lpips_improvement'] for r in all_results]
+    trans_loss_values = [r['training_metrics']['final_trans_loss'] if r['training_metrics']['final_trans_loss'] is not None else 0.0 for r in all_results]
     
     # Create summary plots
-    fig, axes = plt.subplots(2, 2, figsize=(15, 12))
+    fig, axes = plt.subplots(2, 3, figsize=(18, 12))
     
     # PSNR comparison
     axes[0, 0].bar(sample_indices, model_psnr, alpha=0.7, label='Model', color='blue')
@@ -738,6 +915,13 @@ def create_summary_visualization(all_results, output_dir):
     axes[0, 1].set_title('PSNR Improvement (Model - Bilinear)')
     axes[0, 1].grid(True, alpha=0.3)
     
+    # Transformation Loss
+    axes[0, 2].bar(sample_indices, trans_loss_values, alpha=0.7, color='teal')
+    axes[0, 2].set_xlabel('Sample Index')
+    axes[0, 2].set_ylabel('Transformation Loss')
+    axes[0, 2].set_title('Final Transformation Loss Across Samples')
+    axes[0, 2].grid(True, alpha=0.3)
+    
     # SSIM comparison
     axes[1, 0].bar(sample_indices, model_ssim, alpha=0.7, label='Model', color='purple')
     axes[1, 0].bar(sample_indices, bilinear_ssim, alpha=0.7, label='Bilinear', color='orange')
@@ -755,6 +939,14 @@ def create_summary_visualization(all_results, output_dir):
     axes[1, 1].set_title('LPIPS Comparison Across Samples')
     axes[1, 1].legend()
     axes[1, 1].grid(True, alpha=0.3)
+    
+    # Overall improvement metrics
+    axes[1, 2].bar(sample_indices, psnr_improvement, alpha=0.7, color='green')
+    axes[1, 2].axhline(y=0, color='black', linestyle='-', alpha=0.5)
+    axes[1, 2].set_xlabel('Sample Index')
+    axes[1, 2].set_ylabel('Improvement (dB)')
+    axes[1, 2].set_title('PSNR Improvement per Sample')
+    axes[1, 2].grid(True, alpha=0.3)
     
     plt.tight_layout()
     plt.savefig(output_dir / "summary_metrics.png", bbox_inches='tight', pad_inches=0.1, dpi=300)
@@ -829,6 +1021,12 @@ def create_summary_visualization(all_results, output_dir):
             'improvement_std': np.std(lpips_improvement),
             'improvement_min': np.min(lpips_improvement),
             'improvement_max': np.max(lpips_improvement)
+        },
+        'transformation_loss': {
+            'mean': np.mean(trans_loss_values),
+            'std': np.std(trans_loss_values),
+            'min': np.min(trans_loss_values),
+            'max': np.max(trans_loss_values)
         }
     }
     
@@ -884,6 +1082,12 @@ LPIPS Improvement (Bilinear - Model):
   Mean: {summary_stats['lpips']['improvement_mean']:.4f} ± {summary_stats['lpips']['improvement_std']:.4f}
   Range: {summary_stats['lpips']['improvement_min']:.4f} - {summary_stats['lpips']['improvement_max']:.4f}
 
+Transformation Loss Results:
+----------------------------
+Final Transformation Loss:
+  Mean: {summary_stats['transformation_loss']['mean']:.6f} ± {summary_stats['transformation_loss']['std']:.6f}
+  Range: {summary_stats['transformation_loss']['min']:.6f} - {summary_stats['transformation_loss']['max']:.6f}
+
 Files Generated:
 - summary_metrics.png: Bar charts comparing metrics across samples
 - metrics_distribution.png: Box plots showing metric distributions
@@ -894,6 +1098,14 @@ Files Generated:
     with open(output_dir / "summary_report.txt", "w") as f:
         f.write(summary_text)
     
+    print(f"\n{'='*60}")
+    print("Summary Statistics")
+    print(f"{'='*60}")
+    print(f"PSNR Improvement: {summary_stats['psnr']['improvement_mean']:.2f} ± {summary_stats['psnr']['improvement_std']:.2f} dB")
+    print(f"SSIM Improvement: {summary_stats['ssim']['improvement_mean']:.4f} ± {summary_stats['ssim']['improvement_std']:.4f}")
+    print(f"LPIPS Improvement: {summary_stats['lpips']['improvement_mean']:.4f} ± {summary_stats['lpips']['improvement_std']:.4f}")
+    print(f"Average Transformation Loss: {summary_stats['transformation_loss']['mean']:.6f} ± {summary_stats['transformation_loss']['std']:.6f}")
+    print(f"{'='*60}\n")
     print(f"📊 Summary visualizations saved to {output_dir}/summary_metrics.png and {output_dir}/metrics_distribution.png")
     print(f"📈 Aggregated statistics saved to {output_dir}/summary_statistics.json and {output_dir}/summary_report.txt")
 
@@ -903,7 +1115,7 @@ def main():
     
     # Essential parameters only
     parser.add_argument("--dataset", type=str, default="satburst_synth", 
-                       choices=["satburst_synth", "worldstrat", "burst_synth", "worldstrat_test"])
+                       choices=["satburst_synth", "worldstrat", "burst_synth", "worldstrat_test", "worldstrat_sweet", "worldstrat_bitter"])
     parser.add_argument("--sample_id", default="Landcover-743192_rgb")
     parser.add_argument("--df", type=int, default=4, help="Downsampling factor, or upsampling factor for the data")
     parser.add_argument("--scale_factor", type=float, default=4, help="scale factor for the input training grid")
@@ -926,7 +1138,11 @@ def main():
                        choices=["linear", "fourier_10", "fourier_5", "fourier_20", "fourier_40", "fourier", "legendre", "none"])
     parser.add_argument("--fourier_scale", type=float, default=10.0)
     parser.add_argument("--use_gnll", action="store_true")
+    parser.add_argument("--use_separate_ud", action="store_true", help="Use separate UD parameters for each sample (default: False)")
+    parser.add_argument("--variance_reg", type=float, default=0.0, help="L2 regularization strength for log-variances (default: 0.0)")
+    parser.add_argument("--variance_smooth_reg", type=float, default=0.0, help="Smoothness regularization strength for variance maps (default: 0.0)")
     parser.add_argument("--visualize_variance", action="store_true", help="Visualize variance maps for each LR sample when using GNLL (single sample only)")
+    parser.add_argument("--no_variance_viz", action="store_true", help="Skip variance visualizations even when using GNLL (applies to both single and multi-sample modes)")
     parser.add_argument("--no_base_frame", action="store_true", help="Disable base frame (default: use_base_frame=True)")
     parser.add_argument("--no_direct_param_T", action="store_true", help="Disable direct parameter T (default: use_direct_param_T=True)")
     parser.add_argument("--use_color_shift", action="store_true", help="Use color shift (default: use_color_shift=False)")
@@ -975,10 +1191,17 @@ def main():
         output_dir.mkdir(exist_ok=True)
         
         # Get all samples in the dataset
-        if args.dataset == "worldstrat_test":
+        if args.dataset in ["worldstrat_test", "worldstrat_sweet", "worldstrat_bitter"]:
             # For worldstrat_test, we need to get all sample IDs
             from data import WorldStratTestDataset
-            data_root = "worldstrat_test_data"
+            if args.dataset == "worldstrat_test":
+                data_root = "worldstrat_test_data"
+            elif args.dataset == "worldstrat_sweet":
+                data_root = "worldstrat_datasets/worldstrat_sweet"
+            else:
+                data_root = "worldstrat_datasets/worldstrat_bitter"
+            # Hint to downstream loaders which root to use (if supported)
+            os.environ["WORLDSTRAT_TEST_ROOT"] = str(data_root)
             sample_dirs = [d for d in Path(data_root).iterdir() if d.is_dir()]
             sample_ids = [d.name for d in sample_dirs]
             print(f"Found {len(sample_ids)} samples: {sample_ids[:5]}...")
@@ -1012,9 +1235,11 @@ def main():
             print(f"Error: Unsupported dataset for multi-sample: {args.dataset}")
             return
         
+
+        output_dim = 3 + args.num_samples * 3 if args.use_gnll and not args.use_separate_ud else 3
         # Setup model components (needed for all samples)
         input_projection = get_input_projection(args.input_projection, 2, args.projection_dim, device, args.fourier_scale)
-        decoder = get_decoder(args.model, args.network_depth, args.projection_dim, args.network_hidden_dim)
+        decoder = get_decoder(args.model, args.network_depth, args.projection_dim, args.network_hidden_dim, output_dim=output_dim)
         
         # Run optimization for each sample
         all_results = []
@@ -1026,7 +1251,8 @@ def main():
             # Create a FRESH model for each sample (this is the key fix!)
             print(f"🔄 Creating fresh model for sample {sample_id} (sample {sample_idx + 1}/{len(sample_ids)})")
             model = INR(input_projection, decoder, args.num_samples, use_gnll=args.use_gnll, 
-                       use_base_frame=not args.no_base_frame, use_direct_param_T=not args.no_direct_param_T, use_color_shift=args.use_color_shift).to(device)
+                       use_base_frame=not args.no_base_frame, use_direct_param_T=not args.no_direct_param_T, 
+                       use_color_shift=args.use_color_shift, use_separate_ud=args.use_separate_ud).to(device)
             print(f"✅ Fresh model created and initialized")
             
             # Set the sample_id for this iteration
@@ -1036,11 +1262,23 @@ def main():
                 args.root_satburst_synth = f"data/{args.sample_id}/scale_{args.df}_shift_{args.lr_shift:.1f}px_aug_{args.aug}"
             
             # Get dataset for this specific sample
-            train_data = get_dataset(args=args, name=args.dataset)
+            # Treat worldstrat_sweet/bitter like worldstrat_test for loader name
+            dataset_name_for_loader = args.dataset
+            if args.dataset in ["worldstrat_sweet", "worldstrat_bitter"]:
+                dataset_name_for_loader = "worldstrat_test"
+            train_data = get_dataset(args=args, name=dataset_name_for_loader)
             
             # Run optimization for this sample with the fresh model
             result = optimize_and_evaluate_sample(model, train_data, device, sample_idx, args, output_dir)
             all_results.append(result)
+            
+            # Generate variance visualizations for this sample if using GNLL (unless disabled)
+            use_gnll_loss = model.use_gnll
+            if use_gnll_loss and not args.no_variance_viz:
+                sample_dir = output_dir / f"sample_{sample_idx:03d}"
+                print(f"\nGenerating variance visualizations for sample {sample_id}...")
+                torch.cuda.empty_cache()  # Clear GPU memory
+                visualize_lr_variance(model, train_data, device, sample_dir, sample_id)
         
         # Create summary visualizations
         create_summary_visualization(all_results, output_dir)
@@ -1060,12 +1298,13 @@ def main():
     input_projection = get_input_projection(args.input_projection, 2, args.projection_dim, device, args.fourier_scale)
     decoder = get_decoder(args.model, args.network_depth, args.projection_dim, args.network_hidden_dim)
     model = INR(input_projection, decoder, args.num_samples, use_gnll=args.use_gnll, 
-               use_base_frame=not args.no_base_frame, use_direct_param_T=not args.no_direct_param_T).to(device)
+               use_base_frame=not args.no_base_frame, use_direct_param_T=not args.no_direct_param_T,
+               use_separate_ud=args.use_separate_ud).to(device)
     # model = NIR(input_projection, decoder, args.num_samples, use_gnll=args.use_gnll).to(device)
 
     # Setup optimizer
     optimizer = optim.AdamW(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
-    scheduler = CosineAnnealingLR(optimizer, T_max=args.iters, eta_min=1e-5)
+    scheduler = CosineAnnealingLR(optimizer, T_max=args.iters, eta_min=1e-6)
 
     print(f"Starting training for {args.iters} iterations...")
     
@@ -1086,7 +1325,9 @@ def main():
                 break
                 
             # Train one iteration
-            train_losses = train_one_iteration(model, optimizer, train_sample, device, args.df)
+            train_losses = train_one_iteration(model, optimizer, train_sample, device, args.df, 
+                                                variance_reg=args.variance_reg, 
+                                                variance_smooth_reg=args.variance_smooth_reg)
             
             # Check for NaN/Inf in losses and break if detected
             if (torch.isnan(torch.tensor(train_losses['recon_loss'])) or 
@@ -1104,10 +1345,15 @@ def main():
 
             # Update progress bar
             progress_bar.update(1)
-            progress_bar.set_postfix({
+            postfix_dict = {
                 'recon': f"{train_losses['recon_loss']:.4f}",
                 'trans': f"{train_losses['trans_loss']:.4f}"
-            })
+            }
+            if train_losses.get('variance_reg_loss', 0.0) > 0.0:
+                postfix_dict['var_reg'] = f"{train_losses['variance_reg_loss']:.4f}"
+            if train_losses.get('variance_smooth_loss', 0.0) > 0.0:
+                postfix_dict['var_smooth'] = f"{train_losses['variance_smooth_loss']:.4f}"
+            progress_bar.set_postfix(postfix_dict)
             
             # Periodic evaluation
             if iteration % 100 == 0:
@@ -1139,7 +1385,7 @@ def main():
         sample_id = torch.tensor([0]).to(device)
         
         if model.use_gnll:
-            output, _, _ = model(hr_coords, sample_id, scale_factor=1, training=False)
+            output, _ = model(hr_coords, sample_id, scale_factor=1, training=False)
         else:
             output, _ = model(hr_coords, sample_id, scale_factor=1, training=False)
 
@@ -1194,7 +1440,7 @@ def main():
         
         # Align outputs for fair comparison (following og_main.py approach)
         # Skip alignment for worldstrat_test dataset as images are already aligned
-        if args.dataset == "worldstrat_test":
+        if args.dataset in ["worldstrat_test", "worldstrat_sweet", "worldstrat_bitter"]:
             print("Skipping alignment for worldstrat_test dataset (images are already aligned)")
             pred_aligned = pred_tensor
             bilinear_aligned = bilinear_tensor
@@ -1446,15 +1692,16 @@ def main():
         print("No metrics data available for plotting (training may have been too short)")
     
     # Generate variance visualizations if requested and using GNLL
-    if args.visualize_variance and model.use_gnll and not args.multi_sample:
+    # Note: For multi_sample mode, variance visualization is done in the multi_sample loop above
+    use_gnll_loss = model.use_gnll
+    if args.visualize_variance and use_gnll_loss and not args.multi_sample and not args.no_variance_viz:
         print("Generating variance visualizations for each LR sample...")
         # Clear GPU memory before variance visualization
         torch.cuda.empty_cache()
         visualize_lr_variance(model, train_data, device, sample_dir, args.sample_id)
-    elif args.visualize_variance and not model.use_gnll:
+    elif args.visualize_variance and not use_gnll_loss:
         print("Warning: --visualize_variance requested but model does not use GNLL. Skipping variance visualization.")
-    elif args.visualize_variance and args.multi_sample:
-        print("Warning: --visualize_variance is only supported for single sample optimization. Skipping variance visualization.")
+    # For multi_sample mode, variance is automatically generated if use_gnll is enabled (unless --no_variance_viz is set)
 
 
 if __name__ == "__main__":
