@@ -182,7 +182,6 @@ wandb/
 SyntheticBurstVal/
 burst_test_folder/
 deep_rep/
-handheld/
 test_burst/
 *.zip
 *.tar
@@ -227,3 +226,4 @@ vøra*
 real_world_data/
 samle_mappe
 worldstrat_datasets
+handheld/results*
