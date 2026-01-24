@@ -288,16 +288,17 @@ def optimize_and_evaluate_sample(model, train_data, device, sample_idx, args, ou
         bilinear_tensor = torch.from_numpy(lr_bilinear).unsqueeze(0).permute(0, 3, 1, 2).to(device)
         
         # Align outputs for fair comparison
-        print("Aligning outputs for fair comparison")
-        gauss_kernel, ksz = get_gaussian_kernel(sd=1.5)
+        # Alignment disabled to avoid OOM errors - can be re-enabled if needed
+        print("Skipping alignment (disabled to avoid memory issues)")
+        pred_aligned = pred_tensor
+        bilinear_aligned = bilinear_tensor
         
-        # Align model prediction to ground truth
-        pred_aligned = align_kornia_brute_force(pred_tensor.squeeze(0), gt_tensor.squeeze(0)).unsqueeze(0)
-        pred_aligned, _ = match_colors(pred_aligned, gt_tensor, pred_aligned, ksz, gauss_kernel)
-
-        # Align bilinear baseline to ground truth
-        bilinear_aligned = align_kornia_brute_force(bilinear_tensor.squeeze(0), gt_tensor.squeeze(0)).unsqueeze(0)
-        bilinear_aligned, _ = match_colors(bilinear_aligned, gt_tensor, bilinear_aligned, ksz, gauss_kernel)
+        # Disabled alignment code (causes OOM on small GPUs):
+        # gauss_kernel, ksz = get_gaussian_kernel(sd=1.5)
+        # pred_aligned = align_kornia_brute_force(pred_tensor.squeeze(0), gt_tensor.squeeze(0)).unsqueeze(0)
+        # pred_aligned, _ = match_colors(pred_aligned, gt_tensor, pred_aligned, ksz, gauss_kernel)
+        # bilinear_aligned = align_kornia_brute_force(bilinear_tensor.squeeze(0), gt_tensor.squeeze(0)).unsqueeze(0)
+        # bilinear_aligned, _ = match_colors(bilinear_aligned, gt_tensor, bilinear_aligned, ksz, gauss_kernel)
 
         # Calculate comprehensive metrics using aligned tensors
         model_psnr = peak_signal_noise_ratio(pred_aligned.cpu(), gt_tensor.cpu(), data_range=1.0).item()
@@ -1152,12 +1153,20 @@ def main():
     parser.add_argument("--iters", type=int, default=2000)
     parser.add_argument("--learning_rate", type=float, default=2e-3)
     parser.add_argument("--weight_decay", type=float, default=0.05)
-    parser.add_argument("--device", type=str, default="7", help="CUDA device number")
+    parser.add_argument("--device", type=str, default="7", help="CUDA device number (e.g., '0', '1') or 'cpu' for CPU")
     
     args = parser.parse_args()
 
-    # Setup device
-    device = torch.device(f"cuda:{args.device}" if torch.cuda.is_available() else "cpu")
+    # Setup device - allow "cpu" as explicit device string
+    if args.device.lower() == "cpu":
+        device = torch.device("cpu")
+    elif torch.cuda.is_available():
+        device = torch.device(f"cuda:{args.device}")
+    else:
+        print(f"Warning: CUDA device {args.device} requested but CUDA not available. Using CPU.")
+        device = torch.device("cpu")
+    
+    print(f"Using device: {device}")
     
     # Set seeds
     torch.manual_seed(args.seed)
@@ -1399,31 +1408,38 @@ def main():
         pred_np = output.squeeze().cpu().numpy()
         gt_np = hr_image.squeeze().cpu().numpy()
 
-        # Build a 3-channel LR baseline image
+        # Build a 3-channel LR baseline image for visualization
         if hasattr(train_data, 'get_lr_sample_hwc'):
-            lr_original = train_data.get_lr_sample_hwc(0).cpu().numpy()  # H x W x 3
+            # get_lr_sample_hwc returns standardized HWC format, need to unstandardize
+            lr_original = train_data.get_lr_sample_hwc(0).cpu().numpy()  # H x W x 3 (standardized)
+            lr_std = train_data.get_lr_std(0).cpu().numpy()
+            lr_mean = train_data.get_lr_mean(0).cpu().numpy()
+            # Ensure shapes broadcast to HxWx3
+            if lr_std.ndim == 1:
+                lr_std = lr_std.reshape(1, 1, -1)
+            if lr_mean.ndim == 1:
+                lr_mean = lr_mean.reshape(1, 1, -1)
+            lr_original = lr_original * lr_std + lr_mean
         else:
-            lr_original = train_data.get_lr_sample(0).cpu().numpy()      # possibly H x W x (3*T)
-            if lr_original.ndim == 3 and lr_original.shape[2] > 3:
-                H, W, C = lr_original.shape
-                if C % 3 == 0:
-                    T = C // 3
-                    lr_original = lr_original.reshape(H, W, T, 3)
-                    # Use first frame as baseline (or replace with .mean(axis=2) to average)
-                    lr_original = lr_original[:, :, 0, :]
-                else:
-                    # Fallback: take first 3 channels
-                    lr_original = lr_original[:, :, :3]
-
-        # Unstandardize LR using dataset stats to get proper colors
-        lr_std = train_data.get_lr_std(0).cpu().numpy()
-        lr_mean = train_data.get_lr_mean(0).cpu().numpy()
-        # Ensure shapes broadcast to HxWx3
-        if lr_std.ndim == 1:
-            lr_std = lr_std.reshape(1, 1, -1)
-        if lr_mean.ndim == 1:
-            lr_mean = lr_mean.reshape(1, 1, -1)
-        lr_original = lr_original * lr_std + lr_mean
+            # get_lr_sample returns unstandardized CHW format (already unstandardized in data.py line 207)
+            lr_original = train_data.get_lr_sample(0).cpu().numpy()  # C x H x W (unstandardized, [0, 1])
+            
+            # Convert from CHW to HWC for visualization
+            if lr_original.ndim == 3:
+                if lr_original.shape[0] in (1, 3, 4):  # CHW format
+                    lr_original = lr_original.transpose(1, 2, 0)  # Convert to HWC
+                    # Handle multi-frame case if needed (shouldn't happen for satburst_synth, but be safe)
+                    if lr_original.shape[2] > 3:
+                        H, W, C = lr_original.shape
+                        if C % 3 == 0:
+                            T = C // 3
+                            lr_original = lr_original.reshape(H, W, T, 3)
+                            # Use first frame as baseline
+                            lr_original = lr_original[:, :, 0, :]
+                        else:
+                            # Fallback: take first 3 channels
+                            lr_original = lr_original[:, :, :3]
+            # No unstandardization needed - get_lr_sample already returns unstandardized [0, 1] range
 
         lr_h, lr_w = lr_original.shape[:2]
         hr_h, hr_w = gt_np.shape[:2]
@@ -1439,25 +1455,25 @@ def main():
         bilinear_tensor = torch.from_numpy(lr_bilinear).unsqueeze(0).permute(0, 3, 1, 2).to(device)  # [1, C, H, W]
         
         # Align outputs for fair comparison (following og_main.py approach)
-        # Skip alignment for worldstrat_test dataset as images are already aligned
-        if args.dataset in ["worldstrat_test", "worldstrat_sweet", "worldstrat_bitter"]:
-            print("Skipping alignment for worldstrat_test dataset (images are already aligned)")
-            pred_aligned = pred_tensor
-            bilinear_aligned = bilinear_tensor
-            gauss_kernel, ksz = get_gaussian_kernel(sd=1.5)
-            
-            pred_aligned, _ = match_colors(pred_aligned, gt_tensor, pred_aligned, ksz, gauss_kernel)
-            bilinear_aligned, _ = match_colors(bilinear_aligned, gt_tensor, bilinear_aligned, ksz, gauss_kernel)
-        else:
-            gauss_kernel, ksz = get_gaussian_kernel(sd=1.5)
-            
-            # Align model prediction to ground truth
-            pred_aligned = align_kornia_brute_force(pred_tensor.squeeze(0), gt_tensor.squeeze(0)).unsqueeze(0)
-            pred_aligned, _ = match_colors(pred_aligned, gt_tensor, pred_aligned, ksz, gauss_kernel)
-            
-            # Align bilinear baseline to ground truth
-            bilinear_aligned = align_kornia_brute_force(bilinear_tensor.squeeze(0), gt_tensor.squeeze(0)).unsqueeze(0)
-            bilinear_aligned, _ = match_colors(bilinear_aligned, gt_tensor, bilinear_aligned, ksz, gauss_kernel)
+        # Alignment disabled to avoid OOM errors - can be re-enabled if needed
+        print("Skipping alignment (disabled to avoid memory issues)")
+        pred_aligned = pred_tensor
+        bilinear_aligned = bilinear_tensor
+        
+        # Disabled alignment code (causes OOM on small GPUs):
+        # if args.dataset in ["worldstrat_test", "worldstrat_sweet", "worldstrat_bitter"]:
+        #     print("Skipping spatial alignment for worldstrat_test dataset (images are already aligned)")
+        #     pred_aligned = pred_tensor
+        #     bilinear_aligned = bilinear_tensor
+        #     gauss_kernel, ksz = get_gaussian_kernel(sd=1.5)
+        #     pred_aligned, _ = match_colors(pred_aligned, gt_tensor, pred_aligned, ksz, gauss_kernel)
+        #     bilinear_aligned, _ = match_colors(bilinear_aligned, gt_tensor, bilinear_aligned, ksz, gauss_kernel)
+        # else:
+        #     gauss_kernel, ksz = get_gaussian_kernel(sd=1.5)
+        #     pred_aligned = align_kornia_brute_force(pred_tensor.squeeze(0), gt_tensor.squeeze(0)).unsqueeze(0)
+        #     pred_aligned, _ = match_colors(pred_aligned, gt_tensor, pred_aligned, ksz, gauss_kernel)
+        #     bilinear_aligned = align_kornia_brute_force(bilinear_tensor.squeeze(0), gt_tensor.squeeze(0)).unsqueeze(0)
+        #     bilinear_aligned, _ = match_colors(bilinear_aligned, gt_tensor, bilinear_aligned, ksz, gauss_kernel)
 
 
         # PSNR - using aligned tensors for fair comparison
