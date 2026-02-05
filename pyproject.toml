@@ -26,10 +26,10 @@ classifiers = [
 keywords = ["super-resolution", "satellite", "implicit-neural-representations", "deep-learning", "remote-sensing"]
 
 dependencies = [
-    "torch>=2.0.0",
-    "torchvision>=0.15.0",
-    "torchmetrics>=0.11.0",
-    "numpy>=1.20.0",
+    "torch>=2.0.0,<2.6.0",
+    "torchvision>=0.15.0,<0.21.0",
+    "torchmetrics>=0.11.0,<2.0.0",
+    "numpy>=1.20.0,<3.0.0",
     "matplotlib>=3.5.0",
     "seaborn>=0.12.0",
     "tqdm>=4.65.0",
@@ -40,7 +40,7 @@ dependencies = [
     "pillow>=9.0.0",
     "scikit-image>=0.19.0",
     "scikit-learn>=1.0.0",
-    "kornia>=0.7.0",
+    "kornia>=0.7.0,<0.8.0",
     "opencv-python>=4.5.0",
 ]
 
@@ -62,7 +62,7 @@ Issues = "https://github.com/sjyhne/superf/issues"
 superf-train = "optimize:main"
 
 [tool.setuptools]
-packages = ["models", "input_projections", "handheld"]
+packages = ["models", "input_projections"]
 py-modules = ["optimize", "data", "losses", "utils", "viz_utils"]
 
 [tool.setuptools.package-data]

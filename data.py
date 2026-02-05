@@ -571,7 +571,7 @@ class WorldStratDatasetFrame(torch.utils.data.Dataset):
         self.hr_coords = torch.FloatTensor(self.hr_coords)
     
     def __len__(self):
-        # TODO
+        """Number of LR frames available for this area."""
         return self.num_frames
     
     def get_hr(self):

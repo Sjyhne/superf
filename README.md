@@ -33,6 +33,8 @@ pip install -e ".[dev]"
 
 **Requirements**: Python 3.10+, PyTorch 2.0+, CUDA-capable GPU recommended
 
+**Optional — Handheld bursts**: The script `run_handheld.py` provides super-resolution for handheld camera bursts. It requires the separate `handheld` Python package (not included in this repo). The main entry point `optimize.py` does not depend on `handheld` and works for satellite and synthetic data only.
+
 ## Quick Start
 
 ### Generate Synthetic Training Data
