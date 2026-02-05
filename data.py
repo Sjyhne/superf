@@ -80,17 +80,19 @@ def get_dataset(args, name='satburst', keep_in_memory=True):
 
 
 class SRData(torch.utils.data.Dataset):
-    def __init__(self, data_dir, num_samples, keep_in_memory=False, scale_factor=4):
+    def __init__(self, data_dir, num_samples, keep_in_memory=False, scale_factor=4, device=None):
         """
         Initialize SR dataset from generated data directory.
-        
+
         Args:
             data_dir: Base path to data directory
             mode: 'lr' or 'hr' - which dataset to load
+            device: Device to use for tensors (default: cuda if available, else cpu)
         """
         self.data_dir = Path(data_dir)
         self.keep_in_memory = keep_in_memory
-        self.num_samples = num_samples  
+        self.num_samples = num_samples
+        self.device = device if device is not None else ("cuda" if torch.cuda.is_available() else "cpu")
 
         self.vmin, self.vmax = 0, 1
         
@@ -124,16 +126,16 @@ class SRData(torch.utils.data.Dataset):
         # Load original image for reference
         self.original = cv2.imread(str(self.data_dir / "hr_ground_truth.png"))
         self.original = cv2.cvtColor(self.original, cv2.COLOR_BGR2RGB)
-        self.original = (torch.from_numpy(self.original).float() / 255.0).cuda()
+        self.original = (torch.from_numpy(self.original).float() / 255.0).to(self.device)
         # Standardize original image to have zero mean and no bias
 
         self.hr_coords = np.linspace(self.vmin, self.vmax, self.original.shape[0], endpoint=False)
         self.hr_coords = np.stack(np.meshgrid(self.hr_coords, self.hr_coords), -1)
-        self.hr_coords = torch.FloatTensor(self.hr_coords).cuda()
+        self.hr_coords = torch.FloatTensor(self.hr_coords).to(self.device)
 
         self.lr_coords = np.linspace(self.vmin, self.vmax, self.lr_image_sizes[0][0], endpoint=False)
         self.lr_coords = np.stack(np.meshgrid(self.lr_coords, self.lr_coords), -1)
-        self.lr_coords = torch.FloatTensor(self.lr_coords).cuda()
+        self.lr_coords = torch.FloatTensor(self.lr_coords).to(self.device)
 
         self.scale_factor = [scale_factor]
 
@@ -145,7 +147,7 @@ class SRData(torch.utils.data.Dataset):
 
         input_coordinates = np.linspace(self.vmin, self.vmax, int(self.lr_image_sizes[0][0] * scale_factor), endpoint=False)
         input_coordinates = np.stack(np.meshgrid(input_coordinates, input_coordinates), -1)
-        input_coordinates = torch.FloatTensor(input_coordinates).cuda()
+        input_coordinates = torch.FloatTensor(input_coordinates).to(self.device)
         return input_coordinates, scale_factor
     
     def __getitem__(self, idx):
@@ -888,93 +890,3 @@ class WorldStratTestDataset(torch.utils.data.Dataset):
         """Get the global std for unstandardization."""
         # Always return global std (index parameter is kept for API compatibility)
         return self.global_std
-
-
-if __name__ == "__main__":
-    print("Testing WorldStratDatasetFrame...")
-    
-    try:
-        # Test with actual data path (you'll need to update this)
-        # Example usage:
-        test_dataset = WorldStratDatasetFrame(
-            data_dir="/path/to/your/worldstrat/data",  # Update this path
-            area_name="UNHCR-LBNs006446",  # Update this area name
-            num_frames=8,
-            hr_size=512
-        )
-        
-        print(f"✅ Dataset created successfully!")
-        print(f"Dataset length: {len(test_dataset)}")
-        print(f"HR image shape: {test_dataset.get_original_hr().shape}")
-        print(f"HR coordinates shape: {test_dataset.get_hr_coordinates().shape}")
-        
-        # Test getting a sample
-        if len(test_dataset) > 0:
-            sample = test_dataset[0]
-            print(f"Sample keys: {sample.keys()}")
-            print(f"Input shape: {sample['input'].shape}")
-            print(f"LR target shape: {sample['lr_target'].shape}")
-            print(f"Sample ID: {sample['sample_id']}")
-            
-            # Test the new methods
-            print(f"LR sample (CHW) shape: {test_dataset.get_lr_sample(0).shape}")
-            print(f"LR sample (HWC) shape: {test_dataset.get_lr_sample_hwc(0).shape}")
-            print(f"LR mean shape: {test_dataset.get_lr_mean(0).shape}")
-            print(f"LR std shape: {test_dataset.get_lr_std(0).shape}")
-            
-            print("✅ WorldStratDatasetFrame test completed successfully!")
-        
-    except Exception as e:
-        print(f"❌ WorldStratDatasetFrame test failed: {e}")
-        print("\nTo use WorldStratDatasetFrame, you need to:")
-        print("1. Update the data_dir path to point to your WorldStrat dataset")
-        print("2. Make sure the directory structure is:")
-        print("   data_dir/hr_dataset/12bit/area_name/area_name_rgb.png")
-        print("   data_dir/lr_dataset/area_name/L2A/area_name-1-L2A_data.tiff")
-        print("   data_dir/lr_dataset/area_name/L2A/area_name-2-L2A_data.tiff")
-        print("   ...")
-    
-    print("\n" + "="*60)
-    print("HOW TO USE WorldStratDatasetFrame:")
-    print("="*60)
-    print("""
-# 1. Create dataset instance
-dataset = WorldStratDatasetFrame(
-    data_dir="/path/to/worldstrat/data",  # Base directory
-    area_name="UNHCR-LBNs006446",        # Area identifier
-    num_frames=8,                        # Number of LR frames
-    hr_size=512                          # Optional: resize HR image
-)
-
-# 2. Use with DataLoader
-from torch.utils.data import DataLoader
-dataloader = DataLoader(dataset, batch_size=1, shuffle=False)
-
-# 3. Use in training loop
-for batch in dataloader:
-    input_coords = batch['input']        # HR coordinates
-    lr_target = batch['lr_target']       # LR image
-    sample_id = batch['sample_id']       # Frame ID
-    shifts = batch['shifts']             # Ground truth shifts (all zeros)
-
-# 4. Access individual methods
-hr_image = dataset.get_original_hr()     # Get HR ground truth
-hr_coords = dataset.get_hr_coordinates() # Get HR coordinate grid
-lr_sample = dataset.get_lr_sample(0)     # Get LR frame 0 (CHW format)
-lr_hwc = dataset.get_lr_sample_hwc(0)    # Get LR frame 0 (HWC format)
-lr_mean = dataset.get_lr_mean(0)         # Get mean for unstandardization
-lr_std = dataset.get_lr_std(0)           # Get std for unstandardization
-    """)
-    
-    print("\n" + "="*60)
-    print("COMPATIBILITY WITH BENCHMARK:")
-    print("="*60)
-    print("✅ WorldStratDatasetFrame is now compatible with benchmark_models.py!")
-    print("✅ All required methods are implemented:")
-    print("   - get_original_hr()")
-    print("   - get_hr_coordinates()")
-    print("   - get_lr_sample(index)")
-    print("   - get_lr_sample_hwc(index)")
-    print("   - get_lr_mean(index)")
-    print("   - get_lr_std(index)")
-    print("\nYou can now run benchmark_models.py with this dataset!")

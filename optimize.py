@@ -10,9 +10,8 @@ import argparse
 import cv2
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from torch.utils.data import DataLoader
-from torchmetrics.functional import peak_signal_noise_ratio
+from torchmetrics.functional.image import peak_signal_noise_ratio
 import matplotlib.pyplot as plt
-import glob
 import json
 from datetime import datetime
 
@@ -22,17 +21,15 @@ from losses import BasicLosses
 from models.utils import get_decoder
 from input_projections.utils import get_input_projection
 from models.inr import INR
-from models.nir import NIR, nir_loss
-from handheld.evals_2 import align_kornia_brute_force, get_gaussian_kernel, match_colors
+from models.nir import NIR
 
 import time
 
 import os
 import lpips
-from torchmetrics.functional import structural_similarity_index_measure as ssim
-import pandas as pd
+from torchmetrics.functional.image import structural_similarity_index_measure as ssim
 
-def train_one_iteration(model, optimizer, train_sample, device, downsample_factor, variance_reg=0.0, variance_smooth_reg=0.0):
+def train_one_iteration(model, optimizer, train_sample, device, variance_reg=0.0, variance_smooth_reg=0.0):
     model.train()
     
     # Initialize loss functions
@@ -189,8 +186,8 @@ def optimize_and_evaluate_sample(model, train_data, device, sample_idx, args, ou
             if iteration >= args.iters:
                 break
                 
-            train_losses = train_one_iteration(model, optimizer, train_sample, device, args.df, 
-                                                variance_reg=args.variance_reg, 
+            train_losses = train_one_iteration(model, optimizer, train_sample, device,
+                                                variance_reg=args.variance_reg,
                                                 variance_smooth_reg=args.variance_smooth_reg)
             scheduler.step()
             iteration += 1
@@ -1334,8 +1331,8 @@ def main():
                 break
                 
             # Train one iteration
-            train_losses = train_one_iteration(model, optimizer, train_sample, device, args.df, 
-                                                variance_reg=args.variance_reg, 
+            train_losses = train_one_iteration(model, optimizer, train_sample, device,
+                                                variance_reg=args.variance_reg,
                                                 variance_smooth_reg=args.variance_smooth_reg)
             
             # Check for NaN/Inf in losses and break if detected

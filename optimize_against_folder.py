@@ -1,26 +1,64 @@
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
 import numpy as np
 from tqdm import tqdm
 from pathlib import Path
 import random
 import argparse
-from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import CosineAnnealingLR
 import matplotlib.pyplot as plt
 import glob
 import cv2
-from PIL import Image
 import json
 from datetime import datetime
 
-from data import get_dataset, get_and_standardize_image
-from losses import BasicLosses
+from data import get_and_standardize_image
 from models.utils import get_decoder
+from optimize import train_one_iteration
 from input_projections.utils import get_input_projection
 from models.inr import INR
+
+
+def make_square(img):
+    """Pad image to square by centering it."""
+    h, w = img.shape[:2]
+    max_dim = max(h, w)
+
+    if len(img.shape) == 3:
+        square_img = np.zeros((max_dim, max_dim, img.shape[2]))
+    else:
+        square_img = np.zeros((max_dim, max_dim))
+
+    start_h = (max_dim - h) // 2
+    start_w = (max_dim - w) // 2
+    square_img[start_h:start_h+h, start_w:start_w+w] = img
+
+    return square_img
+
+
+def save_image_multi_size(img, save_dir, base_name):
+    """Save image in multiple sizes (web, fullscreen, thumbnail).
+
+    Returns dict with filenames for each size.
+    """
+    sizes = {
+        'web': (8, 8),        # 800x800
+        'fullscreen': (12, 12),  # 1200x1200
+        'thumb': (2, 2)       # 200x200
+    }
+    filenames = {}
+
+    for size_name, figsize in sizes.items():
+        filename = f"{base_name}_{size_name}.png"
+        plt.figure(figsize=figsize, dpi=100)
+        plt.imshow(img)
+        plt.axis('off')
+        plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
+        plt.savefig(save_dir / filename, bbox_inches='tight', pad_inches=0, dpi=100)
+        plt.close()
+        filenames[size_name] = filename
+
+    return filenames
 
 
 class ImageDataset:
@@ -54,7 +92,7 @@ class ImageDataset:
             'mean': self.means[idx].unsqueeze(0).to(self.device),
             'std': self.stds[idx].unsqueeze(0).to(self.device),
             'sample_id': torch.tensor([idx]).to(self.device),
-            'scale_factor': torch.tensor([1.0/self.downsample_factor]).to(self.device),  # 1/df for downsampling
+            'scale_factor': torch.tensor([float(self.downsample_factor)]).to(self.device),
             'shifts': {
                 'dx_percent': torch.tensor([0.0]).to(self.device),
                 'dy_percent': torch.tensor([0.0]).to(self.device)
@@ -243,141 +281,48 @@ def save_checkpoint_data(model, train_data, device, iteration, output_dir, args,
             
             # Use OpenCV for bilinear interpolation
             lr_bilinear = cv2.resize(lr_original, (hr_w, hr_h), interpolation=cv2.INTER_LINEAR)
-            
-            # Make images square by padding to the larger dimension
-            def make_square(img):
-                h, w = img.shape[:2]
-                max_dim = max(h, w)
-                
-                if len(img.shape) == 3:
-                    square_img = np.zeros((max_dim, max_dim, img.shape[2]))
-                else:
-                    square_img = np.zeros((max_dim, max_dim))
-                
-                # Center the image
-                start_h = (max_dim - h) // 2
-                start_w = (max_dim - w) // 2
-                square_img[start_h:start_h+h, start_w:start_w+w] = img
-                
-                return square_img
-            
+
             # Make all images square
             sr_square = make_square(sr_output)
             lr_square = make_square(lr_original)
             bilinear_square = make_square(lr_bilinear)
-            
-            # Save filenames for different sizes
-            sr_filename_web = f"sr_sample_{idx}_web.png"        # Large for web display
-            sr_filename_full = f"sr_sample_{idx}_fullscreen.png" # Very large for fullscreen
-            sr_filename_thumb = f"sr_sample_{idx}_thumb.png"    # Small for thumbnails
-            lr_filename_web = f"lr_sample_{idx}_web.png"
-            lr_filename_full = f"lr_sample_{idx}_fullscreen.png"
-            lr_filename_thumb = f"lr_sample_{idx}_thumb.png"
-            bilinear_filename_web = f"bilinear_sample_{idx}_web.png"
-            bilinear_filename_full = f"bilinear_sample_{idx}_fullscreen.png"
-            bilinear_filename_thumb = f"bilinear_sample_{idx}_thumb.png"
-            
-            # Save SR images in multiple sizes
-            # 1. Web size (800x800) - good for main display
-            plt.figure(figsize=(8, 8), dpi=100)  # 800x800 pixels
-            plt.imshow(sr_square)
-            plt.axis('off')
-            plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
-            plt.savefig(checkpoint_dir / sr_filename_web, bbox_inches='tight', pad_inches=0, dpi=100)
-            plt.close()
-            
-            # 2. Fullscreen size (1200x1200) - for fullscreen mode
-            plt.figure(figsize=(12, 12), dpi=100)  # 1200x1200 pixels
-            plt.imshow(sr_square)
-            plt.axis('off')
-            plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
-            plt.savefig(checkpoint_dir / sr_filename_full, bbox_inches='tight', pad_inches=0, dpi=100)
-            plt.close()
-            
-            # 3. Thumbnail size (200x200) - for overview/timeline
-            plt.figure(figsize=(2, 2), dpi=100)  # 200x200 pixels
-            plt.imshow(sr_square)
-            plt.axis('off')
-            plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
-            plt.savefig(checkpoint_dir / sr_filename_thumb, bbox_inches='tight', pad_inches=0, dpi=100)
-            plt.close()
-            
-            # Save bilinear interpolation images in multiple sizes
-            # 1. Web size bilinear
-            plt.figure(figsize=(8, 8), dpi=100)
-            plt.imshow(bilinear_square)
-            plt.axis('off')
-            plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
-            plt.savefig(checkpoint_dir / bilinear_filename_web, bbox_inches='tight', pad_inches=0, dpi=100)
-            plt.close()
-            
-            # 2. Fullscreen size bilinear
-            plt.figure(figsize=(12, 12), dpi=100)
-            plt.imshow(bilinear_square)
-            plt.axis('off')
-            plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
-            plt.savefig(checkpoint_dir / bilinear_filename_full, bbox_inches='tight', pad_inches=0, dpi=100)
-            plt.close()
-            
-            # 3. Thumbnail size bilinear
-            plt.figure(figsize=(2, 2), dpi=100)
-            plt.imshow(bilinear_square)
-            plt.axis('off')
-            plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
-            plt.savefig(checkpoint_dir / bilinear_filename_thumb, bbox_inches='tight', pad_inches=0, dpi=100)
-            plt.close()
-            
+
+            # Save images in multiple sizes using helper function
+            sr_files = save_image_multi_size(sr_square, checkpoint_dir, f"sr_sample_{idx}")
+            bilinear_files = save_image_multi_size(bilinear_square, checkpoint_dir, f"bilinear_sample_{idx}")
+
             # Save LR reference images (only once, at first iteration)
             lr_reference_dir = output_dir / "lr_reference"
             lr_reference_dir.mkdir(exist_ok=True)
-            
-            lr_ref_web = lr_reference_dir / lr_filename_web
-            lr_ref_full = lr_reference_dir / lr_filename_full
-            lr_ref_thumb = lr_reference_dir / lr_filename_thumb
-            
+            lr_ref_web = lr_reference_dir / f"lr_sample_{idx}_web.png"
+
             if not lr_ref_web.exists():
-                # Web size LR
-                plt.figure(figsize=(8, 8), dpi=100)
-                plt.imshow(lr_square)
-                plt.axis('off')
-                plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
-                plt.savefig(lr_ref_web, bbox_inches='tight', pad_inches=0, dpi=100)
-                plt.close()
-                
-                # Fullscreen size LR
-                plt.figure(figsize=(12, 12), dpi=100)
-                plt.imshow(lr_square)
-                plt.axis('off')
-                plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
-                plt.savefig(lr_ref_full, bbox_inches='tight', pad_inches=0, dpi=100)
-                plt.close()
-                
-                # Thumbnail size LR
-                plt.figure(figsize=(2, 2), dpi=100)
-                plt.imshow(lr_square)
-                plt.axis('off')
-                plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
-                plt.savefig(lr_ref_thumb, bbox_inches='tight', pad_inches=0, dpi=100)
-                plt.close()
-            
-            # Store sample metadata with multiple image sizes including bilinear
+                lr_files = save_image_multi_size(lr_square, lr_reference_dir, f"lr_sample_{idx}")
+            else:
+                lr_files = {
+                    'web': f"lr_sample_{idx}_web.png",
+                    'fullscreen': f"lr_sample_{idx}_fullscreen.png",
+                    'thumb': f"lr_sample_{idx}_thumb.png"
+                }
+
+            # Store sample metadata with multiple image sizes
             sample_data = {
                 'sample_id': idx,
                 'images': {
-                    'sr_web': sr_filename_web,           # 800x800 - main display
-                    'sr_fullscreen': sr_filename_full,   # 1200x1200 - fullscreen mode
-                    'sr_thumbnail': sr_filename_thumb,   # 200x200 - timeline/overview
-                    'lr_web': lr_filename_web,
-                    'lr_fullscreen': lr_filename_full,
-                    'lr_thumbnail': lr_filename_thumb,
-                    'bilinear_web': bilinear_filename_web,           # 800x800 - bilinear baseline
-                    'bilinear_fullscreen': bilinear_filename_full,   # 1200x1200 - bilinear baseline
-                    'bilinear_thumbnail': bilinear_filename_thumb    # 200x200 - bilinear baseline
+                    'sr_web': sr_files['web'],
+                    'sr_fullscreen': sr_files['fullscreen'],
+                    'sr_thumbnail': sr_files['thumb'],
+                    'lr_web': lr_files['web'],
+                    'lr_fullscreen': lr_files['fullscreen'],
+                    'lr_thumbnail': lr_files['thumb'],
+                    'bilinear_web': bilinear_files['web'],
+                    'bilinear_fullscreen': bilinear_files['fullscreen'],
+                    'bilinear_thumbnail': bilinear_files['thumb']
                 },
                 'lr_reference_paths': {
-                    'web': f"lr_reference/{lr_filename_web}",
-                    'fullscreen': f"lr_reference/{lr_filename_full}",
-                    'thumbnail': f"lr_reference/{lr_filename_thumb}"
+                    'web': f"lr_reference/{lr_files['web']}",
+                    'fullscreen': f"lr_reference/{lr_files['fullscreen']}",
+                    'thumbnail': f"lr_reference/{lr_files['thumb']}"
                 },
                 'alignment': {
                     'dx': dx_val,
@@ -765,93 +710,48 @@ Generated on: {datetime.now().isoformat()}
     return web_data_dir
 
 
-def train_one_iteration(model, optimizer, train_sample, device, downsample_factor):
-    model.train()
-    
-    # Initialize loss functions
-    recon_criterion = BasicLosses.mse_loss
-    trans_criterion = BasicLosses.mae_loss
-    
-    if model.use_gnll:
-        recon_criterion = nn.GaussianNLLLoss()
-
-    input = train_sample['input'].to(device)
-    lr_target = train_sample['lr_target'].to(device)
-    sample_id = train_sample['sample_id'].to(device)
-    scale_factor = train_sample['scale_factor'].to(device)
-
-    # Get ground truth shifts (if available, otherwise zero)
-    if 'shifts' in train_sample and 'dx_percent' in train_sample['shifts']:
-        gt_dx = train_sample['shifts']['dx_percent'].to(device)
-        gt_dy = train_sample['shifts']['dy_percent'].to(device)
-    else:
-        gt_dx = torch.zeros(lr_target.shape[0], device=device)
-        gt_dy = torch.zeros(lr_target.shape[0], device=device)
-
-    optimizer.zero_grad()
-
-    if model.use_gnll:
-        output, pred_shifts, pred_variance = model(input, sample_id, scale_factor=scale_factor, lr_frames=lr_target)
-        recon_loss = recon_criterion(output, lr_target, pred_variance)
-    else:
-        output, pred_shifts = model(input, sample_id, scale_factor=scale_factor, lr_frames=lr_target)
-        recon_loss = recon_criterion(output, lr_target)
-
-    pred_dx, pred_dy = pred_shifts
-    trans_loss = trans_criterion(pred_dx, gt_dx) + trans_criterion(pred_dy, gt_dy)
-
-    # Backpropagate only the reconstruction term
-    recon_loss.backward()
-    optimizer.step()
-    
-    return {
-        'recon_loss': recon_loss.item(),
-        'trans_loss': trans_loss.item(),
-        'total_loss': recon_loss.item() + trans_loss.item()
-    }
-
-
 def main():
     parser = argparse.ArgumentParser(description="Super-Resolution for Folder of Images")
-    
+
     # Essential parameters
     parser.add_argument("--input_folder", type=str, required=True, help="Path to folder containing LR images")
     parser.add_argument("--output_folder", type=str, default="sr_outputs", help="Output folder for super-resolved images")
-    parser.add_argument("--dataset", type=str, default="satburst_synth", 
-                       choices=["satburst_synth", "worldstrat", "burst_synth"])
-    parser.add_argument("--sample_id", default="Landcover-743192_rgb")
-    parser.add_argument("--df", type=int, default=2, help="Downsampling factor")
-    parser.add_argument("--lr_shift", type=float, default=1.0)
-    parser.add_argument("--num_samples", type=int, default=16)
-    parser.add_argument("--aug", type=str, default="none", choices=['none', 'light', 'medium', 'heavy'])
-    
+    parser.add_argument("--df", type=int, default=2, help="Downsampling factor (target HR = LR * df)")
+
     # Model parameters
-    parser.add_argument("--model", type=str, default="mlp", 
+    parser.add_argument("--model", type=str, default="mlp",
                        choices=["mlp", "siren", "wire", "linear", "conv", "thera"])
     parser.add_argument("--network_depth", type=int, default=4)
     parser.add_argument("--network_hidden_dim", type=int, default=256)
     parser.add_argument("--projection_dim", type=int, default=256)
-    parser.add_argument("--input_projection", type=str, default="fourier_10", 
+    parser.add_argument("--input_projection", type=str, default="fourier_10",
                        choices=["linear", "fourier_10", "fourier_5", "fourier_20", "fourier_40", "fourier", "legendre", "none"])
     parser.add_argument("--fourier_scale", type=float, default=10)
     parser.add_argument("--use_gnll", action="store_true")
-    parser.add_argument("--variance_init", type=float, default=0.1, help="Initial variance value for per-pixel params when using GNLL")
-    
+
     # Training parameters
     parser.add_argument("--seed", type=int, default=10)
     parser.add_argument("--iters", type=int, default=1000)
     parser.add_argument("--learning_rate", type=float, default=2e-3)
     parser.add_argument("--weight_decay", type=float, default=0.05)
-    parser.add_argument("--device", type=str, default="7", help="CUDA device number")
-    
+    parser.add_argument("--device", type=str, default="0", help="CUDA device number (e.g., '0', '1') or 'cpu' for CPU")
+
     # Web visualization parameters
     parser.add_argument("--save_every", type=int, default=100000, help="Save checkpoint data every N iterations")
     parser.add_argument("--export_web_data", action="store_true", default=True, help="Export data for web visualization")
-    
+
     args = parser.parse_args()
 
-    # Setup device
-    device = torch.device(f"cuda:{args.device}" if torch.cuda.is_available() else "cpu")
+    # Setup device - allow "cpu" as explicit device string
+    if args.device.lower() == "cpu":
+        device = torch.device("cpu")
+    elif torch.cuda.is_available():
+        device = torch.device(f"cuda:{args.device}")
+    else:
+        print(f"Warning: CUDA device {args.device} requested but CUDA not available. Using CPU.")
+        device = torch.device("cpu")
+
+    print(f"Using device: {device}")
     
     # Set seeds
     torch.manual_seed(args.seed)
@@ -880,15 +780,10 @@ def main():
     
     input_projection = get_input_projection(args.input_projection, 2, args.projection_dim, device, args.fourier_scale)
     decoder = get_decoder(args.model, args.network_depth, args.projection_dim, args.network_hidden_dim)
-    # Provide LR size for variance parameter allocation when GNLL is used
-    variance_param_size = None
-    if args.use_gnll:
-        lr_h, lr_w = train_data.get_lr_size()
-        variance_param_size = (lr_h, lr_w)
 
     model = INR(
-        input_projection, decoder, actual_num_samples, use_gnll=args.use_gnll, use_base_frame=True,
-        variance_param_size=variance_param_size
+        input_projection, decoder, actual_num_samples,
+        use_gnll=args.use_gnll, use_base_frame=True
     ).to(device)
 
     # Setup optimizer and scheduler
@@ -933,7 +828,7 @@ def main():
             train_sample = train_data[idx]
             
             # Train one iteration
-            train_losses = train_one_iteration(model, optimizer, train_sample, device, args.df)
+            train_losses = train_one_iteration(model, optimizer, train_sample, device)
             scheduler.step()
             iteration += 1
             

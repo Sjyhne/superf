@@ -134,18 +134,13 @@ class INR(nn.Module):
 
         assert A.shape == (B, 2, 3)
 
-        # Override affine parameters for sample_id 0 (base frame) to apply no transformation
+        # Set identity transformation for base frame (sample_id 0)
         if hasattr(self, 'use_base_frame') and self.use_base_frame:
-            # Find indices where sample_id is 0 (base frame)
             base_frame_mask = (sample_id == 0)
             if base_frame_mask.any():
-                # Set identity transformation for base frame: [1, 0, 0], [0, 1, 0]
-                A[base_frame_mask, 0, 0] = 1.0  # cos(0) = 1
-                A[base_frame_mask, 0, 1] = 0.0  # -sin(0) = 0  
-                A[base_frame_mask, 0, 2] = 0.0  # no translation
-                A[base_frame_mask, 1, 0] = 0.0  # sin(0) = 0
-                A[base_frame_mask, 1, 1] = 1.0  # cos(0) = 1
-                A[base_frame_mask, 1, 2] = 0.0  # no translation
+                # Identity matrix: [[1, 0, 0], [0, 1, 0]]
+                A[base_frame_mask, 0, :] = torch.tensor([1.0, 0.0, 0.0], device=A.device)
+                A[base_frame_mask, 1, :] = torch.tensor([0.0, 1.0, 0.0], device=A.device)
         
         return A
 
