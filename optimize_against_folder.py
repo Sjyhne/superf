@@ -20,7 +20,6 @@ from models.inr import INR
 
 
 def make_square(img):
-    """Pad image to square by centering it."""
     h, w = img.shape[:2]
     max_dim = max(h, w)
 
@@ -37,10 +36,6 @@ def make_square(img):
 
 
 def save_image_multi_size(img, save_dir, base_name):
-    """Save image in multiple sizes (web, fullscreen, thumbnail).
-
-    Returns dict with filenames for each size.
-    """
     sizes = {
         'web': (8, 8),        # 800x800
         'fullscreen': (12, 12),  # 1200x1200
@@ -100,26 +95,21 @@ class ImageDataset:
         }
     
     def get_hr_coordinates(self):
-        """Return HR coordinate grid for inference."""
         return self.hr_coords
-    
+
     def get_original_hr(self):
-        """Return first HR image for reference."""
         return self.images[0]
-    
+
     def get_lr_sample(self, index):
-        """Return unstandardized LR sample."""
         lr_img = self.lr_images[index]
         mean = self.means[index]
         std = self.stds[index]
         return lr_img * std + mean
     
     def get_lr_mean(self, index):
-        """Return mean for index."""
         return self.means[index]
-    
+
     def get_lr_std(self, index):
-        """Return std for index."""
         return self.stds[index]
 
     def get_lr_size(self):
@@ -127,8 +117,7 @@ class ImageDataset:
 
 
 def create_image_dataset(folder_path, downsample_factor, device):
-    """Create a dataset from LR images in a folder. The target HR resolution will be LR_size * downsample_factor."""
-    # Find all image files
+    """Load all images from folder_path; target HR = LR size * downsample_factor."""
     image_extensions = ['*.jpg', '*.JPG', '*.jpeg', '*.JPEG', '*.png', '*.PNG', '*.bmp', '*.BMP', '*.tiff', '*.TIFF']
     image_paths = []
     for ext in image_extensions:
@@ -191,10 +180,7 @@ def create_image_dataset(folder_path, downsample_factor, device):
 
 
 def save_checkpoint_data(model, train_data, device, iteration, output_dir, args, loss_data):
-    """Save checkpoint data for web visualization."""
     model.eval()
-    
-    # Create checkpoint directory
     checkpoint_dir = output_dir / "checkpoints" / f"iter_{iteration:04d}"
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
     
@@ -372,7 +358,6 @@ def save_checkpoint_data(model, train_data, device, iteration, output_dir, args,
 
 
 def create_api_documentation(all_checkpoints, final_loss_history):
-    """Create comprehensive API documentation for data access."""
     return {
         "data_schema": {
             "master_data.json": {
@@ -462,7 +447,6 @@ def create_api_documentation(all_checkpoints, final_loss_history):
 
 
 def save_web_visualization_data(output_dir, all_checkpoints, final_loss_history):
-    """Save comprehensive data for web visualization including intermediate shifts and images."""
     web_data_dir = output_dir / "web_data"
     web_data_dir.mkdir(exist_ok=True)
     

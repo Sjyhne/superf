@@ -9,7 +9,6 @@ from models.nir import NIR
 
 
 def get_learnable_transforms(num_samples, coordinate_dim=2, zeros=True, freeze_first=True):
-    # Create a list of learnable tensors
     if zeros:
         if freeze_first:
             params = [nn.Parameter(torch.zeros(coordinate_dim), requires_grad=(i != 0)) for i in range(num_samples)]
@@ -20,12 +19,10 @@ def get_learnable_transforms(num_samples, coordinate_dim=2, zeros=True, freeze_f
             params = [nn.Parameter(torch.ones(coordinate_dim), requires_grad=(i != 0)) for i in range(num_samples)]
         else:
             params = [nn.Parameter(torch.ones(coordinate_dim), requires_grad=True) for i in range(num_samples)]
-    # Store them in an nn.ParameterList to register them as model parameters
-    return nn.ParameterList(params)  # List of [D] tensors, length B
+    return nn.ParameterList(params)
 
 
 def get_direct_variances(num_samples, dimensions, freeze_first=True):
-    # these should be initialized as any other weights in a mlp
     if freeze_first:
         params = [nn.Parameter(torch.zeros(dimensions) if i != 0 else nn.Parameter(torch.zeros(dimensions)), requires_grad=(i != 0)) for i in range(num_samples)]
     else:

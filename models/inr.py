@@ -60,18 +60,15 @@ class INR(nn.Module):
 
         self.color_transforms[0].requires_grad = False
 
-        # Initialize all biases to 0
         for color_transform in self.color_transforms:
             for ct in color_transform:
                 ct.bias.data.zero_()
 
-        # Initialize all weights to 1
         for color_transform in self.color_transforms:
             for ct in color_transform:
                 ct.weight.data.fill_(1)
 
         if self.use_gnll:
-            # Only use MLP variance predictors if not using direct GNLL
             self.variance_predictor = nn.Sequential(
                 nn.Linear(3 + 3, 128),
                 nn.ReLU(),
@@ -79,9 +76,7 @@ class INR(nn.Module):
                 nn.ReLU(),
                 nn.Linear(128, 3)
             )
-            # Initialize to start neutral: output near zero so exp(0) = 1.0 (neutral variance)
-    
-    
+
     def get_affine_transform(self, sample_id):
 
         if self.time_vectors.device != sample_id.device:
@@ -97,7 +92,6 @@ class INR(nn.Module):
 
         B = sample_id.shape[0]
 
-        # Handle batch indexing of ParameterList
         shifts = []
         angles = []
         
@@ -105,8 +99,8 @@ class INR(nn.Module):
             shifts.append(self.shift_vectors[idx.item()])
             angles.append(self.rotation_angle[idx.item()])
         
-        shift = torch.stack(shifts)  # [B, 2]
-        angle = torch.stack(angles)  # [B, 1]
+        shift = torch.stack(shifts)
+        angle = torch.stack(angles)
 
         a1 = torch.stack([torch.cos(angle), -torch.sin(angle), shift[:, 0].unsqueeze(-1)], dim=1).squeeze(-1)
         a2 = torch.stack([torch.sin(angle), torch.cos(angle), shift[:, 1].unsqueeze(-1)], dim=1).squeeze(-1)
@@ -134,11 +128,9 @@ class INR(nn.Module):
 
         assert A.shape == (B, 2, 3)
 
-        # Set identity transformation for base frame (sample_id 0)
         if hasattr(self, 'use_base_frame') and self.use_base_frame:
             base_frame_mask = (sample_id == 0)
             if base_frame_mask.any():
-                # Identity matrix: [[1, 0, 0], [0, 1, 0]]
                 A[base_frame_mask, 0, :] = torch.tensor([1.0, 0.0, 0.0], device=A.device)
                 A[base_frame_mask, 1, :] = torch.tensor([0.0, 1.0, 0.0], device=A.device)
         
@@ -148,19 +140,17 @@ class INR(nn.Module):
 
         B, H, W, C = coords.shape
         
-        coords = coords.reshape(B, -1, C) # [B, H*W, C]
-
-        homogenous_coords = torch.cat([coords, torch.ones(B, coords.shape[1], 1, device=coords.device)], dim=2) # B, HW, 3 - Homoegenous coordinates
-        transformed_coords = torch.matmul(homogenous_coords, A.mT) # B, HW, 2
+        coords = coords.reshape(B, -1, C)
+        homogenous_coords = torch.cat([coords, torch.ones(B, coords.shape[1], 1, device=coords.device)], dim=2)
+        transformed_coords = torch.matmul(homogenous_coords, A.mT)
 
         return transformed_coords.reshape(B, H, W, C)
 
     def apply_color_transform(self, x, sample_idx):
-        """Apply per-channel color scaling."""
         result = x.clone()
 
         for i, idx in enumerate(sample_idx):
-            if idx != 0:  # Skip reference sample
+            if idx != 0:
                 for channel in range(3):
                     transformed = self.color_transforms[idx][channel](x[i, :, :, channel].unsqueeze(-1))
                     result[i, :, :, channel] = transformed.squeeze(-1)
@@ -170,16 +160,11 @@ class INR(nn.Module):
     def forward(self, coords, sample_idx=None, scale_factor=None, training=True, lr_frames=None):
         B, H, W, C = coords.shape
 
-        # Initialize shift lists
         dx_list = None
         dy_list = None
-
         raw_coords = coords.clone()
-
-        # raw_coords = coords.clone().permute(0, 3, 1, 2)
         if training:
-
-            A = self.get_affine_transform(sample_idx) # [B, 2, 3]
+            A = self.get_affine_transform(sample_idx)
 
             dx_list = A[:, 0, 2]
             dy_list = A[:, 1, 2]
@@ -189,7 +174,7 @@ class INR(nn.Module):
             coords = self.apply_affine(coords, A)
         
         if not training:
-            A = self.get_affine_transform(sample_idx) # [B, 2, 3]
+            A = self.get_affine_transform(sample_idx)
             dx_list = A[:, 0, 2]
             dy_list = A[:, 1, 2]
             if not self.use_direct_param_T:
@@ -209,11 +194,9 @@ class INR(nn.Module):
                 if training:
                     not_affined_coords = self.input_projection(not_affined_coords)
 
-        # Reshape coordinates from [B, H, W, C] to [B*H*W, C] for decoder
         B, H, W, C = coords.shape
         coords_flat = coords.reshape(B * H * W, C)
         output_flat = self.decoder(coords_flat)
-        # Reshape output back to [B, H, W, output_dim]
         output = output_flat.reshape(B, H, W, -1)
         
         if training:
@@ -227,21 +210,15 @@ class INR(nn.Module):
         
         logvars = None
         if self.use_gnll and not self.use_separate_ud:
-            # Check if output has enough channels for logvars
             if output.shape[-1] >= 3 + self.num_samples * 3:
                 rgb = output[:, :, :, :3]
-                
-                # We need to partition the logvars into num_samples of 3 channels each
                 logvars_list = []
-
                 for i in range(self.num_samples):
                     logvars_list.append(output[:, :, :, 3 + i * 3: 6 + i * 3])
 
-                logvars = torch.stack(logvars_list, dim=0)  # [num_samples, B, H, W, 3]
-
+                logvars = torch.stack(logvars_list, dim=0)
                 output = rgb
             else:
-                # If decoder doesn't output logvars, create dummy logvars
                 B, H, W, _ = output.shape
                 logvars = torch.zeros(self.num_samples, B, H, W, 3, device=output.device)
 
@@ -252,8 +229,7 @@ class INR(nn.Module):
 
         shifts = [dx_list, dy_list] if dx_list is not None else None
 
-        if training: # pool the supersampled output to the LR resolution
-
+        if training:
             if scale_factor.unique().shape[0] == 1:
                 scale_factor = scale_factor.unique().item()
             else:
@@ -266,27 +242,21 @@ class INR(nn.Module):
         if self.use_gnll and lr_frames is not None:
             variances = []
             if not self.use_separate_ud:
-                # logvars has shape [num_samples, B, H, W, 3] where first dim is LR frame index
-                # We need to select logvars for each batch element
                 if logvars is not None and logvars.shape[1] > 0:
                     batch_size = logvars.shape[1]
                     selected_logvars = []
                     for b in range(batch_size):
-                        # Map sample_idx to LR frame index using modulo
                         frame_idx = (sample_idx[b] % self.num_samples).item()
-                        # Clamp to valid range [0, num_samples-1]
                         frame_idx = min(max(0, frame_idx), self.num_samples - 1)
-                        selected_logvars.append(logvars[frame_idx, b])  # [H, W, 3]
+                        selected_logvars.append(logvars[frame_idx, b])
                     if selected_logvars:
-                        variances = torch.stack(selected_logvars, dim=0)  # [B, H, W, 3]
+                        variances = torch.stack(selected_logvars, dim=0)
                         variances = F.interpolate(variances.permute(0, 3, 1, 2), scale_factor=scale_factor).permute(0, 2, 3, 1)
                         variances = torch.exp(variances)
                     else:
-                        # Fallback: create dummy variances
                         B, H, W = output.shape[:3]
                         variances = torch.ones(B, H, W, 3, device=output.device) * 0.1
                 else:
-                    # Fallback: create dummy variances
                     B, H, W = output.shape[:3]
                     variances = torch.ones(B, H, W, 3, device=output.device) * 0.1
             elif self.use_separate_ud:

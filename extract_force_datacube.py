@@ -1,18 +1,7 @@
 #!/usr/bin/env python3
-"""
-Extract RGB images from a FORCE datacube tile into a folder of images,
-so that optimize_against_folder.py can be used for super-resolution.
-
-FORCE datacube layout (see https://force-eo.readthedocs.io):
-  - Datacube root contains tile directories: X0001_Y0002, X0001_Y0003, ...
-  - Each tile dir contains GeoTIFFs: YYYYMMDD_LEVEL2_SEN2A_BOA.tif (and QAI, etc.)
-  - BOA = Bottom-of-Atmosphere reflectance, scale 10000, nodata -9999
-  - First three bands are typically Blue, Green, Red (Landsat 8/9, Sentinel-2)
-
-Usage:
-  python extract_force_datacube.py --datacube /path/to/level2 --tile X0134_Y0097 --output_dir ./force_extract
-  python optimize_against_folder.py --input_folder ./force_extract --output_folder ./sr_results --df 2
-"""
+# Pull RGB out of a FORCE datacube tile so you can run optimize_against_folder on the folder.
+# Tiles live under datacube root as X0001_Y0002 etc; inside are YYYYMMDD_LEVEL2_SEN2A_BOA.tif.
+# BOA reflectance is scale 10000, nodata -9999. Bands 0,1,2 = B,G,R.
 
 import argparse
 import re
@@ -22,15 +11,13 @@ import cv2
 import numpy as np
 import tifffile
 
-# FORCE BOA scale and nodata
 FORCE_BOA_SCALE = 10000.0
 FORCE_NODATA = -9999
 
 
 def parse_force_filename(path: Path) -> dict | None:
-    """Parse FORCE 29-digit convention: YYYYMMDD_LEVEL2_SEN2A_BOA.tif"""
+    """YYYYMMDD_LEVEL2_SEN2A_BOA style names."""
     name = path.stem
-    # Optional: allow LEVEL3 and other products
     m = re.match(r"(\d{8})_LEVEL\d_([A-Z0-9]+)_([A-Z0-9]+)$", name, re.IGNORECASE)
     if not m:
         return None
@@ -40,7 +27,7 @@ def parse_force_filename(path: Path) -> dict | None:
 def find_boa_files(tile_dir: Path, product: str = "BOA", date_from: str | None = None,
                    date_to: str | None = None, sensors: list[str] | None = None,
                    max_files: int | None = None) -> list[Path]:
-    """List BOA (or other product) GeoTIFFs in a tile directory, optionally filtered."""
+    """GeoTIFFs in tile dir matching product; optional date/sensor filters."""
     if not tile_dir.is_dir():
         return []
     pattern = f"*_*_{product}.tif"
@@ -64,12 +51,8 @@ def find_boa_files(tile_dir: Path, product: str = "BOA", date_from: str | None =
 
 def read_force_boa_rgb(path: Path, band_indices: tuple[int, int, int] = (0, 1, 2),
                        nodata: int = FORCE_NODATA, scale: float = FORCE_BOA_SCALE) -> np.ndarray:
-    """
-    Read a FORCE BOA GeoTIFF and return an HWC uint8 RGB array.
-    band_indices: 0-based indices for R, G, B (FORCE L2: 0=Blue, 1=Green, 2=Red → default is BGR order; we output RGB).
-    """
+    """Load BOA GeoTIFF, take bands at band_indices (default B,G,R), scale to 0–255, return HWC uint8."""
     data = tifffile.imread(path)
-    # FORCE: signed 16-bit, band order typically (bands, H, W) for multi-band
     if data.ndim == 2:
         data = np.asarray(data, dtype=np.float32)
         data = np.clip(data, 0, None)
@@ -78,8 +61,7 @@ def read_force_boa_rgb(path: Path, band_indices: tuple[int, int, int] = (0, 1, 2
     else:
         data = np.asarray(data, dtype=np.float32)
         if data.shape[0] in (3, 4, 6, 10):
-            # (C, H, W)
-            r = np.clip(data[band_indices[0]], 0, None)
+                r = np.clip(data[band_indices[0]], 0, None)
             g = np.clip(data[band_indices[1]], 0, None)
             b = np.clip(data[band_indices[2]], 0, None)
             r[r == nodata] = np.nan
@@ -87,10 +69,8 @@ def read_force_boa_rgb(path: Path, band_indices: tuple[int, int, int] = (0, 1, 2
             b[b == nodata] = np.nan
             rgb = np.stack([r, g, b], axis=-1)
         else:
-            # (H, W, C)
             rgb = np.clip(data[:, :, list(band_indices)], 0, None)
             rgb[rgb == nodata] = np.nan
-    # Scale 0–10000 → 0–1, then to 0–255; nan → 0
     rgb = rgb / scale
     rgb = np.nan_to_num(rgb, nan=0.0)
     rgb = np.clip(rgb, 0, 1)
@@ -156,14 +136,12 @@ def main():
         except Exception as e:
             print(f"Skip {path.name}: {e}")
             continue
-        # Output filename: optional prefix + date_sensor + index so order is stable for optimize_against_folder
         name = f"{args.prefix}{info['date']}_{info['sensor']}_{i:04d}.png"
         out_path = out_dir / name
         cv2.imwrite(str(out_path), cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR))
         manifest.append({"source": path.name, "out": name, "date": info["date"], "sensor": info["sensor"]})
         print(f"Wrote {out_path.name} ({rgb.shape[1]}x{rgb.shape[0]})")
 
-    # Write a small manifest so user knows what was extracted
     manifest_path = out_dir / "extract_manifest.txt"
     with open(manifest_path, "w") as f:
         f.write(f"# FORCE datacube extract: {datacube_root} tile {args.tile}\n")

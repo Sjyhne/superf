@@ -14,15 +14,7 @@ from models.mlp import MLP
 
 
 class SineLayer(nn.Module):
-    # See paper sec. 3.2, final paragraph, and supplement Sec. 1.5 for discussion of omega_0.
-    
-    # If is_first=True, omega_0 is a frequency factor which simply multiplies the activations before the 
-    # nonlinearity. Different signals may require different omega_0 in the first layer - this is a 
-    # hyperparameter.
-    
-    # If is_first=False, then the weights will be divided by omega_0 so as to keep the magnitude of 
-    # activations constant, but boost gradients to the weight matrix (see supplement Sec. 1.5)
-    
+    """omega_0: first layer = freq factor; later layers scale weights so grad magnitude stays sane (SIREN paper)."""
     def __init__(self, in_features, out_features, bias=True,
                  is_first=False, omega_0=30):
         super().__init__()
@@ -46,8 +38,7 @@ class SineLayer(nn.Module):
     def forward(self, input):
         return torch.sin(self.omega_0 * self.linear(input))
     
-    def forward_with_intermediate(self, input): 
-        # For visualization of activation distributions
+    def forward_with_intermediate(self, input):
         intermediate = self.omega_0 * self.linear(input)
         return torch.sin(intermediate), intermediate
     
@@ -157,23 +148,9 @@ def apply_homography(x, h):
     return o
 
 def apply_affine(x, a):
-    """
-    Apply affine transformation to coordinates.
-    
-    Args:
-        x: Input coordinates of shape [N, 2] (x, y coordinates)
-        a: Affine transformation parameters of shape [N, 6] 
-           [a11, a12, a21, a22, tx, ty] where:
-           - a11, a12, a21, a22 form the 2x2 transformation matrix
-           - tx, ty are the translation components
-    
-    Returns:
-        Transformed coordinates of shape [N, 2]
-    """
-    # Reshape affine parameters to separate rotation/scaling and translation
-    A = a[:, :4].view(-1, 2, 2)  # 2x2 transformation matrix
-    t = a[:, 4:6].unsqueeze(-1)  # Translation vector [N, 2, 1]
-    # Apply transformation: x' = A * x + t
+    """x [N,2], a [N,6] (a11,a12,a21,a22,tx,ty). Returns x' = A*x + t."""
+    A = a[:, :4].view(-1, 2, 2)
+    t = a[:, 4:6].unsqueeze(-1)
     x_transformed = torch.bmm(A, x.unsqueeze(-1)) + t
 
     return x_transformed.squeeze(-1)
@@ -280,11 +257,8 @@ class NIR(nn.Module):
 
         a = self.g(t)
 
-        # Extract dx and dy from the affine transformation parameters
-        # a has shape [B, num_pixels, 6] for affine: [a11, a12, a21, a22, tx, ty]
-        # For affine transformations, tx and ty are the translation components
-        pred_dx = a[:, 0, 4]  # tx component (index 4)
-        pred_dy = a[:, 0, 5]  # ty component (index 5)
+        pred_dx = a[:, 0, 4]
+        pred_dy = a[:, 0, 5]
         
         if training:
             xy_ = apply_affine(xy.squeeze(0), a.squeeze(0))
@@ -294,7 +268,6 @@ class NIR(nn.Module):
 
         o = self.f1(xy_)
 
-        # Match INR pattern: return shifts as [dx_list, dy_list]
         shifts = [pred_dx, pred_dy]
 
         return o, shifts

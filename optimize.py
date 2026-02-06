@@ -32,11 +32,8 @@ from torchmetrics.functional.image import structural_similarity_index_measure as
 def train_one_iteration(model, optimizer, train_sample, device, variance_reg=0.0, variance_smooth_reg=0.0):
     model.train()
     
-    # Initialize loss functions
     recon_criterion = BasicLosses.mse_loss
     trans_criterion = BasicLosses.mae_loss
-    
-    # Use GNLL loss if use_gnll is True
     use_gnll_loss = model.use_gnll
     if use_gnll_loss:
         recon_criterion = nn.GaussianNLLLoss()
@@ -45,7 +42,6 @@ def train_one_iteration(model, optimizer, train_sample, device, variance_reg=0.0
     lr_target = train_sample['lr_target'].to(device)
     sample_id = train_sample['sample_id'].to(device)
     scale_factor = train_sample['scale_factor'].to(device)
-    # Get ground truth shifts
     if 'shifts' in train_sample and 'dx_percent' in train_sample['shifts']:
         gt_dx = train_sample['shifts']['dx_percent'].to(device)
         gt_dy = train_sample['shifts']['dy_percent'].to(device)
@@ -59,14 +55,10 @@ def train_one_iteration(model, optimizer, train_sample, device, variance_reg=0.0
         output, pred_shifts, pred_variance = model(input, sample_id, scale_factor=1/scale_factor, lr_frames=lr_target)
         recon_loss = recon_criterion(output, lr_target, pred_variance)
         
-        # Add variance regularization if enabled
         variance_reg_loss = torch.tensor(0.0, device=device)
         variance_smooth_loss = torch.tensor(0.0, device=device)
-        
         if variance_reg > 0.0 or variance_smooth_reg > 0.0:
-            # For separate_ud, we need to access the log-variances (before exp)
             if hasattr(model, 'use_separate_ud') and model.use_separate_ud and hasattr(model, 'variances'):
-                # Collect log-variances for samples in this batch
                 log_var_list = []
                 for sid in sample_id:
                     log_var = model.variances[sid.item()]  # [H, W, C] - these are log-variances
@@ -75,22 +67,13 @@ def train_one_iteration(model, optimizer, train_sample, device, variance_reg=0.0
                 if log_var_list:
                     log_vars = torch.stack(log_var_list, dim=0)  # [B, H, W, C]
                     
-                    # L2 regularization on log-variances (prevents extreme values)
                     if variance_reg > 0.0:
                         variance_reg_loss = variance_reg * torch.mean(log_vars ** 2)
-                    
-                    # Smoothness regularization (encourages spatial smoothness)
                     if variance_smooth_reg > 0.0:
-                        # Compute gradients in spatial dimensions
-                        # log_vars: [B, H, W, C]
                         if log_vars.shape[1] > 1 and log_vars.shape[2] > 1:
-                            # Horizontal smoothness
                             h_diff = log_vars[:, 1:, :, :] - log_vars[:, :-1, :, :]
-                            # Vertical smoothness
                             v_diff = log_vars[:, :, 1:, :] - log_vars[:, :, :-1, :]
                             variance_smooth_loss = variance_smooth_reg * (torch.mean(h_diff ** 2) + torch.mean(v_diff ** 2))
-            # For regular GNLL (predicted variances), we could also add regularization
-            # but it's less critical since they're predicted by a network
     else:
         output, pred_shifts = model(input, sample_id, scale_factor=1/scale_factor, lr_frames=lr_target)
         recon_loss = recon_criterion(output, lr_target)
@@ -99,19 +82,14 @@ def train_one_iteration(model, optimizer, train_sample, device, variance_reg=0.0
 
     if isinstance(model, INR):
         pred_dx, pred_dy = pred_shifts
-        # Convert predicted shifts from pixels to percentages for fair comparison
-        lr_h, lr_w = lr_target.shape[1:3]  # Get LR image dimensions
+        lr_h, lr_w = lr_target.shape[1:3]
         pred_dx_percent = pred_dx / lr_w
         pred_dy_percent = pred_dy / lr_h
-        # Euclidean distance loss for 2D shifts (now both in percentage units)
         trans_loss = torch.mean(torch.sqrt((pred_dx_percent - gt_dx)**2 + (pred_dy_percent - gt_dy)**2))
     else:
         trans_loss = torch.zeros(1, device=device)
 
-    # Total loss includes reconstruction, transformation, and variance regularization
     total_loss = recon_loss + variance_reg_loss + variance_smooth_loss
-    
-    # Backpropagate the total loss
     total_loss.backward()
     optimizer.step()
     
@@ -153,7 +131,6 @@ def test_one_epoch(model, test_loader, device):
 
 
 def optimize_and_evaluate_sample(model, train_data, device, sample_idx, args, output_dir):
-    """Optimize model for a single sample and return comprehensive results."""
     print(f"\n{'='*60}")
     print(f"Optimizing sample {sample_idx + 1}")
     print(f"{'='*60}")

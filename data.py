@@ -11,25 +11,17 @@ import glob
 import tifffile
 
 def get_and_standardize_image(image):
-    """Standardize an image per channel to zero mean and unit std.
-
-    Supports tensors in either HWC or CHW layout (and their batched variants).
-    Returns the standardized image along with mean and std tensors that are
-    broadcastable to the input image shape.
-    """
-    # 2D grayscale: add channel dim for consistent handling
+    """Per-channel zero mean, unit std. Handles 2D, 3D (HWC/CHW), 4D. Returns (standardized, mean, std)."""
     if image.dim() == 2:
-        img = image.unsqueeze(-1)  # H, W, 1 (treat as HWC)
-        mean = img.mean(dim=(0, 1), keepdim=True)        # 1,1,1
+        img = image.unsqueeze(-1)
+        mean = img.mean(dim=(0, 1), keepdim=True)
         std = img.std(dim=(0, 1), keepdim=True)
         std = torch.clamp(std, min=1e-8)
         standardized = (img - mean) / std
         return standardized.squeeze(-1), mean.squeeze(0), std.squeeze(0)
 
-    # 3D tensors: HWC or CHW
     if image.dim() == 3:
         H, W, C = image.shape[-3], image.shape[-2], image.shape[-1]
-        # Heuristic: if first dim equals 3 and last doesn't, assume CHW
         if image.shape[0] in (1, 3, 4) and image.shape[0] != image.shape[-1]:
             # CHW
             mean = image.mean(dim=(1, 2), keepdim=True)  # C,1,1
@@ -42,26 +34,22 @@ def get_and_standardize_image(image):
         std = torch.clamp(std, min=1e-8)
         return (image - mean) / std, mean, std
 
-    # 4D tensors: BCHW or BHWC
     if image.dim() == 4:
-        # Detect layout by channel position
-        if image.shape[-1] in (1, 3, 4):  # BHWC
+        if image.shape[-1] in (1, 3, 4):
             mean = image.mean(dim=(1, 2), keepdim=True)  # B,1,1,C
             std = image.std(dim=(1, 2), keepdim=True)
-        else:  # BCHW
-            mean = image.mean(dim=(2, 3), keepdim=True)  # B,C,1,1
+        else:
+            mean = image.mean(dim=(2, 3), keepdim=True)
             std = image.std(dim=(2, 3), keepdim=True)
 
         std = torch.clamp(std, min=1e-8)
         return (image - mean) / std, mean, std
 
-    # Fallback for unexpected shapes
     mean = image.mean()
     std = torch.clamp(image.std(), min=1e-8)
     return (image - mean) / std, mean, std
 
 def get_dataset(args, name='satburst', keep_in_memory=True):
-    """ Returns the dataset object based on the name """
     if name == 'satburst_synth':
         return SRData(data_dir=args.root_satburst_synth, num_samples=args.num_samples, keep_in_memory=keep_in_memory, scale_factor=args.scale_factor)
     elif name == 'burst_synth':
@@ -81,14 +69,6 @@ def get_dataset(args, name='satburst', keep_in_memory=True):
 
 class SRData(torch.utils.data.Dataset):
     def __init__(self, data_dir, num_samples, keep_in_memory=False, scale_factor=4, device=None):
-        """
-        Initialize SR dataset from generated data directory.
-
-        Args:
-            data_dir: Base path to data directory
-            mode: 'lr' or 'hr' - which dataset to load
-            device: Device to use for tensors (default: cuda if available, else cpu)
-        """
         self.data_dir = Path(data_dir)
         self.keep_in_memory = keep_in_memory
         self.num_samples = num_samples
@@ -96,7 +76,6 @@ class SRData(torch.utils.data.Dataset):
 
         self.vmin, self.vmax = 0, 1
         
-        # Load transformation log
         with open(self.data_dir / "transform_log.json", 'r') as f:
             self.transform_log = json.load(f)
             

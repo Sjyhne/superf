@@ -10,10 +10,7 @@ import json
 import pandas as pd
 
 def plot_training_curves(history, save_path='training_curves.png'):
-    """Plot training curves including losses and all metrics."""
     plt.figure(figsize=(15, 20))
-    
-    # Plot losses
     plt.subplot(5, 1, 1)
     plt.plot(history['iterations'], history['recon_loss'], label='Reconstruction Loss')
     plt.plot(history['iterations'], history['trans_loss'], label='Transform Loss')
@@ -25,7 +22,6 @@ def plot_training_curves(history, save_path='training_curves.png'):
     plt.xlabel('Iteration')
     plt.ylabel('Loss')
 
-    # Plot PSNR
     plt.subplot(5, 1, 2)
     plt.plot(history['iterations'], history['psnr'], label='Model PSNR')
     plt.axhline(y=history['baseline_psnr'][-1], color='r', linestyle='--', 
@@ -36,7 +32,6 @@ def plot_training_curves(history, save_path='training_curves.png'):
     plt.xlabel('Iteration')
     plt.ylabel('PSNR (dB)')
 
-    # Plot LPIPS
     plt.subplot(5, 1, 3)
     plt.plot(history['iterations'], history['lpips'], label='Model LPIPS')
     plt.axhline(y=history['baseline_lpips'][-1], color='r', linestyle='--', 
@@ -47,7 +42,6 @@ def plot_training_curves(history, save_path='training_curves.png'):
     plt.xlabel('Iteration')
     plt.ylabel('LPIPS')
 
-    # Plot SSIM
     plt.subplot(5, 1, 4)
     plt.plot(history['iterations'], history['ssim'], label='Model SSIM')
     plt.axhline(y=history['baseline_ssim'][-1], color='r', linestyle='--', 
@@ -58,7 +52,6 @@ def plot_training_curves(history, save_path='training_curves.png'):
     plt.xlabel('Iteration')
     plt.ylabel('SSIM')
 
-    # Plot learning rates
     plt.subplot(5, 1, 5)
     plt.plot(history['iterations'], history['learning_rate'], label='Learning Rate')
     plt.yscale('log')
@@ -73,69 +66,30 @@ def plot_training_curves(history, save_path='training_curves.png'):
     plt.close()
 
 def visualize_translations(pred_dx, pred_dy, target_dx, target_dy, save_path='translation_vis.png'):
-    """Create a simple visualization comparing predicted and target translations."""
     plt.figure(figsize=(10, 8))
-    
-    # Set up the plot with a light gray background grid
     plt.grid(True, linestyle='--', alpha=0.7)
     plt.axhline(y=0, color='black', linestyle='-', alpha=0.5)
     plt.axvline(x=0, color='black', linestyle='-', alpha=0.5)
-    
-    # Plot target points (blue circles)
     plt.scatter(target_dx, target_dy, c='blue', s=90, label='Target', alpha=0.7)
-    
-    # Plot predicted points (red x's)
     plt.scatter(pred_dx, pred_dy, c='red', s=90, label='Predicted', marker='x', alpha=0.7)
-    
-    # Connect corresponding points with gray lines
     for i in range(len(target_dx)):
         plt.plot([target_dx[i], pred_dx[i]], [target_dy[i], pred_dy[i]], 'gray', alpha=0.5)
-        
-        # Add sample number next to the target point with larger font and background
-        plt.text(target_dx[i], target_dy[i], f' {i}', 
-                fontsize=10,  # Increased font size
-                fontweight='normal'  # Make the text bold
-                )
-    
-    # Add labels and title
+        plt.text(target_dx[i], target_dy[i], f' {i}', fontsize=10, fontweight='normal')
     plt.xlabel('X Translation')
     plt.ylabel('Y Translation')
     plt.title('Target vs. Predicted Translations')
     plt.legend(loc='upper right')
-    
-    # Make sure the aspect ratio is equal
     plt.axis('equal')
-    
-    # Add a bit of padding around the points
     plt.tight_layout()
-    
-    # Save the figure
     plt.savefig(save_path, dpi=150)
     plt.close()
 
 def create_comparison_grid(hr_file, lr_file, baseline_file, baseline_metrics, output_files, model_names, metrics, sample_name, save_path):
-    """
-    Create a grid of images comparing different model outputs for the same sample.
-    
-    Args:
-        hr_file: Path to HR ground truth image
-        lr_file: Path to LR input image
-        baseline_file: Path to bilinear baseline image
-        baseline_metrics: Dictionary of baseline metrics
-        output_files: List of paths to model output images
-        model_names: List of model names corresponding to the outputs
-        metrics: List of metrics dictionaries for each model
-        sample_name: Name of the sample being compared
-        save_path: Path to save the output grid
-    """
+    """Grid: HR, LR, baseline, then one subplot per model output. Saves to save_path."""
     n_models = len(output_files)
-    
     if n_models == 0:
         return
-    
-    # Create a figure with a grid of subplots
-    # We'll have n_models + 3 images (HR, LR, Baseline, and one for each model)
-    n_cols = min(3, n_models + 3)  # Limit columns to prevent very wide images
+    n_cols = min(3, n_models + 3)
     n_rows = (n_models + 3 + n_cols - 1) // n_cols  # Ceiling division
     
     fig, axes = plt.subplots(n_rows, n_cols, figsize=(5*n_cols, 5*n_rows))
@@ -144,20 +98,14 @@ def create_comparison_grid(hr_file, lr_file, baseline_file, baseline_metrics, ou
     elif n_rows == 1 or n_cols == 1:
         axes = axes.reshape(-1)
     axes = axes.flatten()
-    
-    # Load and display HR ground truth
     hr_img = plt.imread(hr_file)
     axes[0].imshow(hr_img)
     axes[0].set_title('HR Ground Truth')
     axes[0].axis('off')
-    
-    # Load and display LR input
     lr_img = plt.imread(lr_file)
     axes[1].imshow(lr_img)
     axes[1].set_title('LR Input')
     axes[1].axis('off')
-    
-    # Load and display baseline prediction
     baseline_img = plt.imread(baseline_file)
     axes[2].imshow(baseline_img)
     title = "Bilinear Baseline\n"
@@ -166,16 +114,9 @@ def create_comparison_grid(hr_file, lr_file, baseline_file, baseline_metrics, ou
     title += f"SSIM: {baseline_metrics.get('final_ssim', 0):.4f}"
     axes[2].set_title(title)
     axes[2].axis('off')
-    
-    # Now add each model's output
     for i, (output_file, model_name, model_metrics) in enumerate(zip(output_files, model_names, metrics)):
-        # Load the model output image
         model_output = plt.imread(output_file)
-        
-        # Display in the appropriate subplot
         axes[i+3].imshow(model_output)
-        
-        # Create title with model name and metrics
         title = f"{model_name}\n"
         title += f"PSNR: {model_metrics.get('final_psnr', 0):.2f} dB\n"
         title += f"LPIPS: {model_metrics.get('final_lpips', 0):.4f}\n"
@@ -183,41 +124,24 @@ def create_comparison_grid(hr_file, lr_file, baseline_file, baseline_metrics, ou
         
         axes[i+3].set_title(title)
         axes[i+3].axis('off')
-    
-    # Hide any unused subplots
     for i in range(n_models + 3, len(axes)):
         axes[i].axis('off')
     
     plt.suptitle(f"Model Comparison for Sample: {sample_name}", fontsize=16)
-    plt.tight_layout(rect=[0, 0, 1, 0.97])  # Make room for the suptitle
+    plt.tight_layout(rect=[0, 0, 1, 0.97])
     plt.savefig(save_path, dpi=150)
     plt.close(fig)
 
 def create_model_comparison_grid(base_dir, save_dir):
-    """
-    Create a grid visualization showing outputs from all models for each sample.
-    
-    Args:
-        base_dir: Path to the base results directory
-        save_dir: Directory to save visualizations
-    """
-    # Find all dataset directories
+    """Walk base_dir (dataset/experiment/sample/model), build comparison grids per sample into save_dir."""
     dataset_dirs = [d for d in base_dir.iterdir() if d.is_dir()]
-    
     for dataset_dir in dataset_dirs:
-        # Skip directories that don't look like dataset directories
         if dataset_dir.name.startswith('.') or dataset_dir.name == 'aggregated_results.csv':
             continue
-            
-        # Find all experiment directories
         experiment_dirs = [d for d in dataset_dir.iterdir() if d.is_dir()]
-        
         for experiment_dir in experiment_dirs:
-            # Find all sample directories
             sample_dirs = [d for d in experiment_dir.iterdir() if d.is_dir()]
-            
             for sample_dir in sample_dirs:
-                # Find all model directories for this sample
                 model_dirs = [d for d in sample_dir.iterdir() if d.is_dir()]
                 
                 if not model_dirs:
@@ -283,17 +207,9 @@ def create_model_comparison_grid(base_dir, save_dir):
                 print(f"Created comparison grid for sample: {sample_dir.name}")
 
 def visualize_model_comparisons(aggregated_results, save_dir):
-    """
-    Create visualizations comparing mean metrics across all models versus baseline.
-    
-    Args:
-        aggregated_results: DataFrame with all results
-        save_dir: Directory to save visualizations
-    """
+    """Bar charts: model vs baseline PSNR, LPIPS, SSIM (mean across samples)."""
     if aggregated_results.empty:
         return
-    
-    # Group by model and projection type to get aggregate statistics
     model_stats = aggregated_results.groupby(['model_type', 'projection_type']).agg({
         'final_psnr': ['mean', 'std'],
         'final_lpips': ['mean', 'std'],
@@ -364,13 +280,7 @@ def visualize_model_comparisons(aggregated_results, save_dir):
     plt.close(fig)
 
 def visualize_per_sample_metrics(aggregated_results, save_dir):
-    """
-    Create visualizations showing metrics for each sample across models.
-    
-    Args:
-        aggregated_results: DataFrame with all results
-        save_dir: Directory to save visualizations
-    """
+    """One PNG per sample: bar charts for PSNR, LPIPS, SSIM, improvement by model."""
     if aggregated_results.empty:
         return
     
@@ -435,13 +345,7 @@ def visualize_per_sample_metrics(aggregated_results, save_dir):
         plt.close(fig)
 
 def visualize_psnr_improvement_heatmap(aggregated_results, save_dir):
-    """
-    Create a heatmap showing PSNR improvement across model-types and samples.
-    
-    Args:
-        aggregated_results: DataFrame with all results
-        save_dir: Directory to save visualizations
-    """
+    """Heatmap: rows = samples, cols = model/projection, values = PSNR improvement (dB)."""
     if aggregated_results.empty:
         return
     
@@ -467,13 +371,7 @@ def visualize_psnr_improvement_heatmap(aggregated_results, save_dir):
     plt.close()
 
 def visualize_metrics_correlation(aggregated_results, save_dir):
-    """
-    Create scatter plots showing correlations between different metrics.
-    
-    Args:
-        aggregated_results: DataFrame with all results
-        save_dir: Directory to save visualizations
-    """
+    """Scatter: PSNR vs LPIPS, PSNR vs SSIM, LPIPS vs SSIM (one color per model)."""
     if aggregated_results.empty:
         return
     
@@ -537,13 +435,7 @@ def visualize_metrics_correlation(aggregated_results, save_dir):
     plt.close()
 
 def visualize_improvement_across_samples(aggregated_results, save_dir):
-    """
-    Create a grouped bar chart showing improvement metrics for each model across all samples.
-    
-    Args:
-        aggregated_results: DataFrame with all results
-        save_dir: Directory to save visualizations
-    """
+    """Grouped bars: PSNR improvement per sample, one series per model."""
     if aggregated_results.empty:
         return
     
@@ -617,13 +509,7 @@ def visualize_improvement_across_samples(aggregated_results, save_dir):
     plt.close()
 
 def visualize_parallel_coordinates(aggregated_results, save_dir):
-    """
-    Create a parallel coordinates plot showing model performance across multiple metrics.
-    
-    Args:
-        aggregated_results: DataFrame with all results
-        save_dir: Directory to save visualizations
-    """
+    """Parallel-coords plot: one line per model, axes = PSNR, LPIPS, SSIM, improvement."""
     if aggregated_results.empty:
         return
     
@@ -683,13 +569,7 @@ def visualize_parallel_coordinates(aggregated_results, save_dir):
     plt.close()
 
 def visualize_metric_rankings(aggregated_results, save_dir):
-    """
-    Create a ranking plot showing how models rank on each metric.
-    
-    Args:
-        aggregated_results: DataFrame with all results
-        save_dir: Directory to save visualizations
-    """
+    """Horizontal bar chart of model rank (1=best) per metric."""
     if aggregated_results.empty:
         return
     
@@ -776,13 +656,7 @@ def visualize_metric_rankings(aggregated_results, save_dir):
     plt.close()
 
 def visualize_performance_distribution(aggregated_results, save_dir):
-    """
-    Create violin plots showing the distribution of performance metrics across models.
-    
-    Args:
-        aggregated_results: DataFrame with all results
-        save_dir: Directory to save visualizations
-    """
+    """Violin + strip plots for PSNR, LPIPS, SSIM, improvement by model."""
     if aggregated_results.empty:
         return
     

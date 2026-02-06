@@ -11,20 +11,12 @@ from torchvision import transforms
 import os
 
 def generate_random_translations(num_samples, max_pixels_x, max_pixels_y=None):
-    """
-    Generate random translations with independent x and y limits.
-    
-    Args:
-        num_samples: Number of translations to generate
-        max_pixels_x: Maximum translation in x direction (in LR space)
-        max_pixels_y: Maximum translation in y direction (in LR space)
-    """
     if max_pixels_y is None:
         max_pixels_y = max_pixels_x
         
     translations = []
     for i in range(num_samples):
-        if i == 0:  # First sample should be unshifted
+        if i == 0:
             dx = 0.0
             dy = 0.0
         else:
@@ -34,29 +26,13 @@ def generate_random_translations(num_samples, max_pixels_x, max_pixels_y=None):
     return translations
 
 def generate_fixed_lr_translations(num_samples, lr_pixel_shifts, factor):
-    """
-    Generate translations that correspond to specific pixel shifts in LR space.
-    
-    Args:
-        num_samples: Number of translations per shift magnitude
-        lr_pixel_shifts: List of desired pixel shifts in LR space (e.g., [0.5, 1.0, 2.0, 4.0])
-        factor: Downsampling factor (to convert LR shifts to HR shifts)
-    """
     translations = []
-    
-    # Always add the unshifted reference sample first
     translations.append((0.0, 0.0))
-    
-    # For each desired LR shift magnitude
     for lr_shift in lr_pixel_shifts:
-        hr_shift = lr_shift * factor  # Convert LR pixels to HR pixels
-        
-        # Generate samples for this shift magnitude
+        hr_shift = lr_shift * factor
         samples_per_shift = (num_samples - 1) // len(lr_pixel_shifts)
         for i in range(samples_per_shift):
-            # Generate random angle
             angle = random.uniform(0, 2 * np.pi)
-            # Calculate x and y components
             dx = hr_shift * np.cos(angle)
             dy = hr_shift * np.sin(angle)
             translations.append((dx, dy))
@@ -64,25 +40,10 @@ def generate_fixed_lr_translations(num_samples, lr_pixel_shifts, factor):
     return translations
 
 def generate_fixed_magnitude_translations(num_samples, lr_pixel_shift, factor):
-    """
-    Generate translations with random x and y shifts within bounds.
-    
-    Args:
-        num_samples: Number of translations to generate
-        lr_pixel_shift: Maximum shift in LR space (for both x and y)
-        factor: Downsampling factor (to convert LR shifts to HR shifts)
-    """
     translations = []
-    
-    # Always add the unshifted reference sample first
     translations.append((0.0, 0.0))
-    
-    # Convert LR shift to HR shift
     hr_shift = lr_pixel_shift * factor
-    
-    # Generate remaining samples with random x and y shifts
     for i in range(num_samples - 1):
-        # Independent random shifts for x and y, each between -hr_shift and +hr_shift
         dx = random.uniform(-hr_shift, hr_shift)
         dy = random.uniform(-hr_shift, hr_shift)
         translations.append((dx, dy))
@@ -90,15 +51,6 @@ def generate_fixed_magnitude_translations(num_samples, lr_pixel_shift, factor):
     return translations
 
 def apply_atmospheric_augmentations(image, seed, augment_params=None):
-    """
-    Apply color jitter augmentations to simulate atmospheric effects.
-    
-    Args:
-        image: Torch tensor image [B, C, H, W] in range [0, 1]
-        seed: Random seed for reproducibility
-        augment_params: Dictionary of augmentation parameters, if None uses defaults
-    """
-    # Set seed for reproducibility
     torch.manual_seed(seed)
     
     if augment_params is None:
@@ -108,11 +60,7 @@ def apply_atmospheric_augmentations(image, seed, augment_params=None):
             'saturation': (0.8, 1.2),
             'hue': (-0.1, 0.1),
         }
-    
-    # Start with original image
     aug_image = image.clone()
-    
-    # Apply color jitter
     saturation_factor = torch.empty(1).uniform_(*augment_params['saturation']).item()
     aug_image = TF.adjust_saturation(aug_image, saturation_factor)
     
