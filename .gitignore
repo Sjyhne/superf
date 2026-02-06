@@ -192,6 +192,7 @@ test_burst/
 
 results*
 handheld/results*
+training_metrics.png
 not_add/
 Synth*
 vizs/

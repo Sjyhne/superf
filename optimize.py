@@ -290,12 +290,7 @@ def optimize_and_evaluate_sample(model, train_data, device, sample_idx, args, ou
         pred_aligned = pred_tensor
         bilinear_aligned = bilinear_tensor
         
-        # Disabled alignment code (causes OOM on small GPUs):
-        # gauss_kernel, ksz = get_gaussian_kernel(sd=1.5)
-        # pred_aligned = align_kornia_brute_force(pred_tensor.squeeze(0), gt_tensor.squeeze(0)).unsqueeze(0)
-        # pred_aligned, _ = match_colors(pred_aligned, gt_tensor, pred_aligned, ksz, gauss_kernel)
-        # bilinear_aligned = align_kornia_brute_force(bilinear_tensor.squeeze(0), gt_tensor.squeeze(0)).unsqueeze(0)
-        # bilinear_aligned, _ = match_colors(bilinear_aligned, gt_tensor, bilinear_aligned, ksz, gauss_kernel)
+        # Spatial alignment disabled (causes OOM on small GPUs).
 
         # Calculate comprehensive metrics using aligned tensors
         model_psnr = peak_signal_noise_ratio(pred_aligned.cpu(), gt_tensor.cpu(), data_range=1.0).item()
@@ -1457,22 +1452,6 @@ def main():
         pred_aligned = pred_tensor
         bilinear_aligned = bilinear_tensor
         
-        # Disabled alignment code (causes OOM on small GPUs):
-        # if args.dataset in ["worldstrat_test", "worldstrat_sweet", "worldstrat_bitter"]:
-        #     print("Skipping spatial alignment for worldstrat_test dataset (images are already aligned)")
-        #     pred_aligned = pred_tensor
-        #     bilinear_aligned = bilinear_tensor
-        #     gauss_kernel, ksz = get_gaussian_kernel(sd=1.5)
-        #     pred_aligned, _ = match_colors(pred_aligned, gt_tensor, pred_aligned, ksz, gauss_kernel)
-        #     bilinear_aligned, _ = match_colors(bilinear_aligned, gt_tensor, bilinear_aligned, ksz, gauss_kernel)
-        # else:
-        #     gauss_kernel, ksz = get_gaussian_kernel(sd=1.5)
-        #     pred_aligned = align_kornia_brute_force(pred_tensor.squeeze(0), gt_tensor.squeeze(0)).unsqueeze(0)
-        #     pred_aligned, _ = match_colors(pred_aligned, gt_tensor, pred_aligned, ksz, gauss_kernel)
-        #     bilinear_aligned = align_kornia_brute_force(bilinear_tensor.squeeze(0), gt_tensor.squeeze(0)).unsqueeze(0)
-        #     bilinear_aligned, _ = match_colors(bilinear_aligned, gt_tensor, bilinear_aligned, ksz, gauss_kernel)
-
-
         # PSNR - using aligned tensors for fair comparison
         model_psnr = peak_signal_noise_ratio(pred_aligned.cpu(), gt_tensor.cpu(), data_range=1.0).item()
         bilinear_psnr = peak_signal_noise_ratio(bilinear_aligned.cpu(), gt_tensor.cpu(), data_range=1.0).item()
