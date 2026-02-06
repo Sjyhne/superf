@@ -3,19 +3,8 @@
 [![arXiv](https://img.shields.io/badge/arXiv-2512.09115-b31b1b.svg)](https://arxiv.org/abs/2512.09115)
 [![Project Page](https://img.shields.io/badge/Project-Page-blue)](https://sjyhne.github.io/superf/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
-[![PyTorch 2.0+](https://img.shields.io/badge/PyTorch-2.0%2B-ee4c2c.svg)](https://pytorch.org/)
 
 A test-time optimization approach for multi-image super-resolution (MISR) that leverages coordinate-based neural networks (implicit neural representations). SuperF reconstructs high-resolution imagery from multiple shifted low-resolution frames **without requiring high-resolution training data**.
-
-## Key Features
-
-- **Joint Optimization**: Shares a single INR across multiple low-resolution frames while simultaneously optimizing sub-pixel frame alignment
-- **Affine Transformation Parameterization**: Directly parameterizes alignment as optimizable affine transformation parameters
-- **Super-sampled Coordinate Grid**: Optimizes on a grid corresponding to the desired output resolution
-- **Uncertainty Estimation**: Learns pixel-wise confidence maps to identify and downweight unreliable pixels (e.g., clouds in satellite imagery)
-- **Training-Data Independent**: Operates without requiring high-resolution training datasets
-- **Versatile**: Handles both satellite imagery and handheld camera bursts with upsampling factors up to 8x
 
 ## Installation
 
@@ -31,19 +20,7 @@ pip install -e .
 pip install -e ".[dev]"
 ```
 
-**Requirements**: Python 3.10+, PyTorch 2.0+, CUDA-capable GPU recommended
-
-**Optional — Handheld bursts**: The script `run_handheld.py` provides super-resolution for handheld camera bursts. It requires the separate `handheld` Python package (not included in this repo). The main entry point `optimize.py` does not depend on `handheld` and works for satellite and synthetic data only.
-
 ## Quick Start
-
-### Generate Synthetic Training Data
-
-Create synthetic multi-frame data from a single image:
-
-```bash
-python create_data_from_single_image.py --input_image path/to/image.png --output_dir data/sample_1
-```
 
 ### Run Super-Resolution
 
@@ -71,6 +48,15 @@ python optimize.py --dataset worldstrat --root_worldstrat ~/data/worldstrat_kagg
 python optimize.py --dataset worldstrat --root_worldstrat ~/data/worldstrat_kaggle/ \
     --area_name "UNHCR-SYRs008164" --df 4 --num_samples 8 --iters 10000 --rotation True
 ```
+
+### Generate Synthetic Training Data
+
+Create synthetic multi-frame data from a single image:
+
+```bash
+python create_data_from_single_image.py --input_image path/to/image.png --output_dir data/sample_1
+```
+
 
 ## Method Overview
 
