@@ -61,7 +61,7 @@ def read_force_boa_rgb(path: Path, band_indices: tuple[int, int, int] = (0, 1, 2
     else:
         data = np.asarray(data, dtype=np.float32)
         if data.shape[0] in (3, 4, 6, 10):
-                r = np.clip(data[band_indices[0]], 0, None)
+            r = np.clip(data[band_indices[0]], 0, None)
             g = np.clip(data[band_indices[1]], 0, None)
             b = np.clip(data[band_indices[2]], 0, None)
             r[r == nodata] = np.nan
