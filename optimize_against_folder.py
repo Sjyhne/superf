@@ -720,12 +720,12 @@ def main():
 
     # Model parameters
     parser.add_argument("--model", type=str, default="mlp",
-                       choices=["mlp", "siren", "wire", "linear", "conv", "thera"])
+                       choices=["mlp", "nir"])
     parser.add_argument("--network_depth", type=int, default=4)
     parser.add_argument("--network_hidden_dim", type=int, default=256)
     parser.add_argument("--projection_dim", type=int, default=256)
     parser.add_argument("--input_projection", type=str, default="fourier_10",
-                       choices=["linear", "fourier_10", "fourier_5", "fourier_20", "fourier_40", "fourier", "legendre", "none"])
+                       choices=["fourier_10", "fourier_5", "fourier_20", "fourier_40", "fourier"])
     parser.add_argument("--fourier_scale", type=float, default=10)
     parser.add_argument("--use_gnll", action="store_true")
 

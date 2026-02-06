@@ -1123,12 +1123,12 @@ def main():
     
     # Model parameters
     parser.add_argument("--model", type=str, default="mlp", 
-                       choices=["mlp", "siren", "wire", "linear", "conv", "thera", "nir"])
+                       choices=["mlp", "nir"])
     parser.add_argument("--network_depth", type=int, default=4)
     parser.add_argument("--network_hidden_dim", type=int, default=256)
     parser.add_argument("--projection_dim", type=int, default=256)
     parser.add_argument("--input_projection", type=str, default="fourier_10", 
-                       choices=["linear", "fourier_10", "fourier_5", "fourier_20", "fourier_40", "fourier", "legendre", "none"])
+                       choices=["fourier_10", "fourier_5", "fourier_20", "fourier_40", "fourier"])
     parser.add_argument("--fourier_scale", type=float, default=10.0)
     parser.add_argument("--use_gnll", action="store_true")
     parser.add_argument("--use_separate_ud", action="store_true", help="Use separate UD parameters for each sample (default: False)")
@@ -1168,6 +1168,8 @@ def main():
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 
+    if args.input_projection.startswith("fourier_"):
+        args.fourier_scale = float(args.input_projection.split("_")[1])
     args.input_projection = "fourier"
 
     # Setup dataset

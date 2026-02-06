@@ -32,9 +32,8 @@ python optimize.py --dataset satburst_synth --sample_id sample_1 --df 4 --iters 
 python optimize.py --dataset satburst_synth --sample_id sample_1 --df 4 --iters 2000 \
     --use_gnll --variance_reg 0.001
 
-# Different model architectures
-python optimize.py --model siren --input_projection fourier_10 --df 4 --iters 2000
-python optimize.py --model wire --input_projection fourier_10 --df 4 --iters 2000
+# Alternative model (NIR)
+python optimize.py --model nir --input_projection fourier_10 --df 4 --iters 2000
 ```
 
 ### Complete example (all arguments)
@@ -160,8 +159,8 @@ For synthetic experiments, training data is generated as follows:
 | `--sample_id` | Sample identifier | `Landcover-743192_rgb` |
 | `--df` | Downsampling factor (2, 4, or 8) | `4` |
 | `--num_samples` | Number of LR frames | `16` |
-| `--model` | Model: `mlp`, `siren`, `wire`, `linear`, `conv`, `thera`, `nir` | `mlp` |
-| `--input_projection` | Projection: `fourier_10`, `fourier_20`, `legendre`, `linear`, `none` | `fourier_10` |
+| `--model` | Model: `mlp`, `nir` | `mlp` |
+| `--input_projection` | Fourier projection scale: `fourier_10`, `fourier_5`, `fourier_20`, `fourier_40`, `fourier` | `fourier_10` |
 | `--iters` | Training iterations | `1000` |
 | `--use_gnll` | Enable Gaussian NLL for uncertainty | `False` |
 | `--rotation` | Optimize rotation angle | `False` |
