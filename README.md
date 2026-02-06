@@ -30,12 +30,45 @@ python optimize.py --dataset satburst_synth --sample_id sample_1 --df 4 --iters 
 
 # With uncertainty estimation
 python optimize.py --dataset satburst_synth --sample_id sample_1 --df 4 --iters 2000 \
-    --use_gnll --use_direct_gnll --variance_reg 0.001
+    --use_gnll --variance_reg 0.001
 
 # Different model architectures
 python optimize.py --model siren --input_projection fourier_10 --df 4 --iters 2000
 python optimize.py --model wire --input_projection fourier_10 --df 4 --iters 2000
 ```
+
+### Complete example (all arguments)
+
+A single fully specified run using every argument (synthetic data; ensure `data/sample_1` exists, e.g. via `create_data_from_single_image.py`):
+
+```bash
+python optimize.py \
+  --dataset satburst_synth \
+  --sample_id sample_1 \
+  --df 4 \
+  --scale_factor 4 \
+  --lr_shift 1.0 \
+  --num_samples 16 \
+  --aug none \
+  --model mlp \
+  --network_depth 4 \
+  --network_hidden_dim 256 \
+  --projection_dim 256 \
+  --input_projection fourier_10 \
+  --fourier_scale 10.0 \
+  --use_gnll \
+  --use_separate_ud \
+  --variance_reg 0.001 \
+  --variance_smooth_reg 0.0001 \
+  --visualize_variance \
+  --iters 2000 \
+  --learning_rate 2e-3 \
+  --weight_decay 0.05 \
+  --seed 6 \
+  --device 0
+```
+
+Optional flags you can add when needed: `--no_base_frame`, `--no_direct_param_T`, `--use_color_shift`, `--no_variance_viz`. For multi-sample runs add `--multi_sample` and `--output_folder <dir>`.
 
 ### Training on Real Satellite Data (WorldStrat)
 
@@ -48,6 +81,48 @@ python optimize.py --dataset worldstrat --root_worldstrat ~/data/worldstrat_kagg
 python optimize.py --dataset worldstrat --root_worldstrat ~/data/worldstrat_kaggle/ \
     --area_name "UNHCR-SYRs008164" --df 4 --num_samples 8 --iters 10000 --rotation True
 ```
+
+### Extract from FORCE Datacube
+
+If your data is in a [FORCE](https://force-eo.readthedocs.io/) datacube (Landsat/Sentinel-2 Level 2 or 3, organised by tiles like `X0134_Y0097`), you can extract RGB images from one tile and then run super-resolution on that folder.
+
+**Step 1 — Extract**  
+`extract_force_datacube.py` finds reflectance GeoTIFFs (BOA or TOA) in the given tile, reads the first three bands as RGB, scales to 0–255, and writes PNGs plus a short manifest. Each date/sensor becomes one image; multiple images in the folder act as the multi-frame input for SuperF.
+
+```bash
+# Required: path to datacube root and tile ID
+python extract_force_datacube.py --datacube /path/to/level2 --tile X0134_Y0097 --output_dir force_extract
+
+# Optional: limit to a date range and cap the number of images
+python extract_force_datacube.py --datacube /path/to/level2 --tile X0134_Y0097 --output_dir force_extract \
+    --date_from 20200101 --date_to 20201231 --max_files 16
+
+# Optional: only certain sensors (e.g. Sentinel-2A and Landsat 8)
+python extract_force_datacube.py --datacube /path/to/level2 --tile X0134_Y0097 --output_dir force_extract \
+    --sensors SEN2A LND08 --max_files 12
+```
+
+**Step 2 — Super-resolution**  
+Point `optimize_against_folder.py` at the extracted folder. It will use all PNGs in that folder as LR frames and output a super-resolved result.
+
+```bash
+python optimize_against_folder.py --input_folder force_extract --output_folder sr_results --df 2
+```
+
+**Useful options for `extract_force_datacube.py`:**
+
+| Option | Description |
+|--------|-------------|
+| `--datacube` | Path to FORCE datacube root (e.g. directory containing tile folders). |
+| `--tile` | Tile ID (e.g. `X0134_Y0097`). |
+| `--output_dir` | Where to write PNGs (default: `force_extract`). |
+| `--product` | `BOA` (default) or `TOA`. |
+| `--date_from` / `--date_to` | Filter by acquisition date (`YYYYMMDD`). |
+| `--sensors` | Only include these sensor IDs (e.g. `SEN2A`, `LND08`). |
+| `--max_files` | Maximum number of images to extract. |
+| `--band_indices` | 0-based R,G,B band indices (default: `0 1 2`). |
+
+Run `python extract_force_datacube.py --help` for the full list.
 
 ### Generate Synthetic Training Data
 

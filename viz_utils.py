@@ -305,7 +305,7 @@ def visualize_model_comparisons(aggregated_results, save_dir):
     }).reset_index()
     
     # Create labels for x-axis
-    labels = [f"{row['model_type'][0]}_{row['projection_type'][0]}" for _, row in model_stats.iterrows()]
+    labels = [f"{row['model_type']}_{row['projection_type']}" for _, row in model_stats.iterrows()]
     x = np.arange(len(labels))
     
     # Set width of bars
