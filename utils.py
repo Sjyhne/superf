@@ -2,6 +2,7 @@ import torch
 import torch.nn.functional as F
 import cv2
 import numpy as np
+import math
 from typing import Tuple
 
 
@@ -33,6 +34,53 @@ def downsample_cv2(image, size):
 
 def bilinear_resize_torch(image, size, antialiasing=True):
     return F.interpolate(image, size=size, mode='bilinear', align_corners=False, antialias=antialiasing)
+
+def sentinel2_psf_downsample_torch(image: torch.Tensor, factor: int, truncate: float = 4.0) -> torch.Tensor:
+    """Simulate Sentinel-2 lower-resolution observations with PSF blur and box downsampling.
+
+    Follows the DSen2 reduced-resolution setup: blur with a Gaussian of sigma=1/factor
+    pixels, then average over non-overlapping factor x factor windows.
+    """
+    factor_int = int(factor)
+    if factor_int != factor:
+        raise ValueError(f"Downsampling factor must be an integer, got {factor}.")
+    factor = factor_int
+    if factor < 1:
+        raise ValueError(f"Downsampling factor must be >= 1, got {factor}.")
+    if factor == 1:
+        return image.clone()
+    if image.dim() not in (3, 4):
+        raise ValueError(f"Expected CHW or NCHW tensor, got shape {tuple(image.shape)}.")
+    if not image.is_floating_point():
+        raise ValueError(f"Expected a floating point image tensor, got dtype {image.dtype}.")
+    if image.shape[-2] < factor or image.shape[-1] < factor:
+        raise ValueError(
+            f"Image spatial size {tuple(image.shape[-2:])} is smaller than factor {factor}."
+        )
+
+    squeeze_batch = image.dim() == 3
+    if squeeze_batch:
+        image = image.unsqueeze(0)
+
+    sigma = 1.0 / factor
+    radius = max(1, int(math.ceil(truncate * sigma)))
+    coords = torch.arange(-radius, radius + 1, device=image.device, dtype=image.dtype)
+    kernel_1d = torch.exp(-0.5 * (coords / sigma) ** 2)
+    kernel_1d = kernel_1d / kernel_1d.sum()
+
+    channels = image.shape[1]
+    kernel_x = kernel_1d.view(1, 1, 1, -1).repeat(channels, 1, 1, 1)
+    pad_mode_x = "reflect" if image.shape[-1] > radius else "replicate"
+    blurred = F.pad(image, (radius, radius, 0, 0), mode=pad_mode_x)
+    blurred = F.conv2d(blurred, kernel_x, groups=channels)
+
+    kernel_y = kernel_1d.view(1, 1, -1, 1).repeat(channels, 1, 1, 1)
+    pad_mode_y = "reflect" if blurred.shape[-2] > radius else "replicate"
+    blurred = F.pad(blurred, (0, 0, radius, radius), mode=pad_mode_y)
+    blurred = F.conv2d(blurred, kernel_y, groups=channels)
+
+    downsampled = F.avg_pool2d(blurred, kernel_size=factor, stride=factor)
+    return downsampled.squeeze(0) if squeeze_batch else downsampled
 
 # Color transfer (histogram match). Ref: https://gist.github.com/ProGamerGov/d032aa6780d8ef234f3ce67b177f3c14
 def color_transfer(
@@ -164,5 +212,3 @@ def get_valid_mask(input: torch.Tensor, reference: torch.Tensor) -> torch.Tensor
     
     valid_mask = (input_valid & reference_valid)[None, None, ...]
     return valid_mask
-
-

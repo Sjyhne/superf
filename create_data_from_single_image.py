@@ -5,7 +5,7 @@ import random
 import json
 import torch
 import torch.nn.functional as F
-from utils import apply_shift_torch, bilinear_resize_torch
+from utils import apply_shift_torch, sentinel2_psf_downsample_torch
 import torchvision.transforms.functional as TF
 from torchvision import transforms
 import os
@@ -264,15 +264,11 @@ if __name__ == "__main__":
                                 hr_np = (permuted_patch.cpu().numpy() * 255).astype(np.uint8) + noise
                                 hr_np = np.clip(hr_np, 0, 255).astype(np.uint8)
                             
-                            # 4. Downsample to LR
-                            if hr_patch_size is None:
-                                # Calculate LR size based on original dimensions
-                                lr_height, lr_width = height // factor, width // factor
-                            else:
-                                lr_height = lr_width = hr_patch_size // factor
-                            
-                            # Noise is applied in HR space before downsampling
-                            shifted_lr = bilinear_resize_torch(shifted_patch, (lr_height, lr_width))
+                            # 4. Downsample to LR with the Sentinel-2 PSF simulation from DSen2:
+                            #    Gaussian blur with sigma=1/factor pixels, then factor x factor
+                            #    window averaging.
+                            shifted_lr = sentinel2_psf_downsample_torch(shifted_patch, factor)
+                            lr_height, lr_width = shifted_lr.shape[-2:]
 
                             # Save LR sample
                             lr_np = (shifted_lr[0].permute(1, 2, 0).cpu().numpy() * 255).astype(np.uint8)
@@ -291,7 +287,13 @@ if __name__ == "__main__":
                                 'magnitude_pixels_lr': np.sqrt((dx/factor)**2 + (dy/factor)**2),
                                 'shape': lr_np.shape,
                                 'path': f"sample_{i:02d}.png",
-                                'augmentation': aug_type
+                                'augmentation': aug_type,
+                                'downsampling': {
+                                    'method': 'sentinel2_psf_gaussian_blur_avg_pool',
+                                    'factor': factor,
+                                    'gaussian_sigma_pixels': 1.0 / factor if factor > 1 else 0.0,
+                                    'window_size_pixels': factor
+                                }
                             }
                         
                         # Save transform log

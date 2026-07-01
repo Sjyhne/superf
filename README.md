@@ -148,7 +148,7 @@ For synthetic experiments, training data is generated as follows:
 1. Start with an HR image (e.g., 256x256)
 2. Upsample 2x using bilinear interpolation (512x512)
 3. Apply 16 random sub-pixel translations (-6 to +6 pixels)
-4. Create HR-LR pairs by downsampling each translated version
+4. Create HR-LR pairs with Sentinel-2-style degradation: Gaussian PSF blur (`sigma = 1 / factor` pixels), then `factor x factor` window averaging
 5. Track all transformation parameters for evaluation
 
 ## Parameters
